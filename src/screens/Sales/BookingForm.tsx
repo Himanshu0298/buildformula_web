@@ -77,11 +77,6 @@ const BookingForm = () => {
                   name="visitors_details"
                   type="text"
                 />
-                <div className="input-group-append">
-                  <button className="btn btn-lightblue-primary lbps-btn btn-search-append">
-                    Search
-                  </button>
-                </div>
               </div>
 
               <div className="form-row">
@@ -166,11 +161,6 @@ const BookingForm = () => {
                   </svg>
                 </div>
                 <input className="form-control" type="text" />
-                <div className="input-group-append">
-                  <button className="btn btn-lightblue-primary lbps-btn btn-search-append">
-                    Search
-                  </button>
-                </div>
               </div>
 
               <div className="form-row">
@@ -215,7 +205,7 @@ const BookingForm = () => {
           </div>
 
           <div className="booking-form-box shwan-form container-fluid">
-            <div className="w-100 align-items-end">
+            <div className="row w-100 align-items-end ml-0">
               <div className="booking-form-col-12 col-8">
                 <h5>BASIC AMOUNT</h5>
 
