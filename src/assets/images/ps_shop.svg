@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 80 80" style="enable-background:new 0 0 80 80;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#00CEB3;}
+	.st1{fill:#00AE93;}
+	.st2{fill:#CA5C49;}
+	.st3{fill:#9E4127;}
+	.st4{fill:#A2EE00;}
+	.st5{fill:#76D400;}
+	.st6{fill:#00BD00;}
+	.st7{fill:#041D36;}
+	.st8{fill:#4872F4;}
+	.st9{fill:#9BA5AF;}
+	.st10{fill:#FFFFFF;}
+	.st11{fill:#50E6FF;}
+	.st12{fill:#35C1F1;}
+	.st13{fill:#2E92ED;}
+	.st14{fill:#0078D4;}
+	.st15{fill:#184F85;}
+	.st16{fill:#0C63AD;}
+	.st17{fill:#727D86;}
+	.st18{fill:url(#SVGID_1_);}
+	.st19{fill:#F6F7FB;}
+	.st20{opacity:0.41;}
+	.st21{filter:url(#Adobe_OpacityMaskFilter);}
+	.st22{mask:url(#SVGID_2_);}
+	.st23{opacity:0.45;}
+	.st24{filter:url(#Adobe_OpacityMaskFilter_1_);}
+	.st25{mask:url(#SVGID_3_);}
+	.st26{opacity:0.59;}
+	.st27{filter:url(#Adobe_OpacityMaskFilter_2_);}
+	.st28{mask:url(#SVGID_4_);}
+	.st29{filter:url(#Adobe_OpacityMaskFilter_3_);}
+	.st30{mask:url(#SVGID_5_);}
+	.st31{filter:url(#Adobe_OpacityMaskFilter_4_);}
+	.st32{mask:url(#SVGID_6_);}
+</style>
+<g>
+	<rect x="7.88" y="17.68" class="st10" width="65.64" height="54.12"/>
+	<g>
+		<g>
+			<path class="st8" d="M66.85,13.42H7.47c-2.1,0-3.81,1.71-3.81,3.81v56.01c0,1.56,1.26,2.82,2.82,2.82H74.9
+				c1.56,0,2.82-1.26,2.82-2.82V24.29C77.73,18.28,72.86,13.42,66.85,13.42z M73.51,71.8H7.88V17.68h65.64V71.8z"/>
+		</g>
+	</g>
+	<rect x="13.95" y="47.46" class="st8" width="15.33" height="24.33"/>
+	<g class="st20">
+		<defs>
+			<filter id="Adobe_OpacityMaskFilter" filterUnits="userSpaceOnUse" x="1.61" y="28.63" width="76.11" height="7.8">
+				<feFlood  style="flood-color:white;flood-opacity:1" result="back"/>
+				<feBlend  in="SourceGraphic" in2="back" mode="normal"/>
+			</filter>
+		</defs>
+		<mask maskUnits="userSpaceOnUse" x="1.61" y="28.63" width="76.11" height="7.8" id="SVGID_1_">
+			<g class="st21">
+				
+					<image style="overflow:visible;" width="81" height="13" xlink:href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAgEASABIAAD/7AARRHVja3kAAQAEAAAAHgAA/+4AIUFkb2JlAGTAAAAAAQMA
+EAMCAwYAAAGRAAABzgAAAhr/2wCEABALCwsMCxAMDBAXDw0PFxsUEBAUGx8XFxcXFx8eFxoaGhoX
+Hh4jJSclIx4vLzMzLy9AQEBAQEBAQEBAQEBAQEABEQ8PERMRFRISFRQRFBEUGhQWFhQaJhoaHBoa
+JjAjHh4eHiMwKy4nJycuKzU1MDA1NUBAP0BAQEBAQEBAQEBAQP/CABEIAA0AUQMBIgACEQEDEQH/
+xAB4AAEBAQEAAAAAAAAAAAAAAAAABAUGAQEAAAAAAAAAAAAAAAAAAAAAEAABAwQBBQAAAAAAAAAA
+AAAABBYmAQIDBSAREhQVBhEAAQMDBQEAAAAAAAAAAAAAAAGRMhFBoRAhMQIUAxIBAAAAAAAAAAAA
+AAAAAAAAIP/aAAwDAQACEQMRAAAA5LXwtItSCtIK0gpy6YDPB//aAAgBAgABBQDl/9oACAEDAAEF
+AOX/2gAIAQEAAQUA1etxrLbfl0laNVINVINVINVINVINVIXfLpKU2epxJMYg8/pa4CREiJESIkRI
+irgF3suw/9oACAECAgY/AF//2gAIAQMCBj8AX//aAAgBAQEGPwCvdabklckrklckrklckrklckri
+9vmvGi+Xg2pktktktktktktk3pkX0xvTT//Z" transform="matrix(1 0 0 1 -0.5816 26)">
+				</image>
+			</g>
+		</mask>
+		<g style="mask:url(#SVGID_1_);">
+			<path d="M75.2,36.43H4.14c-1.39,0-2.53-1.13-2.53-2.53v-2.75c0-1.39,1.13-2.53,2.53-2.53H75.2c1.39,0,2.53,1.13,2.53,2.53v2.75
+				C77.73,35.3,76.59,36.43,75.2,36.43z"/>
+		</g>
+	</g>
+	<g>
+		<path class="st7" d="M4.13,11.43L0.1,29.01c-0.57,2.5,1.33,4.88,3.89,4.88h72.02c2.6,0,4.5-2.44,3.87-4.96l-4.14-17.51H4.13z"/>
+		<rect x="4.13" y="3.94" class="st7" width="71.6" height="7.49"/>
+		<path class="st10" d="M72.06,12.31H7.72L4.55,28.05c-0.15,0.76,0.43,1.47,1.2,1.47h68.48c0.78,0,1.36-0.72,1.2-1.48L72.06,12.31z"
+			/>
+	</g>
+</g>
+</svg>

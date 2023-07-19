@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#00CEB3;}
+	.st1{fill:#00AE93;}
+	.st2{fill:#CA5C49;}
+	.st3{fill:#9E4127;}
+	.st4{fill:#A2EE00;}
+	.st5{fill:#76D400;}
+	.st6{fill:#00BD00;}
+	.st7{fill:#041D36;}
+	.st8{fill:#4872F4;}
+	.st9{fill:#9BA5AF;}
+	.st10{fill:#FFFFFF;}
+	.st11{fill:#50E6FF;}
+	.st12{fill:#35C1F1;}
+	.st13{fill:#2E92ED;}
+	.st14{fill:#0078D4;}
+	.st15{fill:#184F85;}
+	.st16{fill:#0C63AD;}
+	.st17{fill:#727D86;}
+	.st18{fill:url(#SVGID_1_);}
+	.st19{opacity:0.45;}
+	.st20{filter:url(#Adobe_OpacityMaskFilter);}
+	.st21{mask:url(#SVGID_2_);}
+	.st22{fill:#F6F7FB;}
+	.st23{opacity:0.59;}
+	.st24{filter:url(#Adobe_OpacityMaskFilter_1_);}
+	.st25{mask:url(#SVGID_3_);}
+	.st26{filter:url(#Adobe_OpacityMaskFilter_2_);}
+	.st27{mask:url(#SVGID_4_);}
+	.st28{filter:url(#Adobe_OpacityMaskFilter_3_);}
+	.st29{mask:url(#SVGID_5_);}
+</style>
+<g>
+	<polygon class="st8" points="47.26,229.84 248.46,24.17 463.72,229.84 439.25,336.9 214.9,350.82 	"/>
+	<rect x="47.26" y="229.84" class="st8" width="416.45" height="282.16"/>
+	<path class="st7" d="M1.01,241.65L247.05,0l264.97,258.53c0.05,0.05,0.05,0.13,0,0.18l-34.77,33.41c-0.05,0.05-0.13,0.05-0.18,0
+		L247.05,62.11L35.37,273.79L1.01,241.65z"/>
+	<g>
+		<line x1="463.71" y1="278.77" x2="414.78" y2="229.84"/>
+		<polyline class="st10" points="389.89,229.84 463.71,303.66 463.71,278.77 414.78,229.84 247.05,62.11 79.32,229.84 47.26,261.9 
+			47.26,286.79 104.21,229.84 247.05,87 389.89,229.84 		"/>
+	</g>
+	<rect x="128.18" y="335.89" class="st10" width="111.65" height="176.11"/>
+	<rect x="271.67" y="320.11" class="st10" width="48.08" height="48.08"/>
+	<rect x="335.45" y="320.11" class="st10" width="48.08" height="48.08"/>
+	<rect x="271.67" y="256" class="st10" width="48.08" height="48.08"/>
+	<rect x="335.45" y="256" class="st10" width="48.08" height="48.08"/>
+</g>
+</svg>
