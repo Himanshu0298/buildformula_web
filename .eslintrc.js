@@ -20,7 +20,7 @@ module.exports = {
       jsx: true,
     },
   },
-  plugins: ['react', 'jsx-a11y', 'simple-import-sort', 'material-ui', 'prettier'],
+  plugins: ['react', 'jsx-a11y', 'simple-import-sort', 'prettier'],
   ignorePatterns: ['.history/*', 'webpack/*.js'],
   rules: {
     'no-unused-vars': 'off',
