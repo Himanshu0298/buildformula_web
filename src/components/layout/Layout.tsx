@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import TopNav from '../molecules/TopNav/TopNav';
 import SideNav from '../molecules/SideNav/SideNav';
 

@@ -1,3 +1,4 @@
+import * as React from 'react'
 import './App.css';
 import BookingForm from './screens/Sales/BookingForm';
 import { BrowserRouter, Routes } from "react-router-dom";
