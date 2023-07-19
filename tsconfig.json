@@ -23,6 +23,6 @@
     "allowJs": true,
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": ["src","type.d.ts"],
   "exclude": [".history", "node_modules"]
 }

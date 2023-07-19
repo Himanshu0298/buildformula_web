@@ -1,15 +1,12 @@
+import Layout from 'components/layout/Layout';
 import './App.css';
-
-import * as React from 'react';
-import { BrowserRouter, Routes } from 'react-router-dom';
-
-import BookingForm from './screens/Sales/BookingForm';
+import WebRoutes from 'navigation/WebRoutes';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes />
-    </BrowserRouter>
+    <Layout>
+      <WebRoutes />
+    </Layout>
   );
 }
 
