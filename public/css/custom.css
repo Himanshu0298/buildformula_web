@@ -90,25 +90,16 @@ input:focus {
 }
 
 
-.btn {
-  font-family: "nunitosemibold" !important;
-  border-radius: 12px !important;
-  padding: 12px 36px !important;
-  line-height: 22px !important;
-  font-size: 16px !important;
-  transition: all 0.5s !important;
-  -moz-box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1) !important; 
-  -webkit-box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1) !important;
-  box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1) !important;
-  display: initial !important;
-    font-weight: initial !important;
-    color: initial !important;
-    text-align: initial !important;
-    vertical-align: initial !important;
-    -webkit-user-select: initial !important;
-    user-select: initial !important;
-    background-color: initial !important;
-    border: initial !important;
+.Btn {
+  font-family: "nunitosemibold";
+  border-radius: 12px;
+  padding: 12px 36px;
+  line-height: 22px;
+  font-size: 16px;
+  transition: all 0.5s;
+  -moz-box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1); 
+  -webkit-box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1);
+  box-shadow: 0px 0px 0px rgba(68, 68, 68, 0.1);
 }
 
 a.btn-lightblue-primary:hover {
@@ -298,7 +289,7 @@ a.btn-lightblue-primary:hover {
   margin-top: 50px;
 }
 
-.shwan-form .btn {
+.shwan-form .Btn {
   min-width: 300px;
   /*display: block;
     margin: 0 auto;*/
@@ -694,7 +685,7 @@ a.btn-lightblue-primary:hover {
   transform: rotate(45deg);
 }
 
-.project-detail-form .form-btn .btn {
+.project-detail-form .form-btn .Btn {
   min-width: 150px;
 }
 
@@ -891,7 +882,7 @@ a.btn-lightblue-primary:hover {
   opacity: 1;
 }
 
-.project-structure-footer .btn {
+.project-structure-footer .Btn {
   min-width: 150px;
 }
 
@@ -1127,7 +1118,7 @@ a.btn-lightblue-primary:hover {
   margin-top: 70px;
 }
 
-.floor-footer .btn {
+.floor-footer .Btn {
   min-width: 150px;
 }
 
@@ -1266,7 +1257,7 @@ a.btn-lightblue-primary:hover {
   padding: 20px 0 0;
 }
 
-.bhk-btn-grp .btn {
+.bhk-btn-grp .Btn {
   margin-right: 30px;
   margin-top: 15px;
   transition: all 0.5s;
@@ -2704,7 +2695,7 @@ a.btn-lightblue-primary:hover {
   margin: 0 auto;
 }
 
-.add-pipline-body .btn {
+.add-pipline-body .Btn {
   min-width: 130px;
   margin: 0 auto;
 }
@@ -3666,9 +3657,9 @@ a.btn-lightblue-primary:hover {
   margin: 0 0 15px 0 !important;
 }
 
-.booking-form-box .btn {
-  margin: auto auto 0 0 !important;
-  min-width: 130px !important;
+.booking-form-box .Btn {
+  margin: auto auto 0 0;
+  min-width: 130px;
 }
 
 .btn.add-blue-btn {
@@ -3715,8 +3706,12 @@ a.btn-lightblue-primary:hover {
   justify-content: flex-start;
 }
 
-.bookingform-footer .btn {
+.bookingform-footer .Btn {
   margin: 0 36px 0 0;
+}
+
+.table td{
+  vertical-align: middle !important;
 }
 
 .pers-control {
@@ -3995,7 +3990,7 @@ a.btn-lightblue-primary:hover {
   margin-bottom: 25px;
 }
 
-.reqform-footer .btn {
+.reqform-footer .Btn {
   min-width: 130px;
 }
 
@@ -4644,7 +4639,7 @@ a.btn-lightblue-primary:hover {
   margin: 0 0 30px 0;
 }
 
-.customer-sec-detail-form .bookingform-footer .btn {
+.customer-sec-detail-form .bookingform-footer .Btn {
   min-width: auto;
 }
 
@@ -4771,7 +4766,7 @@ a.btn-lightblue-primary:hover {
   align-items: center;
 }
 
-.cs-cl-opbtn .btn {
+.cs-cl-opbtn .Btn {
   margin: 0 7px;
 }
 
@@ -4967,7 +4962,7 @@ a.btn-lightblue-primary:hover {
   box-shadow: none;
 }
 
-.custom-inp-group .btn {
+.custom-inp-group .Btn {
   padding: 15px;
   display: flex;
   align-items: center;
@@ -5542,7 +5537,7 @@ a.btn-lightblue-primary:hover {
   margin-top: 20px;
 }
 
-.add-ur-user-form .bookingform-footer .btn {
+.add-ur-user-form .bookingform-footer .Btn {
   min-width: 130px;
 }
 
@@ -7089,7 +7084,7 @@ span.list-index {
   margin-top: 13px;
 }
 
-.activity-btngrp .btn {
+.activity-btngrp .Btn {
   min-width: 130px;
   margin-right: 0;
   margin-left: 32px;
@@ -7121,7 +7116,7 @@ span.list-index {
   color: #fff;
 }
 
-.small-btn-grp .btn {
+.small-btn-grp .Btn {
   padding: 7px;
   min-width: 80px;
 }
@@ -8113,7 +8108,7 @@ span.list-index {
   width: calc(100% - 80px);
 }
 
-.add-act-crd-group .btn {
+.add-act-crd-group .Btn {
   padding: 6px 12px;
   min-width: auto;
 }
@@ -9236,7 +9231,7 @@ span.list-index {
   justify-content: space-between;
 }
 
-.rhi-item .rm-opbtn .btn {
+.rhi-item .rm-opbtn .Btn {
   padding: 6px 26px;
 }
 
@@ -9586,7 +9581,7 @@ span.list-index {
   margin: 0 16px 0 0;
 }
 
-.bh-btn-grp .btn {
+.bh-btn-grp .Btn {
   margin: 0 5px;
   padding: 6px 25px;
 }
@@ -9713,7 +9708,7 @@ span.list-index {
   margin: 0;
 }
 
-.create-praposal .activity-btngrp .btn {
+.create-praposal .activity-btngrp .Btn {
   padding: 6px 20px;
   margin-left: 16px;
 }
@@ -10799,7 +10794,7 @@ span.list-index {
   border-radius: 8px;
 }
 
-.share-link-popup .btn {
+.share-link-popup .Btn {
   min-width: 100px;
   padding: 6px;
   margin: 0 0 0 10px;
@@ -14778,7 +14773,7 @@ nav.new-main-menu.expanded {
   margin-bottom: 6px;
 }
 
-.user-profile-card.shwan-form .btn {
+.user-profile-card.shwan-form .Btn {
   min-width: 160px;
 }
 
