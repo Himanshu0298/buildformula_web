@@ -1,12 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { useAppDispatch } from 'redux/store';
 import * as visitorService from 'services/sales';
 import { processError } from 'utils/constant';
 import { handleLoading, handleReject } from 'utils/reduxUtils';
 
-import { CommonParams, IVisitor } from './salesInterface';
+import { CommonParams, ISalesState, IVisitor } from './salesInterface';
 
-const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
+export const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
   'getVisitorsList',
   async (params, thunkApi) => {
     try {
@@ -20,9 +19,9 @@ const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
   },
 );
 
-const initialState = {
+const initialState: ISalesState = {
   loading: false,
-  visitorsList: [],
+  visitorList: [],
 };
 
 const salesSlice = createSlice({
@@ -40,13 +39,5 @@ const salesSlice = createSlice({
     });
   },
 });
-
-export const useSalesActions = () => {
-  const dispatch = useAppDispatch();
-
-  return {
-    getVisitorsList: (params: CommonParams) => dispatch(getVisitorsList(params)),
-  };
-};
 
 export default salesSlice.reducer;

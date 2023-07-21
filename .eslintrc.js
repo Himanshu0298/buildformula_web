@@ -31,7 +31,12 @@ module.exports = {
     'react/display-name': 0,
     'react/react-in-jsx-scope': 0,
     '@typescript-eslint/ban-types': 1,
-    'prettier/prettier': 'warn',
+    'prettier/prettier': [
+      'warn',
+      {
+        endOfLine: 'auto',
+      },
+    ],
     'prefer-const': ['warn', { destructuring: 'all' }],
     'simple-import-sort/imports': 'warn',
     'simple-import-sort/exports': 'warn',

@@ -91,6 +91,5 @@ export interface IAssignToData {
 
 export interface ISalesState {
   loading: boolean;
-  errorMessage: string | null;
-  visitors: [];
+  visitorList: IVisitor[];
 }

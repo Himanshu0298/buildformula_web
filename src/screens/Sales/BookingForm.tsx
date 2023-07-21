@@ -1,23 +1,24 @@
 /* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
-import { useSelector } from 'react-redux';
-import { useSalesActions } from 'redux/sales';
+import { getVisitorsList } from 'redux/sales';
+import { useAppDispatch, useAppSelector } from 'redux/store';
 
 const BookingForm = () => {
+  const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const { getVisitorsList } = useSalesActions();
-
   // const {sales} = useSelector()
 
   useEffect(() => {
-    getVisitorsList({
-      project_id: 18,
-    });
+    dispatch(
+      getVisitorsList({
+        project_id: 18,
+      }),
+    );
   }, []);
 
   return (
