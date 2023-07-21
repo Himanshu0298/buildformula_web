@@ -1,5 +1,22 @@
 /* eslint-disable react/no-unescaped-entities */
+import { useEffect, useState } from 'react';
+import Modal from 'react-bootstrap/Modal';
+import { useSalesActions } from 'redux/sales';
+
 const BookingForm = () => {
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const { getVisitorsList } = useSalesActions();
+
+  // useEffect(() => {
+  //   getVisitorsList({
+  //     project_id: 2,
+  //   });
+  // }, []);
+
   return (
     <>
       <div className="header-bar">
@@ -42,7 +59,9 @@ const BookingForm = () => {
             <div className="booking-form-col-12">
               <div className="d-flex align-items-center justify-content-between">
                 <h5>CUSTOMER DETAILS</h5>
-                <button className="Btn btn-lightblue-primary lbps-btn mr-0">Add Customer</button>
+                <button className="Btn btn-lightblue-primary lbps-btn mr-0" onClick={handleShow}>
+                  Add Customer
+                </button>
               </div>
 
               <div className="form-row">
@@ -88,26 +107,79 @@ const BookingForm = () => {
                 </div>
               </div>
 
-              {/* <div className="d-flex mt-5">
-                <div>
-                  <button className="Btn btn-lightblue-primary m-0">Next</button>
-                </div>
-                <div>
-                  <button className="table-edit-btn edit-btn-area save-btn print-icon-btn">
-                    <svg
-                      fill="#4872F4"
-                      height="24px"
-                      viewBox="0 0 24 24"
-                      width="24px"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M0 0h24v24H0V0z" fill="none" />
-                      <path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z" />
-                      <circle cx="18" cy="11.5" r="1" />
-                    </svg>
+              <Modal
+                centered
+                aria-labelledby="contained-modal-title-vcenter"
+                backdrop="static"
+                show={show}
+                size="lg"
+                onHide={handleClose}
+              >
+                <Modal.Header className="justify-content-center">
+                  <Modal.Title>Add Customer</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <div className="booking-form-col-6 border-0" id="showfirstbox">
+                    <div className="form-group">
+                      <div className="form-row newuser">
+                        <div className="form-group col form-col-gap">
+                          <label className="mandate-star mr-3">First Name</label>
+                          <input
+                            className="form-control"
+                            name="customer_first_name"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label className="mandate-star mr-3">Last Name</label>
+                          <input
+                            className="form-control"
+                            name="customer_last_name"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row newuser">
+                        <div className="form-group col">
+                          <label>Email</label>
+                          <input
+                            className="form-control"
+                            name="customer_email"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row newuser">
+                        <div className="form-group col form-col-gap">
+                          <label className="mandate-star mr-3">Phone</label>
+                          <input
+                            className="form-control"
+                            maxLength={10}
+                            name="customer_phone"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                        <div className="form-group col"></div>
+                      </div>
+                    </div>
+                  </div>
+                </Modal.Body>
+                <Modal.Footer>
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn py-2 px-4"
+                    onClick={handleClose}
+                  >
+                    Close
                   </button>
-                </div>
-              </div> */}
+                  <button className="Btn btn-lightblue-primary  py-2 px-4" onClick={handleClose}>
+                    Add
+                  </button>
+                </Modal.Footer>
+              </Modal>
             </div>
           </div>
 
@@ -250,7 +322,7 @@ const BookingForm = () => {
                     <th>Area</th>
                     <th>Rate</th>
                     <th>Discount</th>
-                    <th>Amount</th>
+                    <th className="text-right">Amount</th>
                   </thead>
                   <tbody>
                     <tr>
@@ -286,7 +358,7 @@ const BookingForm = () => {
                       <td className="text-right font-weight-bold" colSpan={6}>
                         Other Charges Total
                       </td>
-                      <td>Rs 10000000</td>
+                      <td className="text-right">₹ 10000000</td>
                     </tr>
                   </tbody>
                 </table>
@@ -396,7 +468,7 @@ const BookingForm = () => {
                     <th>Area</th>
                     <th>Rate</th>
                     <th>Discount</th>
-                    <th>Amount</th>
+                    <th className="text-right">Amount</th>
                   </thead>
                   <tbody>
                     <tr>
@@ -432,7 +504,7 @@ const BookingForm = () => {
                       <td className="text-right font-weight-bold" colSpan={6}>
                         Other Charges Total
                       </td>
-                      <td>Rs 10000000</td>
+                      <td className="text-right">Rs 10000000</td>
                     </tr>
                   </tbody>
                 </table>
@@ -545,27 +617,37 @@ const BookingForm = () => {
                     <th>Basic Amount</th>
                     <th>Other Charges Amount</th>
                     <th>GST</th>
-                    <th>Installment Amount</th>
+                    <th className="text-right">Installment Amount</th>
                   </thead>
                   <tbody>
                     <tr>
                       <td>01</td>
                       <td>Installment Will be here</td>
                       <td>
-                        <input type="text" className="form-control" />
+                        <input className="form-control" type="text" />
                       </td>
-                      <td><input type="text" className="form-control" /></td>
-                      <td><input type="text" className="form-control" /></td>
-                      <td><input type="text" className="form-control" /></td>
-                      <td><input type="text" className="form-control" /></td>
-                      <td><input type="text" className="form-control" readOnly/></td>
+                      <td>
+                        <input className="form-control" type="text" />
+                      </td>
+                      <td>
+                        <input className="form-control" type="text" />
+                      </td>
+                      <td>
+                        <input className="form-control" type="text" />
+                      </td>
+                      <td>
+                        <input className="form-control" type="text" />
+                      </td>
+                      <td>
+                        <input readOnly className="form-control" type="text" />
+                      </td>
                     </tr>
                     {/* total */}
                     <tr>
-                      <td className="text-right font-weight-bold" colSpan={6}>
+                      <td className="text-right font-weight-bold" colSpan={7}>
                         Other Charges Total
                       </td>
-                      <td>Rs 10000000</td>
+                      <td className="text-right">Rs 10000000</td>
                     </tr>
                   </tbody>
                 </table>
