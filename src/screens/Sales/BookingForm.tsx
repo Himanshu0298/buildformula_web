@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
+import { useSelector } from 'react-redux';
 import { useSalesActions } from 'redux/sales';
 
 const BookingForm = () => {
@@ -11,9 +12,11 @@ const BookingForm = () => {
 
   const { getVisitorsList } = useSalesActions();
 
+  // const {sales} = useSelector()
+
   useEffect(() => {
     getVisitorsList({
-      project_id: 2,
+      project_id: 18,
     });
   }, []);
 
@@ -116,54 +119,43 @@ const BookingForm = () => {
                 onHide={handleClose}
               >
                 <Modal.Header className="justify-content-center">
-                  <Modal.Title>Add Customer</Modal.Title>
+                  <Modal.Title>
+                    <b>Add Customer</b>
+                  </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                  <div className="booking-form-col-6 border-0" id="showfirstbox">
-                    <div className="form-group">
-                      <div className="form-row newuser">
-                        <div className="form-group col form-col-gap">
-                          <label className="mandate-star mr-3">First Name</label>
-                          <input
-                            className="form-control"
-                            name="customer_first_name"
-                            type="text"
-                            value=""
-                          />
+                  <div className="shwan-form">
+                    <div className="booking-form-col-6 border-0" id="showfirstbox">
+                      <div className="form-group">
+                        <div className="form-row newuser">
+                          <div className="form-group col form-col-gap">
+                            <label className="mandate-star mr-3">First Name</label>
+                            <input
+                              className="form-control"
+                              name="customer_first_name"
+                              type="text"
+                            />
+                          </div>
+                          <div className="form-group col">
+                            <label className="mandate-star mr-3">Last Name</label>
+                            <input className="form-control" name="customer_last_name" type="text" />
+                          </div>
                         </div>
-                        <div className="form-group col">
-                          <label className="mandate-star mr-3">Last Name</label>
-                          <input
-                            className="form-control"
-                            name="customer_last_name"
-                            type="text"
-                            value=""
-                          />
+                        <div className="form-row newuser">
+                          <div className="form-group col form-col-gap">
+                            <label>Email</label>
+                            <input className="form-control" name="customer_email" type="text" />
+                          </div>
+                          <div className="form-group col">
+                            <label className="mandate-star mr-3">Phone</label>
+                            <input
+                              className="form-control"
+                              maxLength={10}
+                              name="customer_phone"
+                              type="text"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="form-row newuser">
-                        <div className="form-group col">
-                          <label>Email</label>
-                          <input
-                            className="form-control"
-                            name="customer_email"
-                            type="text"
-                            value=""
-                          />
-                        </div>
-                      </div>
-                      <div className="form-row newuser">
-                        <div className="form-group col form-col-gap">
-                          <label className="mandate-star mr-3">Phone</label>
-                          <input
-                            className="form-control"
-                            maxLength={10}
-                            name="customer_phone"
-                            type="text"
-                            value=""
-                          />
-                        </div>
-                        <div className="form-group col"></div>
                       </div>
                     </div>
                   </div>
@@ -624,7 +616,7 @@ const BookingForm = () => {
                       <td>01</td>
                       <td>Installment Will be here</td>
                       <td>
-                        <input className="form-control" type="text" />
+                        <input className="form-control" type="date" />
                       </td>
                       <td>
                         <input className="form-control" type="text" />

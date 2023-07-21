@@ -35,8 +35,7 @@ const salesSlice = createSlice({
     builder.addCase(getVisitorsList.fulfilled, (state, action) => {
       return {
         ...state,
-        loadingCustomerData: false,
-        customerData: action?.payload,
+        visitorsList: action?.payload,
       };
     });
   },

@@ -1,7 +1,7 @@
 import sales from './sales';
 
 const reducers = {
-  sales,
+  // sales,
 };
 
 export default reducers;
