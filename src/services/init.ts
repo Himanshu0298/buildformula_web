@@ -31,10 +31,11 @@ instance.interceptors.response.use(
 
     if (message?.includes('Unauthenticated')) {
       const originalRequest = error.config;
+      console.log(originalRequest)
 
       try {
         const retryOriginalRequest = new Promise(resolve => {
-          console.log('error');
+          console.log('error', resolve);
         });
 
         return retryOriginalRequest;

@@ -11,11 +11,11 @@ const BookingForm = () => {
 
   const { getVisitorsList } = useSalesActions();
 
-  // useEffect(() => {
-  //   getVisitorsList({
-  //     project_id: 2,
-  //   });
-  // }, []);
+  useEffect(() => {
+    getVisitorsList({
+      project_id: 2,
+    });
+  }, []);
 
   return (
     <>
