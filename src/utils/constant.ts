@@ -1,4 +1,6 @@
 import { isString } from 'lodash';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 export const SITE_URL = 'http://192.168.20.131/';
 // export const SITE_URL = 'http://110.227.208.185/';
@@ -135,6 +137,13 @@ export function processError(error: any) {
     ? error
     : 'An error occurred. Please try again.';
 }
+
+export function useQuery() {
+  const { search } = useLocation();
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+// let query = useQuery();
+// const id = query.get('id');
 
 export const MONTHS = [
   'Jan',

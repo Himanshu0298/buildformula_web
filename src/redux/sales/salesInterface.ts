@@ -92,4 +92,133 @@ export interface IAssignToData {
 export interface ISalesState {
   loading: boolean;
   visitorList: IVisitor[];
+  unitInfo: IUnitInfo;
+  unitParkingInfo: IUnitParkingInfo;
+}
+
+export interface CreateCustomerParams {
+  project_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: number;
+  inquiry_for: number;
+  priority: string;
+  occupation: number;
+  budget_from: number;
+  budget_to: number;
+}
+
+export interface UnitInfoParams {
+  project_id: number;
+  tower_id: number;
+}
+export interface IUnitTowerInfo {
+  project_tower: number;
+  tower_title: string;
+  project_type: number;
+}
+
+export interface IUnitInfoData {
+  title: string;
+  tower_id: string;
+  project_id: number;
+  project_main_units_id: number;
+  super_build_up_area: number;
+  build_up_area: number;
+  carpet: number;
+  unit: number;
+}
+
+export interface IUnitInfo {
+  project_tower_data: IUnitTowerInfo[];
+  booking_unit_sheet_towers_data: IUnitInfoData[];
+}
+
+export interface IUnitParkingInfoData {
+  id: number;
+  project_main_unit_id: number;
+  user_id: number;
+  last_modified: string;
+  allotment_data: string;
+  project_id: number;
+}
+
+export interface IUnitParkingInfo {
+  all_parking_units: IUnitParkingInfoData[];
+  parking_file: any;
+}
+
+export interface IBookingFormParams {
+  project_bookings_temp_id: number;
+  project_id: number;
+  unit_id: number;
+  visitors_id: number;
+  unit_reserved_date: string;
+  parking_no: string;
+  calculation_method: string;
+  basic_rate_no: number;
+  basic_rate_description: string;
+  basic_rate_area: number;
+  basic_rate: number;
+  basic_rate_disc_amt: number;
+  basic_rate_disc_per: number;
+  basic_rate_basic_amount: number;
+  other_charges: OtherCharge[];
+  other_charges_total: number;
+  sub_total_amt: number;
+  total_disc: number;
+  disc_remarks: string;
+  gst_per: number;
+  gst_amt: number;
+  stampduty_per: number;
+  stampduty_amount: number;
+  reg_per: number;
+  reg_amount: number;
+  total_gove_tax: string;
+  extra_charges: ExtraCharge[];
+  extra_charges_total: number;
+  property_final_amount: number;
+  is_loan: string;
+  loan_amt: number;
+  bank: number;
+  loan_remarks: string;
+  installments: Installment[];
+  custom_payment_total_amount: number;
+  custom_payment_remark_id: number;
+  custom_payment_remark: string;
+}
+
+export interface OtherCharge {
+  unit_other_charge_id: number;
+  other_charges_no: number;
+  other_charges_title: string;
+  other_charges_distribution_method: string;
+  other_charges_area: number;
+  other_charges_rate: number;
+  other_charges_disc_amt: number;
+  other_charges_disc_per: number;
+  other_charges_amount: number;
+}
+
+export interface ExtraCharge {
+  extra_charges_no: number;
+  extra_charges_title: string;
+  extra_charges_distribution_method: string;
+  extra_charges_area: number;
+  extra_charges_rate: number;
+  extra_charges_disc_per: number;
+  extra_charges_disc_amt: number;
+  extra_charges_amt: number;
+}
+
+export interface Installment {
+  custom_payment_no: number;
+  custom_payment_installment: string;
+  installment_due_date: string;
+  installment_per: number;
+  installment_basic_amt: number;
+  installment_otherchages_amt: number;
+  installment_amount: number;
+  gst: number;
 }

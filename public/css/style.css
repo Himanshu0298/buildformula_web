@@ -23,6 +23,11 @@
   justify-content: center;
 }
 
+.customRadioBTN{
+  width: 1rem;
+    height: 1rem;
+}
+
 .bookingBTN {
   padding: 12px 30px !important;
 }

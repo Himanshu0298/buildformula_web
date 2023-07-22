@@ -1,21 +1,57 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useEffect, useState } from 'react';
-import Modal from 'react-bootstrap/Modal';
-import { getVisitorsList } from 'redux/sales';
+import dayjs from 'dayjs';
+import { useEffect, useMemo, useState } from 'react';
+import { Col } from 'react-bootstrap';
+import Form from 'react-bootstrap/Form';
+import Select from 'react-select';
+import { getUnitInfo, getUnitParkingInfo, getVisitorsList } from 'redux/sales';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+
+import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
+  const [customerDetails, setCustomerDetails] = useState({});
+  const [calculationMethod, setCalculationMethod] = useState();
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
+  const toggleModal = () => setShow(!show);
+  const unitId = 28;
 
-  // const {sales} = useSelector()
+  // visitors list
+  const { visitorList, unitInfo, unitParkingInfo } = useAppSelector(s => s.sales);
+
+  const unitInfoValues = useMemo(() => {
+    return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const unitParkingInfoValues = useMemo(() => {
+    return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
+  }, [unitParkingInfo?.all_parking_units]);
+
+  const customerOptions = useMemo(() => {
+    return visitorList?.map(e => ({
+      label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
+      value: e.id,
+      details: e,
+    }));
+  }, [visitorList]);
 
   useEffect(() => {
     dispatch(
       getVisitorsList({
+        project_id: 18,
+      }),
+    );
+    dispatch(
+      getUnitInfo({
+        project_id: 18,
+        tower_id: 1,
+      }),
+    );
+    dispatch(
+      getUnitParkingInfo({
         project_id: 18,
       }),
     );
@@ -59,120 +95,66 @@ const BookingForm = () => {
           </div>
 
           {/* 1st section */}
+          <AddCustomerModal handleClose={toggleModal} show={show} />
           <div className="booking-form-box shwan-form">
             <div className="booking-form-col-12">
               <div className="d-flex align-items-center justify-content-between">
                 <h5>CUSTOMER DETAILS</h5>
-                <button className="Btn btn-lightblue-primary lbps-btn mr-0" onClick={handleShow}>
+                <button className="Btn btn-lightblue-primary lbps-btn mr-0" onClick={toggleModal}>
                   Add Customer
                 </button>
               </div>
 
               <div className="form-row">
                 <div className="col-12">
-                  <div className="input-group has-search input-group sm-search modal-search p-0 mt-3 mb-5">
-                    <div className="input-group-prepend input-group-text">
-                      <svg
-                        fill="none"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z"
-                          fill="#041D36"
-                          fillOpacity="0.6"
-                        ></path>
-                      </svg>
-                    </div>
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={customerOptions}
+                    placeholder="Existing Customer"
+                    styles={{
+                      container: base => ({
+                        ...base,
+                        width: '31%',
+                        marginTop: 10,
+                        marginBottom: 50,
+                      }),
+                    }}
+                    onChange={e => setCustomerDetails(e.details)}
+                  />
+                </div>
+              </div>
+
+              {Object.values(customerDetails).length ? (
+                <div className="form-row">
+                  <div className="form-group col form-col-gap">
+                    <label>Client Name</label>
                     <input
-                      className="form-control ui-autocomplete-input"
-                      id="visitors_details"
-                      name="visitors_details"
+                      readOnly
+                      className="form-control"
                       type="text"
+                      value={`${customerDetails.first_name} ${customerDetails.last_name}`}
+                    />
+                  </div>
+                  <div className="form-group col">
+                    <label>Phone No</label>
+                    <input
+                      readOnly
+                      className="form-control"
+                      type="text"
+                      value={customerDetails.phone}
+                    />
+                  </div>
+                  <div className="form-group col">
+                    <label>Email ID</label>
+                    <input
+                      readOnly
+                      className="form-control"
+                      type="text"
+                      value={customerDetails.email || ''}
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group col form-col-gap">
-                  <label>Client Name</label>
-                  <input className="form-control" type="text" />
-                </div>
-                <div className="form-group col">
-                  <label>Phone No</label>
-                  <input className="form-control" type="text" />
-                </div>
-                <div className="form-group col">
-                  <label>Email ID</label>
-                  <input className="form-control" type="text" />
-                </div>
-              </div>
-
-              <Modal
-                centered
-                aria-labelledby="contained-modal-title-vcenter"
-                backdrop="static"
-                show={show}
-                size="lg"
-                onHide={handleClose}
-              >
-                <Modal.Header className="justify-content-center">
-                  <Modal.Title>
-                    <b>Add Customer</b>
-                  </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <div className="shwan-form">
-                    <div className="booking-form-col-6 border-0" id="showfirstbox">
-                      <div className="form-group">
-                        <div className="form-row newuser">
-                          <div className="form-group col form-col-gap">
-                            <label className="mandate-star mr-3">First Name</label>
-                            <input
-                              className="form-control"
-                              name="customer_first_name"
-                              type="text"
-                            />
-                          </div>
-                          <div className="form-group col">
-                            <label className="mandate-star mr-3">Last Name</label>
-                            <input className="form-control" name="customer_last_name" type="text" />
-                          </div>
-                        </div>
-                        <div className="form-row newuser">
-                          <div className="form-group col form-col-gap">
-                            <label>Email</label>
-                            <input className="form-control" name="customer_email" type="text" />
-                          </div>
-                          <div className="form-group col">
-                            <label className="mandate-star mr-3">Phone</label>
-                            <input
-                              className="form-control"
-                              maxLength={10}
-                              name="customer_phone"
-                              type="text"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Modal.Body>
-                <Modal.Footer>
-                  <button
-                    className="Btn btn-lightblue-primary lbps-btn py-2 px-4"
-                    onClick={handleClose}
-                  >
-                    Close
-                  </button>
-                  <button className="Btn btn-lightblue-primary  py-2 px-4" onClick={handleClose}>
-                    Add
-                  </button>
-                </Modal.Footer>
-              </Modal>
+              ) : null}
             </div>
           </div>
 
@@ -184,27 +166,46 @@ const BookingForm = () => {
               <div className="form-row">
                 <div className="form-group col form-col-gap">
                   <label>Unit Reservation Date</label>
-                  <input className="form-control" type="date" />
+                  <input
+                    className="form-control"
+                    type="date"
+                    value={dayjs().format('YYYY-MM-DD')}
+                  />
                 </div>
                 <div className="form-group col">
                   <label htmlFor="inputPassword4">Unit Info</label>
-                  <input className="form-control" readOnly={true} type="text" value={'A-1-101'} />
+                  <input
+                    className="form-control"
+                    readOnly={true}
+                    type="text"
+                    value={unitInfoValues?.title}
+                  />
                 </div>
                 <div className="form-group col">
                   <label htmlFor="inputPassword4">Super Buildup Area</label>
-                  <input className="form-control" readOnly={true} type="text" value={'2500sq'} />
+                  <input
+                    className="form-control"
+                    readOnly={true}
+                    type="text"
+                    value={unitInfoValues?.super_build_up_area}
+                  />
                 </div>
                 <div className="form-row">
                   <div className="form-group col form-col-gap">
                     <label>Terrace Area</label>
-                    <input className="form-control" readOnly={true} type="text" value={'2500sq'} />
+                    <input className="form-control" readOnly={true} type="text" value={'pending'} />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group col">
                     <label>Car Parking No</label>
-                    <input className="form-control" readOnly={true} type="text" value={'2,19'} />
+                    <input
+                      className="form-control"
+                      readOnly={true}
+                      type="text"
+                      value={unitParkingInfoValues?.map(e => e.id).toString()}
+                    />
                   </div>
                 </div>
               </div>
@@ -215,89 +216,107 @@ const BookingForm = () => {
           <div className="booking-form-box shwan-form mt-4">
             <div className="booking-form-col-12">
               <h5>RATE CALCULATION</h5>
-              <div className="form-row">
-                <div className="form-row">
-                  <div className="form-group col form-col-gap">
-                    <label>Calculation Method</label>
-                    <div className="rd-grp form-check-inline">
-                      <label className="rd-container mr-4">
-                        Rate Based
-                        <input className="filem-check" name="radio" type="radio" />
-                        <span className="checkmark"></span>
-                      </label>
-                      <label className="rd-container mx-5">
-                        Fixed Amount
-                        <input className="filem-check" name="radio" type="radio" />
-                        <span className="checkmark"></span>
-                      </label>
-                    </div>
+              <div className="form-row ml-3">
+                <div className="form-group col form-col-gap">
+                  <div className="row w-100">
+                    <p>
+                      <b>Calculation Method</b>
+                    </p>
+                    <Col md={2}>
+                      <Form.Check
+                        id="RateBased"
+                        label="Rate Based"
+                        name="calculationMethod"
+                        type="radio"
+                        value={'rate_base'}
+                        onChange={e => setCalculationMethod(e.target.value)}
+                      />
+                    </Col>
+                    <Col md={2}>
+                      <Form.Check
+                        id="fixedRate"
+                        label="Fixed Amount"
+                        name="calculationMethod"
+                        type="radio"
+                        value={'fixed_amount'}
+                        onChange={e => setCalculationMethod(e.target.value)}
+                      />
+                    </Col>
                   </div>
                 </div>
               </div>
-              {/* Rate Based */}
-              <div>
-                <table className="table">
-                  <thead>
-                    <th>Sr No</th>
-                    <th>Description</th>
-                    <th>Area</th>
-                    <th>Rate</th>
-                    <th>Discount</th>
-                    <th>Basic Amount</th>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>01</td>
-                      <td>
-                        <input className="form-control" type="text" />
-                      </td>
-                      <td>
-                        <input className="form-control" type="text" />
-                      </td>
-                      <td>
-                        <input className="form-control" type="text" />
-                      </td>
-                      <td>
-                        <input className="form-control mb-2" placeholder="Amount" type="text" />
-                        <input className="form-control" placeholder="%" type="text" />
-                      </td>
-                      <td>
-                        <input readOnly className="form-control" type="text" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              {/* Fixed Amount Based */}
-              <div>
-                <table className="table">
-                  <thead>
-                    <th>Sr No</th>
-                    <th>Description</th>
-                    <th>Rate</th>
-                    <th>Discount</th>
-                    <th>Basic Amount</th>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>01</td>
-                      <td>
-                        <input className="form-control" type="text" />
-                      </td>
-                      <td>
-                        <input className="form-control" type="text" />
-                      </td>
-                      <td>
-                        <input className="form-control mb-2" placeholder="Amount" type="text" />
-                        <input className="form-control" placeholder="%" type="text" />
-                      </td>
-                      <td>
-                        <input readOnly className="form-control" type="text" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {calculationMethod === 'rate_base' ? (
+                <div>
+                  {/* Rate Based */}
+                  <table className="table">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Description</th>
+                      <th>Area</th>
+                      <th>Rate</th>
+                      <th>Discount</th>
+                      <th>Basic Amount</th>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>01</td>
+                        <td>
+                          <input className="form-control" type="text" />
+                        </td>
+                        <td>
+                          <input className="form-control" type="text" />
+                        </td>
+                        <td>
+                          <input className="form-control" type="text" />
+                        </td>
+                        <td>
+                          <input className="form-control mb-2" placeholder="Amount" type="text" />
+                          <input className="form-control" placeholder="%" type="text" />
+                        </td>
+                        <td>
+                          <input readOnly className="form-control" type="text" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : calculationMethod === 'fixed_amount' ? (
+                <div>
+                  {/* Fixed Amount Based */}
+                  <table className="table">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Description</th>
+                      <th>Rate</th>
+                      <th>Discount</th>
+                      <th>Basic Amount</th>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>01</td>
+                        <td>
+                          <input className="form-control" type="text" />
+                        </td>
+                        <td>
+                          <input className="form-control" type="text" />
+                        </td>
+                        <td>
+                          <input
+                            className="form-control mb-2"
+                            placeholder="Amount"
+                            type="number"
+                            value={unitInfoValues?.super_build_up_area}
+                          />
+                          <input className="form-control" placeholder="%" type="text" />
+                        </td>
+                        <td>
+                          <input readOnly className="form-control" type="text" />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : undefined}
             </div>
           </div>
 

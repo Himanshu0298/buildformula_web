@@ -37,3 +37,19 @@ const params = config({ multipart: false });
 export const getVisitorsList = (data: any) => {
   return instance.post('/visitors/get_lists', data, params);
 };
+
+export const addCustomer = data => {
+  return instance.post('/visitors/add', data, params);
+};
+
+export const getUnitInfo = data => {
+  return instance.post('/areaSheet/booking_unitSheet_tower_list', data, params);
+};
+
+export const getUnitParkingInfo = data => {
+  return instance.post('/parking/list_parking_design', data, params);
+};
+
+export const addBooking = data => {
+  return instance.post('/new_booking_form', data, params);
+};
