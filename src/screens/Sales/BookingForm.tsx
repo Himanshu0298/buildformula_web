@@ -1,8 +1,9 @@
 /* eslint-disable react/no-unescaped-entities */
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
+import { useSyncedFields } from 'hooks/useDiscountCalculator';
 import { round } from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -22,6 +23,9 @@ const BookingForm = () => {
 
   // visitors list
   const { visitorList, unitInfo, unitParkingInfo, otherChargesList } = useAppSelector(s => s.sales);
+
+  // < input value = { values.amountKey } onChange = { discountSyncedFields.onChangeAmount } />
+  //   <input onChange={discountSyncedFields.onChangePercent} />
 
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -146,43 +150,46 @@ const BookingForm = () => {
     onSubmit: handleSubmit,
   });
 
-  // calculate amt
-  const calculateAmt = v => {
-    const percentage = v.target.value;
-    formik.setFieldValue('basic_rate_disc_per', percentage);
-    const discountAmt = round((formik.values.basic_rate_basic_amount * percentage) / 100, 2);
-    if (discountAmt !== formik.values.basic_rate_disc_amt) {
-      formik.setFieldValue('basic_rate_disc_amt', discountAmt || undefined);
-    }
-  };
+  const { values, setFieldValue, handleChange, handleBlur } = formik;
+  console.log("🚀 ~ file: BookingForm.tsx:154 ~ BookingForm ~ values:", values.basic_rate_basic_amount)
 
-  // calculate per
-  const calculatePer = v => {
-    const amount = v.target.value;
-    formik.setFieldValue('basic_rate_disc_amt', amount);
-    const discountPer = round((amount * 100) / formik.values.basic_rate_basic_amount, 2);
-    if (discountPer !== formik.values.basic_rate_disc_per) {
-      formik.setFieldValue('basic_rate_disc_per', discountPer || undefined);
-    }
-  };
+  const discountSyncedFields = useSyncedFields(
+    formik,
+    values.basic_rate_basic_amount,
+    'basic_rate_disc_amt',
+    'basic_rate_disc_per',
+  );
+
+  // const handleDiscountAmountChange = event => {
+  //   setDiscountAmounts(formik.values.basic_rate_basic_amount, parseFloat(event.target.value));
+  //   formik.setFieldValue('basic_rate_disc_amt', event.target.value);
+  //   formik.setFieldValue('basic_rate_disc_per', discountPercentage);
+  // };
+
+  // const handleDiscountPercentageChange = event => {
+  //   setDiscountPercentage(formik.values.basic_rate_basic_amount, parseInt(event.target.value));
+  //   formik.setFieldValue('basic_rate_disc_per', event.target.value);
+  //   formik.setFieldValue('basic_rate_disc_amt', discountAmt);
+  // };
 
   useEffect(() => {
-    const { basic_rate_area, basic_rate, basic_rate_disc_amt } = formik.values;
+    const { basic_rate_area, basic_rate, basic_rate_disc_amt } = values;
 
     if (basic_rate_area || basic_rate) {
-      const basic_rate_total = round(basic_rate_area * basic_rate, 2) - basic_rate_disc_amt;
-      formik.setFieldValue('basic_rate_basic_amount', basic_rate_total);
+      const basic_rate_total = round(basic_rate_area * basic_rate - basic_rate_disc_amt, 2);
+      setFieldValue('basic_rate_basic_amount', basic_rate_total);
     }
-  }, [formik.values.basic_rate, formik.values.basic_rate_area, formik.values.basic_rate_disc_amt]);
+  }, [values.basic_rate, values.basic_rate_area, values.basic_rate_disc_amt]);
 
-  // useEffect(() => {
-  //   formik.setValues({
-  //     basic_rate: 0,
-  //     basic_rate_disc_amt: 0,
-  //     basic_rate_disc_per: 0,
-  //     basic_rate_basic_amount: 0,
-  //   });
-  // }, [formik.values.calculation_method]);
+  useEffect(() => {
+    formik.setValues({
+      ...formik.values,
+      basic_rate: 0,
+      basic_rate_disc_amt: 0,
+      basic_rate_disc_per: 0,
+      basic_rate_basic_amount: 0,
+    });
+  }, [values.calculation_method]);
 
   return (
     <>
@@ -366,7 +373,7 @@ const BookingForm = () => {
                           name="calculation_method"
                           type="radio"
                           value={'rate_base'}
-                          onChange={formik.handleChange}
+                          onChange={handleChange}
                         />
                       </Col>
                       <Col md={2}>
@@ -376,7 +383,7 @@ const BookingForm = () => {
                           name="calculation_method"
                           type="radio"
                           value={'fixed_amount'}
-                          onChange={formik.handleChange}
+                          onChange={handleChange}
                         />
                       </Col>
                     </div>
@@ -403,9 +410,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_area"
                               type="text"
-                              value={formik.values.basic_rate_area}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                              value={values.basic_rate_area}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -413,9 +420,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate"
                               type="text"
-                              value={formik.values.basic_rate}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                              value={values.basic_rate}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -424,18 +431,18 @@ const BookingForm = () => {
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
                               type="text"
-                              value={formik.values.basic_rate_disc_amt}
-                              onBlur={formik.handleBlur}
-                              onChange={v => calculatePer(v)}
+                              value={values.basic_rate_disc_amt}
+                              onBlur={handleBlur}
+                              onChange={discountSyncedFields.onChangeAmount}
                             />
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
                               type="text"
-                              value={formik.values.basic_rate_disc_per}
-                              onBlur={formik.handleBlur}
-                              onChange={v => calculateAmt(v)}
+                              value={values.basic_rate_disc_per}
+                              onBlur={handleBlur}
+                              onChange={discountSyncedFields.onChangePercent}
                             />
                           </td>
                           <td>
@@ -444,9 +451,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_basic_amount"
                               type="text"
-                              value={formik.values.basic_rate_basic_amount}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                              value={values.basic_rate_basic_amount}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                         </tr>
@@ -474,9 +481,9 @@ const BookingForm = () => {
                               name="basic_rate"
                               placeholder="Amount"
                               type="text"
-                              value={formik.values.basic_rate}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                                value={values.basic_rate}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -485,18 +492,18 @@ const BookingForm = () => {
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
                               type="text"
-                              value={formik.values.basic_rate_disc_amt}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                                value={values.basic_rate_disc_amt}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
                             />
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
                               type="text"
-                              value={formik.values.basic_rate_disc_per}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                                value={values.basic_rate_disc_per}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -505,9 +512,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_basic_amount"
                               type="text"
-                              value={formik.values.basic_rate_basic_amount}
-                              onBlur={formik.handleBlur}
-                              onChange={formik.handleChange}
+                                value={values.basic_rate_basic_amount}
+                                onBlur={handleBlur}
+                                onChange={handleChange}
                             />
                           </td>
                         </tr>
