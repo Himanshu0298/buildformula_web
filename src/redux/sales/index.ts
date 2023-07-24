@@ -7,6 +7,8 @@ import {
   CommonParams,
   CreateCustomerParams,
   IBookingFormParams,
+  IOtherCharges,
+  IOtherChargesParam,
   ISalesState,
   IUnitInfo,
   IUnitParkingInfo,
@@ -84,11 +86,26 @@ export const addBooking = createAsyncThunk(
   },
 );
 
+export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherChargesParam>(
+  'sales/getOtherChargesList',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getOtherCharges(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 const initialState: ISalesState = {
   loading: false,
   visitorList: [],
   unitInfo: {} as IUnitInfo,
   unitParkingInfo: {} as IUnitParkingInfo,
+  otherChargesList: {} as IOtherCharges,
 };
 
 const salesSlice = createSlice({
@@ -137,6 +154,15 @@ const salesSlice = createSlice({
     builder.addCase(addBooking.fulfilled, state => {
       return {
         ...state,
+      };
+    });
+    // get other charges
+    builder.addCase(getOtherChargesList.rejected, handleReject);
+    builder.addCase(getOtherChargesList.pending, handleLoading);
+    builder.addCase(getOtherChargesList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        otherChargesList: action?.payload,
       };
     });
   },

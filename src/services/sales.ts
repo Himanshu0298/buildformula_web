@@ -53,3 +53,7 @@ export const getUnitParkingInfo = data => {
 export const addBooking = data => {
   return instance.post('/new_booking_form', data, params);
 };
+
+export const getOtherCharges = data => {
+  return instance.post('/unit_bookingform_other_charges', data, params);
+};

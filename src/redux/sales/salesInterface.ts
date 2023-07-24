@@ -52,7 +52,6 @@ export interface IVisitor {
   assign_to_data: IAssignToData;
   interested_properties: any[];
 }
-
 export interface IAssignToData {
   id: number;
   first_name: string;
@@ -94,6 +93,7 @@ export interface ISalesState {
   visitorList: IVisitor[];
   unitInfo: IUnitInfo;
   unitParkingInfo: IUnitParkingInfo;
+  otherChargesList: IOtherCharges;
 }
 
 export interface CreateCustomerParams {
@@ -105,6 +105,7 @@ export interface CreateCustomerParams {
   inquiry_for: number;
   priority: string;
   occupation: number;
+  other_occupation: number;
   budget_from: number;
   budget_to: number;
 }
@@ -221,4 +222,25 @@ export interface Installment {
   installment_otherchages_amt: number;
   installment_amount: number;
   gst: number;
+}
+
+export interface IOtherCharges {
+  other_charge_unit_rates: IOtherChargesInfo[]
+}
+
+export interface IOtherChargesInfo {
+  id: number;
+  project_id: number;
+  unit_id: number;
+  other_charge_field_id: number;
+  ratebase_amounts: string;
+  fixed_amounts: string;
+  created_at: string;
+  updated_at: any;
+  title: any;
+}
+
+export interface IOtherChargesParam {
+  project_id: number;
+  unit_id: number;
 }

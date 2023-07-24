@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
 import Modal from 'react-bootstrap/Modal';
-import { addCustomer } from 'redux/sales';
+import { addCustomer, getVisitorsList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
 
@@ -20,7 +20,7 @@ const AddCustomerModal = ({ show, handleClose }) => {
       email: Yup.string().email('Invalid email address'),
       phone: Yup.string().required('Required Field'),
     }),
-    onSubmit: values => {
+    onSubmit: async values => {
       const { firstName, lastName, email, phone } = values;
       dispatch(
         addCustomer({
@@ -34,8 +34,18 @@ const AddCustomerModal = ({ show, handleClose }) => {
           occupation: 0,
           budget_from: 0,
           budget_to: 0,
+          other_occupation: 0,
         }),
       );
+
+      await dispatch(
+        getVisitorsList({
+          project_id: 18,
+        }),
+      );
+
+      formik.resetForm()
+      await handleClose();
     },
   });
 
