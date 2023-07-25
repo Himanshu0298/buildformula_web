@@ -2,7 +2,6 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { round } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -27,16 +26,16 @@ const BookingForm = () => {
       extra_charges_disc_amt: undefined,
       extra_charges_disc_per: undefined,
       extra_charges_amt: undefined,
+      extra_charges_total: undefined,
     },
   ])
+  const [baseAmount, setBaseAmount] = useState<number>();
+
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
   // visitors list
   const { visitorList, unitInfo, unitParkingInfo, otherChargesList } = useAppSelector(s => s.sales);
-
-  // < input value = { values.amountKey } onChange = { discountSyncedFields.onChangeAmount } />
-  //   <input onChange={discountSyncedFields.onChangePercent} />
 
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -64,10 +63,17 @@ const BookingForm = () => {
         extra_charges_disc_amt: undefined,
         extra_charges_disc_per: undefined,
         extra_charges_amt: undefined,
+        extra_charges_total: undefined,
       }],
     )
   }
-
+  const handleDelete = (index) =>{
+    console.log(index,'i')
+    const updatedCharges = [...extraCharges];
+    updatedCharges.splice(index-1, 1);
+    setExtraCharges(updatedCharges);
+  }
+  
   useEffect(() => {
     dispatch(
       getVisitorsList({
@@ -107,7 +113,7 @@ const BookingForm = () => {
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
     basic_rate_basic_amount: undefined,
-    extra_charges: extraCharges
+    extra_charges: extraCharges,
   };
 
   const handleSubmit = values => {
@@ -177,35 +183,44 @@ const BookingForm = () => {
   });
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
-  console.log("🚀 ~ file: BookingForm.tsx:154 ~ BookingForm ~ values:", values.basic_rate_basic_amount)
 
   const discountSyncedFields = useSyncedFields(
     formik,
-    values.basic_rate_basic_amount,
+    baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
   );
+    const discountExtraCharges = useSyncedFields(
+      formik,
+      baseAmount,
+      "extra_charges_disc_amt",
+      'extra_charges_disc_per'
+    )
+    const handleAreaRateChange = (index, area, rate) => {
+      console.log(area,rate,'k')
+      const updatedCharges = [...extraCharges];
+      updatedCharges[index].extra_charges_area = area;
+      updatedCharges[index].extra_charges_rate = rate;
+      const amount = parseFloat(area) * parseFloat(rate) || 0;
+      updatedCharges[index].extra_charges_total =parseFloat(amount.toFixed(2));
+      setExtraCharges(updatedCharges);
+    };
+  useEffect(() => {
+    const { basic_rate_area = 0, basic_rate = 0 } = values;
 
-  // const handleDiscountAmountChange = event => {
-  //   setDiscountAmounts(formik.values.basic_rate_basic_amount, parseFloat(event.target.value));
-  //   formik.setFieldValue('basic_rate_disc_amt', event.target.value);
-  //   formik.setFieldValue('basic_rate_disc_per', discountPercentage);
-  // };
-
-  // const handleDiscountPercentageChange = event => {
-  //   setDiscountPercentage(formik.values.basic_rate_basic_amount, parseInt(event.target.value));
-  //   formik.setFieldValue('basic_rate_disc_per', event.target.value);
-  //   formik.setFieldValue('basic_rate_disc_amt', discountAmt);
-  // };
+    const basic_rate_total = basic_rate_area * basic_rate;
+    setBaseAmount(basic_rate_total);
+  }, [values]);
 
   useEffect(() => {
-    const { basic_rate_area, basic_rate, basic_rate_disc_amt } = values;
-
-    if (basic_rate_area || basic_rate) {
-      const basic_rate_total = round(basic_rate_area * basic_rate - basic_rate_disc_amt, 2);
-      setFieldValue('basic_rate_basic_amount', basic_rate_total);
+    const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
+    if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
+      setFieldValue('basic_rate_basic_amount', 0);
+    } else {
+      setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
     }
-  }, [values.basic_rate, values.basic_rate_area, values.basic_rate_disc_amt]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.basic_rate_disc_amt]);
 
   useEffect(() => {
     formik.setValues({
@@ -730,7 +745,7 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {extraCharges?.map((x) => (
+                      {extraCharges?.map((x,index) => (
                         <tr key={x.extra_charges_no}>
 
                           <td>{x.extra_charges_no}</td>
@@ -755,21 +770,16 @@ const BookingForm = () => {
                             </select>
                           </td>
                           <td>
-                            <input className="form-control mb-2" type="text" value={x.extra_charges_area} onChange={(e) => {
-                            const updatedCharges = extraCharges.map((item) => {
-                              if (item.extra_charges_no === x.extra_charges_no) {
-                                return { ...item, extra_charges_area: e.target.value || 0 };
-                              }
-                              return item;
-                            });
-                            setExtraCharges(updatedCharges);
-                          }} />
+                            <input className="form-control mb-2" type="text"  value={x.extra_charges_area} onChange={(e) => handleAreaRateChange(index, e.target.value, x.extra_charges_area)} />
                           </td>
                           <td>
+                            <input className="form-control mb-2" type="text" value={x.extra_charges_rate} onChange={(e) => handleAreaRateChange(index, e.target.value, x.extra_charges_rate)}/>
+                          </td>
+                          <td className='d-none'>
                             <input className="form-control mb-2" type="text" value={x.extra_charges_rate} onChange={(e) => {
                             const updatedCharges = extraCharges.map((item) => {
                               if (item.extra_charges_rate === x.extra_charges_rate) {
-                                return { ...item, extra_charges_rate: e.target.value };
+                                return { ...item, extra_charges_rate: parseFloat(e.target.value) || 0 };
                               }
                               return item;
                             });
@@ -777,19 +787,21 @@ const BookingForm = () => {
                           }}/>
                           </td>
                           <td>
-                            <input className="form-control mb-2" placeholder="Amount" type="text" value={x.extra_charges_disc_amt} onChange={(e) => {
-                            const updatedCharges = extraCharges.map((item) => {
-                              if (item.extra_charges_disc_amt === x.extra_charges_disc_amt) {
-                                return { ...item, extra_charges_disc_amt: e.target.value };
+                            <input className="form-control mb-2" placeholder="Amount" type="text" name= 'extra_charges_disc_amt' value={x.extra_charges_disc_amt} onChange={(e) => {
+                              const updatedCharges = extraCharges.map((item) => {
+                                if (item.extra_charges_disc_amt === x.extra_charges_disc_amt) {
+                                discountExtraCharges.onChangeAmount(e);
+                                return { ...item, extra_charges_disc_amt: parseFloat(e.target.value) || 0 };
                               }
                               return item;
                             });
                             setExtraCharges(updatedCharges);
                           }}/>
-                            <input className="form-control" placeholder="%" type="text" value={x.extra_charges_disc_per} onChange={(e) => {
-                            const updatedCharges = extraCharges.map((item) => {
-                              if (item.extra_charges_disc_per === x.extra_charges_disc_per) {
-                                return { ...item, extra_charges_disc_per: e.target.value };
+                            <input className="form-control" placeholder="%" type="text" name='extra_charges_disc_per' value={x.extra_charges_disc_per} onChange={(e) => {
+                              const updatedCharges = extraCharges.map((item) => {
+                                if (item.extra_charges_disc_per === x.extra_charges_disc_per) {
+                                discountExtraCharges.onChangePercent(e);
+                                return { ...item, extra_charges_disc_per: parseFloat(e.target.value) || 0 };
                               }
                               return item;
                             });
@@ -797,10 +809,10 @@ const BookingForm = () => {
                           }} />
                           </td>
                           <td>
-                            <input readOnly className="form-control mb-2" type="text" />
+                            <input value={x.extra_charges_total} className="form-control mb-2" type="text" />
                           </td>
                           <td>
-                          <button type="button" className="add-comp-btn m-0 acount-act-btn red-common" onClick={()=>console.log(1)}><svg width="8" height="10" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z" fill="#FF5D5D"></path></svg></button>
+                          <button type="button" className="add-comp-btn m-0 acount-act-btn red-common" onClick={()=>handleDelete(x.extra_charges_no)}><svg width="8" height="10" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z" fill="#FF5D5D"></path></svg></button>
                           </td>
                         </tr>
                       ))}

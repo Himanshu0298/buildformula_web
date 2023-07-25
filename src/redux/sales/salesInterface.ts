@@ -211,6 +211,7 @@ export interface ExtraCharge {
   extra_charges_disc_per: number;
   extra_charges_disc_amt: number;
   extra_charges_amt: number;
+  extra_charges_total: number;
 }
 
 export interface Installment {
