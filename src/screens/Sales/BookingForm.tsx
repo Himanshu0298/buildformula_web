@@ -79,6 +79,14 @@ const BookingForm = () => {
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
     basic_rate_basic_amount: undefined,
+    gst_per: 0,
+    gst_amt: '',
+    stampduty_per:'',
+    stampduty_amount:'',
+    reg_per: '',
+    reg_amount: '',
+    taxes_per: '',
+    taxes_amount: '',
   };
 
   const handleSubmit = values => {
@@ -149,11 +157,42 @@ const BookingForm = () => {
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
 
+  const newbaseAmount = 500000;
+
   const discountSyncedFields = useSyncedFields(
     formik,
     baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
+  );
+  
+  // govt Taxes
+  const gstSyncedFields = useSyncedFields(
+    formik,
+    newbaseAmount,
+    'gst_amt',
+    'gst_per',
+  );
+
+  const stampDutySyncedFields = useSyncedFields(
+    formik,
+    newbaseAmount,
+    'stampduty_amount',
+    'stampduty_per',
+  );
+
+  const registrationSyncedFields = useSyncedFields(
+    formik,
+    newbaseAmount,
+    'reg_amount',
+    'reg_per',
+  );
+
+  const taxesTotallSyncedFields = useSyncedFields(
+    formik,
+    newbaseAmount,
+    'taxes_amount',
+    'taxes_per',
   );
 
   useEffect(() => {
@@ -622,18 +661,30 @@ const BookingForm = () => {
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>GOVERNMENT TAXES</h5>
-
+               
                 <div className="form-row">
                   <div className="form-group col-3 form-col-gap">
                     <label>GST</label>
                   </div>
                   <div className="form-group col-2  pr-4">
                     <label>%</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.gst_per}
+                      name='gst_per'
+                      type="text"
+                      onChange={gstSyncedFields.onChangePercent} 
+                    />
                   </div>
                   <div className="form-group col-3">
                     <label>Amt</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.gst_amt}
+                      name='gst_amt'
+                      type="text"
+                      onChange={gstSyncedFields.onChangeAmount}
+                    />
                   </div>
                 </div>
                 <div className="form-row">
@@ -642,11 +693,23 @@ const BookingForm = () => {
                   </div>
                   <div className="form-group col-2  pr-4">
                     <label>%</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.stampduty_per}
+                      name='stampduty_per'
+                      type="text"
+                      onChange={stampDutySyncedFields.onChangePercent}
+                    />
                   </div>
                   <div className="form-group col-3">
                     <label>Amt</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.stampduty_amount}
+                      name='stampduty_amount'
+                      type="text"
+                      onChange={stampDutySyncedFields.onChangeAmount}
+                    />
                   </div>
                 </div>
                 <div className="form-row">
@@ -655,11 +718,23 @@ const BookingForm = () => {
                   </div>
                   <div className="form-group col-2  pr-4">
                     <label>%</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.reg_per}
+                      name='reg_per'
+                      type="text"
+                      onChange={registrationSyncedFields.onChangePercent} 
+                    />
                   </div>
                   <div className="form-group col-3">
                     <label>Amt</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.reg_amount}
+                      name='reg_amount'
+                      type="text"
+                      onChange={registrationSyncedFields.onChangeAmount}
+                    />
                   </div>
                 </div>
                 <div className="form-row">
@@ -668,11 +743,23 @@ const BookingForm = () => {
                   </div>
                   <div className="form-group col-2  pr-4">
                     <label>%</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.taxes_per}
+                      name='taxes_per'
+                      type="text"
+                      onChange={taxesTotallSyncedFields.onChangePercent} 
+                    />
                   </div>
                   <div className="form-group col-3">
                     <label>Amt</label>
-                    <input className="form-control" type="text" />
+                    <input
+                      className="form-control"
+                      value={values.taxes_amount}
+                      name='taxes_amount'
+                      type="text"
+                      onChange={taxesTotallSyncedFields.onChangeAmount}
+                    />
                   </div>
                 </div>
               </div>
