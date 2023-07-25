@@ -160,18 +160,6 @@ const BookingForm = () => {
     'basic_rate_disc_per',
   );
 
-  // const handleDiscountAmountChange = event => {
-  //   setDiscountAmounts(formik.values.basic_rate_basic_amount, parseFloat(event.target.value));
-  //   formik.setFieldValue('basic_rate_disc_amt', event.target.value);
-  //   formik.setFieldValue('basic_rate_disc_per', discountPercentage);
-  // };
-
-  // const handleDiscountPercentageChange = event => {
-  //   setDiscountPercentage(formik.values.basic_rate_basic_amount, parseInt(event.target.value));
-  //   formik.setFieldValue('basic_rate_disc_per', event.target.value);
-  //   formik.setFieldValue('basic_rate_disc_amt', discountAmt);
-  // };
-
   useEffect(() => {
     const { basic_rate_area, basic_rate, basic_rate_disc_amt } = values;
 
