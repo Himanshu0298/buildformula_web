@@ -2,7 +2,6 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { round } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -165,8 +164,12 @@ const BookingForm = () => {
   }, [values]);
 
   useEffect(() => {
-    const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
+    const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
+    if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
+      setFieldValue('basic_rate_basic_amount', 0);
+    } else {
+      setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.basic_rate_disc_amt]);
 
