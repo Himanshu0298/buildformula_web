@@ -1,3 +1,12 @@
+export interface ISalesState {
+  loading: boolean;
+  visitorList: IVisitor[];
+  unitInfo: IUnitInfo;
+  unitParkingInfo: IUnitParkingInfo;
+  otherChargesList: IOtherCharges;
+  termsList: ITermsnConditions[];
+}
+
 export type CommonParams = {
   project_id: number;
 };
@@ -86,14 +95,6 @@ export interface IAssignToData {
   age: any;
   terms: number;
   token: string;
-}
-
-export interface ISalesState {
-  loading: boolean;
-  visitorList: IVisitor[];
-  unitInfo: IUnitInfo;
-  unitParkingInfo: IUnitParkingInfo;
-  otherChargesList: IOtherCharges;
 }
 
 export interface CreateCustomerParams {
@@ -225,7 +226,7 @@ export interface Installment {
 }
 
 export interface IOtherCharges {
-  other_charge_unit_rates: IOtherChargesInfo[]
+  other_charge_unit_rates: IOtherChargesInfo[];
 }
 
 export interface IOtherChargesInfo {
@@ -243,4 +244,13 @@ export interface IOtherChargesInfo {
 export interface IOtherChargesParam {
   project_id: number;
   unit_id: number;
+}
+
+export interface ITermsnConditions {
+  id: number;
+  project_id: number;
+  title: string;
+  description: string;
+  status: number;
+  created: string;
 }

@@ -6,7 +6,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
-import { getOtherChargesList, getUnitInfo, getUnitParkingInfo, getVisitorsList } from 'redux/sales';
+import {
+  getOtherChargesList,
+  getTermsnConditions,
+  getUnitInfo,
+  getUnitParkingInfo,
+  getVisitorsList,
+} from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
@@ -17,12 +23,15 @@ const BookingForm = () => {
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
   const [baseAmount, setBaseAmount] = useState<number>();
+  const [terms, setTerms] = useState<string>();
 
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
   // visitors list
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList } = useAppSelector(s => s.sales);
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
+    s => s.sales,
+  );
 
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -39,6 +48,14 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
+
+  const termsOptions = useMemo(() => {
+    return termsList?.map(e => ({
+      label: e.title,
+      value: e.id,
+      details: e.description,
+    }));
+  }, [termsList]);
 
   useEffect(() => {
     dispatch(
@@ -63,6 +80,11 @@ const BookingForm = () => {
         unit_id: unitId,
       }),
     );
+    dispatch(
+      getTermsnConditions({
+        project_id: 18,
+      }),
+    );
   }, []);
 
   const initialValues = {
@@ -79,6 +101,8 @@ const BookingForm = () => {
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
     basic_rate_basic_amount: undefined,
+    custom_payment_remark_id: 0,
+    custom_payment_remark: '',
   };
 
   const handleSubmit = values => {
@@ -887,16 +911,23 @@ const BookingForm = () => {
                 <div className="form-row mb-4">
                   <div className="col-4">
                     <label>Select T&C Template</label>
-                    <select className="form-control">
-                      <option value="0">Select T&C</option>
-                      <option value="1">A</option>
-                      <option value="2">B</option>
-                      <option value="3">C</option>
-                    </select>
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={termsOptions}
+                      placeholder="Select Terms & Conditions"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          marginTop: 10,
+                          marginBottom: 50,
+                        }),
+                      }}
+                      onChange={e => setTerms(e.details)}
+                    />
+                  </div>
+                  <div className="col-10 px-0">
                   </div>
                 </div>
-
-                <textarea className="form-control" rows={4}></textarea>
               </div>
 
               <div className="booking-form-col-12">
