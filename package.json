@@ -31,7 +31,6 @@
     "@reduxjs/toolkit": "^1.9.5",
     "axios": "^1.4.0",
     "bootstrap": "^4.6.0",
-    "ckeditor5-custom-build": "file:ckeditor5",
     "dayjs": "^1.11.9",
     "formik": "^2.4.2",
     "i": "^0.3.7",

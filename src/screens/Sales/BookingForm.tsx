@@ -17,6 +17,7 @@ import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
 import AddCustomerModal from './AddCustomerModal';
+import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -70,6 +71,23 @@ const BookingForm = () => {
     }));
   }, [termsList]);
 
+  // Function to handle updating values in the extraCharges array
+  const handleUpdateExtraCharge = (index, field, value) => {
+    setExtraCharges(prevExtraCharges => {
+      const updatedExtraCharges = [...prevExtraCharges];
+      updatedExtraCharges[index][field] = value;
+      return updatedExtraCharges;
+    });
+  };
+
+  const handleDeleteExtraCharge = index => {
+    setExtraCharges(prevExtraCharges => {
+      const updatedExtraCharges = [...prevExtraCharges];
+      updatedExtraCharges.splice(index, 1);
+      return updatedExtraCharges;
+    });
+  };
+
   const handleAddData = () => {
     setExtraCharges([
       ...extraCharges,
@@ -85,12 +103,6 @@ const BookingForm = () => {
         extra_charges_total: undefined,
       },
     ]);
-  };
-  const handleDelete = index => {
-    console.log(index, 'i');
-    const updatedCharges = [...extraCharges];
-    updatedCharges.splice(index - 1, 1);
-    setExtraCharges(updatedCharges);
   };
 
   useEffect(() => {
@@ -226,21 +238,22 @@ const BookingForm = () => {
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
   );
+
   const discountExtraCharges = useSyncedFields(
     formik,
     baseAmount,
     'extra_charges_disc_amt',
     'extra_charges_disc_per',
   );
-  const handleAreaRateChange = (index, area, rate) => {
-    console.log(area, rate, 'k');
-    const updatedCharges = [...extraCharges];
-    updatedCharges[index].extra_charges_area = area;
-    updatedCharges[index].extra_charges_rate = rate;
-    const amount = parseFloat(area) * parseFloat(rate) || 0;
-    updatedCharges[index].extra_charges_total = parseFloat(amount.toFixed(2));
-    setExtraCharges(updatedCharges);
-  };
+
+  // const handleAreaRateChange = (index, key, value) => {
+  //   console.log(key, value, 'k');
+  //   const updatedCharges = [...extraCharges];
+  //   updatedCharges[index].[key] = value;
+  //   const amount = parseFloat(area) * parseFloat(rate) || 0;
+  //   updatedCharges[index].extra_charges_total = parseFloat(amount.toFixed(2));
+  //   setExtraCharges(updatedCharges);
+  // };
 
   // govt Taxes
   const gstSyncedFields = useSyncedFields(formik, newbaseAmount, 'gst_amt', 'gst_per');
@@ -849,34 +862,37 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {extraCharges?.map((x, index) => (
-                        <tr key={x.extra_charges_no}>
-                          <td>{x.extra_charges_no}</td>
+                      {extraCharges?.map((x, i) => (
+                        <tr key={i}>
+                          <td>{i + 1}</td>
                           <td>
                             <input
                               className="form-control mb-2"
                               type="text"
                               value={x?.extra_charges_title}
-                              onChange={e => {
-                                const updatedCharges = extraCharges?.map(item => {
-                                  if (item.extra_charges_no === x.extra_charges_no) {
-                                    return { ...item, extra_charges_title: e.target.value || '' };
-                                  }
-                                  return item;
-                                });
-                                setExtraCharges(updatedCharges);
-                              }}
+                              onChange={e =>
+                                handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)
+                              }
                             />
                           </td>
                           <td>
-                            <select className="form-control">
-                              <option value="">Equally with all installments</option>
-                              <option value="">Proportionately with all installment</option>
-                              <option value="">
-                                Proportionately with all installment(Except First)
-                              </option>
-                              <option value="">Connect with last installment</option>
-                              <option value="">Don't connect with installment</option>
+                            <select
+                              className="form-control"
+                              onChange={e =>
+                                handleUpdateExtraCharge(
+                                  i,
+                                  'extra_charges_distribution_method',
+                                  e.target.value,
+                                )
+                              }
+                            >
+                              {DISTRIBUTION_METHOD?.map((e, index) => {
+                                return (
+                                  <option key={index} value={e}>
+                                    {e}
+                                  </option>
+                                );
+                              })}
                             </select>
                           </td>
                           <td>
@@ -885,7 +901,7 @@ const BookingForm = () => {
                               type="text"
                               value={x.extra_charges_area}
                               onChange={e =>
-                                handleAreaRateChange(index, e.target.value, x.extra_charges_area)
+                                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value)
                               }
                             />
                           </td>
@@ -895,27 +911,8 @@ const BookingForm = () => {
                               type="text"
                               value={x.extra_charges_rate}
                               onChange={e =>
-                                handleAreaRateChange(index, e.target.value, x.extra_charges_rate)
+                                handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value)
                               }
-                            />
-                          </td>
-                          <td className="d-none">
-                            <input
-                              className="form-control mb-2"
-                              type="text"
-                              value={x.extra_charges_rate}
-                              onChange={e => {
-                                const updatedCharges = extraCharges.map(item => {
-                                  if (item.extra_charges_rate === x.extra_charges_rate) {
-                                    return {
-                                      ...item,
-                                      extra_charges_rate: parseFloat(e.target.value) || 0,
-                                    };
-                                  }
-                                  return item;
-                                });
-                                setExtraCharges(updatedCharges);
-                              }}
                             />
                           </td>
                           <td>
@@ -926,8 +923,8 @@ const BookingForm = () => {
                               type="text"
                               value={x.extra_charges_disc_amt}
                               onChange={e => {
-                                const updatedCharges = extraCharges.map(item => {
-                                  if (item.extra_charges_disc_amt === x.extra_charges_disc_amt) {
+                                const updatedCharges = extraCharges?.map((item, index) => {
+                                  if (index === i) {
                                     discountExtraCharges.onChangeAmount(e);
                                     return {
                                       ...item,
@@ -971,7 +968,7 @@ const BookingForm = () => {
                             <button
                               className="add-comp-btn m-0 acount-act-btn red-common"
                               type="button"
-                              onClick={() => handleDelete(x.extra_charges_no)}
+                              onClick={() => handleDeleteExtraCharge(i)}
                             >
                               <svg
                                 fill="none"
