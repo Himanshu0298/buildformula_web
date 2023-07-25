@@ -943,8 +943,8 @@ const BookingForm = () => {
                               type="text"
                               value={x.extra_charges_disc_per}
                               onChange={e => {
-                                const updatedCharges = extraCharges.map(item => {
-                                  if (item.extra_charges_disc_per === x.extra_charges_disc_per) {
+                                const updatedCharges = extraCharges.map((item, index) => {
+                                  if (index === i) {
                                     discountExtraCharges.onChangePercent(e);
                                     return {
                                       ...item,
