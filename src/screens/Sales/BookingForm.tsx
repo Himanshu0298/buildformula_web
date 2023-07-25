@@ -8,7 +8,7 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
 import { getOtherChargesList, getUnitInfo, getUnitParkingInfo, getVisitorsList } from 'redux/sales';
-import { IVisitor } from 'redux/sales/salesInterface';
+import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 
 import AddCustomerModal from './AddCustomerModal';
@@ -17,7 +17,18 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-
+  const [extraCharges, setExtraCharges] = useState<ExtraCharge []>([
+    {
+      extra_charges_no: 1,
+      extra_charges_title: '',
+      extra_charges_distribution_method: undefined,
+      extra_charges_area: undefined,
+      extra_charges_rate: undefined,
+      extra_charges_disc_amt: undefined,
+      extra_charges_disc_per: undefined,
+      extra_charges_amt: undefined,
+    },
+  ])
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
@@ -42,6 +53,20 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
+  const handleAddData = () => {
+    setExtraCharges([
+      ...extraCharges, {
+        extra_charges_no: extraCharges.length + 1,
+        extra_charges_title: '',
+        extra_charges_distribution_method: '',
+        extra_charges_area: undefined,
+        extra_charges_rate: undefined,
+        extra_charges_disc_amt: undefined,
+        extra_charges_disc_per: undefined,
+        extra_charges_amt: undefined,
+      }],
+    )
+  }
 
   useEffect(() => {
     dispatch(
@@ -82,6 +107,7 @@ const BookingForm = () => {
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
     basic_rate_basic_amount: undefined,
+    extra_charges: extraCharges
   };
 
   const handleSubmit = values => {
@@ -129,7 +155,7 @@ const BookingForm = () => {
     //     reg_per: 0,
     //     reg_amount: 0,
     //     total_gove_tax: '',
-    //     extra_charges: [],
+    //     extra_charges: rows,
     //     extra_charges_total: 0,
     //     property_final_amount: 0,
     //     is_loan: '',
@@ -481,9 +507,9 @@ const BookingForm = () => {
                               name="basic_rate"
                               placeholder="Amount"
                               type="text"
-                                value={values.basic_rate}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -492,18 +518,18 @@ const BookingForm = () => {
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
                               type="text"
-                                value={values.basic_rate_disc_amt}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_disc_amt}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
                               type="text"
-                                value={values.basic_rate_disc_per}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_disc_per}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -512,9 +538,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_basic_amount"
                               type="text"
-                                value={values.basic_rate_basic_amount}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_basic_amount}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                         </tr>
@@ -701,45 +727,96 @@ const BookingForm = () => {
                       <th>Rate</th>
                       <th>Discount</th>
                       <th className="text-right">Amount</th>
+                      <th></th>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>01</td>
-                        <td>Some Extra Charges need to be added here</td>
-                        <td>
-                          <select className="form-control">
-                            <option value="">Equally with all installments</option>
-                            <option value="">Proportionately with all installment</option>
-                            <option value="">
-                              Proportionately with all installment(Except First)
-                            </option>
-                            <option value="">Connect with last installment</option>
-                            <option value="">Don't connect with installment</option>
-                          </select>
-                        </td>
-                        <td>
-                          <input className="form-control mb-2" type="text" />
-                        </td>
-                        <td>
-                          <input className="form-control mb-2" type="text" />
-                        </td>
-                        <td>
-                          <input className="form-control mb-2" placeholder="Amount" type="text" />
-                          <input className="form-control" placeholder="%" type="text" />
-                        </td>
-                        <td>
-                          <input readOnly className="form-control mb-2" type="text" />
-                        </td>
-                      </tr>
+                      {extraCharges?.map((x) => (
+                        <tr key={x.extra_charges_no}>
+
+                          <td>{x.extra_charges_no}</td>
+                          <td><input className="form-control mb-2" type="text" value={x?.extra_charges_title} onChange={(e) => {
+                            const updatedCharges = extraCharges?.map((item) => {
+                              if (item.extra_charges_no === x.extra_charges_no) {
+                                return { ...item, extra_charges_title: e.target.value || '' };
+                              }
+                              return item;
+                            });
+                            setExtraCharges(updatedCharges);
+                          }} /></td>
+                          <td>
+                            <select className="form-control">
+                              <option value="">Equally with all installments</option>
+                              <option value="">Proportionately with all installment</option>
+                              <option value="">
+                                Proportionately with all installment(Except First)
+                              </option>
+                              <option value="">Connect with last installment</option>
+                              <option value="">Don't connect with installment</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input className="form-control mb-2" type="text" value={x.extra_charges_area} onChange={(e) => {
+                            const updatedCharges = extraCharges.map((item) => {
+                              if (item.extra_charges_no === x.extra_charges_no) {
+                                return { ...item, extra_charges_area: e.target.value || 0 };
+                              }
+                              return item;
+                            });
+                            setExtraCharges(updatedCharges);
+                          }} />
+                          </td>
+                          <td>
+                            <input className="form-control mb-2" type="text" value={x.extra_charges_rate} onChange={(e) => {
+                            const updatedCharges = extraCharges.map((item) => {
+                              if (item.extra_charges_rate === x.extra_charges_rate) {
+                                return { ...item, extra_charges_rate: e.target.value };
+                              }
+                              return item;
+                            });
+                            setExtraCharges(updatedCharges);
+                          }}/>
+                          </td>
+                          <td>
+                            <input className="form-control mb-2" placeholder="Amount" type="text" value={x.extra_charges_disc_amt} onChange={(e) => {
+                            const updatedCharges = extraCharges.map((item) => {
+                              if (item.extra_charges_disc_amt === x.extra_charges_disc_amt) {
+                                return { ...item, extra_charges_disc_amt: e.target.value };
+                              }
+                              return item;
+                            });
+                            setExtraCharges(updatedCharges);
+                          }}/>
+                            <input className="form-control" placeholder="%" type="text" value={x.extra_charges_disc_per} onChange={(e) => {
+                            const updatedCharges = extraCharges.map((item) => {
+                              if (item.extra_charges_disc_per === x.extra_charges_disc_per) {
+                                return { ...item, extra_charges_disc_per: e.target.value };
+                              }
+                              return item;
+                            });
+                            setExtraCharges(updatedCharges);
+                          }} />
+                          </td>
+                          <td>
+                            <input readOnly className="form-control mb-2" type="text" />
+                          </td>
+                          <td>
+                          <button type="button" className="add-comp-btn m-0 acount-act-btn red-common" onClick={()=>console.log(1)}><svg width="8" height="10" viewBox="0 0 6 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z" fill="#FF5D5D"></path></svg></button>
+                          </td>
+                        </tr>
+                      ))}
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
                         <td className="text-right">Rs 10000000</td>
+                        <td></td>
                       </tr>
                     </tbody>
                   </table>
+                  <div className="row w-100 justify-content-end">
+                      <button className="Btn btn-lightblue-primary lbps-btn ml-auto mr-0" onClick={handleAddData}>Add More</button>
+                  </div>
                 </div>
               </div>
             </div>
