@@ -2,7 +2,6 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { round } from 'lodash';
 import { useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -17,15 +16,13 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+  const [baseAmount, setBaseAmount] = useState<number>();
 
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
   // visitors list
   const { visitorList, unitInfo, unitParkingInfo, otherChargesList } = useAppSelector(s => s.sales);
-
-  // < input value = { values.amountKey } onChange = { discountSyncedFields.onChangeAmount } />
-  //   <input onChange={discountSyncedFields.onChangePercent} />
 
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -151,23 +148,30 @@ const BookingForm = () => {
   });
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
-  console.log("🚀 ~ file: BookingForm.tsx:154 ~ BookingForm ~ values:", values.basic_rate_basic_amount)
 
   const discountSyncedFields = useSyncedFields(
     formik,
-    values.basic_rate_basic_amount,
+    baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
   );
 
   useEffect(() => {
-    const { basic_rate_area, basic_rate, basic_rate_disc_amt } = values;
+    const { basic_rate_area = 0, basic_rate = 0 } = values;
 
-    if (basic_rate_area || basic_rate) {
-      const basic_rate_total = round(basic_rate_area * basic_rate - basic_rate_disc_amt, 2);
-      setFieldValue('basic_rate_basic_amount', basic_rate_total);
+    const basic_rate_total = basic_rate_area * basic_rate;
+    setBaseAmount(basic_rate_total);
+  }, [values]);
+
+  useEffect(() => {
+    const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
+    if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
+      setFieldValue('basic_rate_basic_amount', 0);
+    } else {
+      setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
     }
-  }, [values.basic_rate, values.basic_rate_area, values.basic_rate_disc_amt]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.basic_rate_disc_amt]);
 
   useEffect(() => {
     formik.setValues({
@@ -469,9 +473,9 @@ const BookingForm = () => {
                               name="basic_rate"
                               placeholder="Amount"
                               type="text"
-                                value={values.basic_rate}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -480,18 +484,18 @@ const BookingForm = () => {
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
                               type="text"
-                                value={values.basic_rate_disc_amt}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_disc_amt}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
                               type="text"
-                                value={values.basic_rate_disc_per}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_disc_per}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -500,9 +504,9 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_basic_amount"
                               type="text"
-                                value={values.basic_rate_basic_amount}
-                                onBlur={handleBlur}
-                                onChange={handleChange}
+                              value={values.basic_rate_basic_amount}
+                              onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                         </tr>
