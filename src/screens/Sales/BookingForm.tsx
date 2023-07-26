@@ -15,9 +15,9 @@ import {
 } from 'redux/sales';
 import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
-import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -28,7 +28,7 @@ const BookingForm = () => {
     {
       extra_charges_no: 1,
       extra_charges_title: '',
-      extra_charges_distribution_method: undefined,
+      extra_charges_distribution_method: '',
       extra_charges_area: undefined,
       extra_charges_rate: undefined,
       extra_charges_disc_amt: undefined,
@@ -58,11 +58,11 @@ const BookingForm = () => {
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
-
+  // parkingInfo
   const unitParkingInfoValues = useMemo(() => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
   }, [unitParkingInfo?.all_parking_units]);
-
+  // customers options
   const customerOptions = useMemo(() => {
     return visitorList?.map(e => ({
       label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
@@ -70,7 +70,7 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
-
+  // t&c
   const termsOptions = useMemo(() => {
     return termsList?.map(e => ({
       label: e.title,
@@ -79,7 +79,7 @@ const BookingForm = () => {
     }));
   }, [termsList]);
 
-  // Function to handle updating values in the extraCharges array
+  // extra charges update & delete
   const handleUpdateExtraCharge = (index, field, value) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
@@ -87,13 +87,115 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
-
   const handleDeleteExtraCharge = index => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges.splice(index, 1);
       return updatedExtraCharges;
     });
+  };
+
+  const ExtraChargeRow = ({ i, x }) => {
+    // const extraChargesDiscount = useSyncedFields(
+    //   baseAmount,
+    //   'x.extra_charges_amt',
+    //   'x.extra_charges_per',
+    //   () => {
+    //     handleUpdateExtraCharge;
+    //   },
+    // );
+    return (
+      <tr key={i}>
+        <td>{i + 1}</td>
+        <td>
+          <input
+            className="form-control mb-2"
+            type="text"
+            value={x?.extra_charges_title}
+            onChange={e => handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)}
+          />
+        </td>
+        <td>
+          <select
+            className="form-control"
+            onChange={e =>
+              handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value)
+            }
+          >
+            {DISTRIBUTION_METHOD?.map((e, index) => {
+              return (
+                <option key={index} value={e}>
+                  {e}
+                </option>
+              );
+            })}
+          </select>
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            type="number"
+            value={x.extra_charges_area}
+            onChange={e => handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value)}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            type="number"
+            value={x.extra_charges_rate}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            name="extra_charges_disc_amt"
+            placeholder="Amount"
+            type="number"
+            value={x.extra_charges_disc_amt}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
+            }}
+          />
+          <input
+            className="form-control"
+            name="extra_charges_disc_per"
+            placeholder="%"
+            type="number"
+            value={x.extra_charges_disc_per}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input className="form-control mb-2" type="number" value={x.extra_charges_total} />
+        </td>
+        <td>
+          <button
+            className="add-comp-btn m-0 acount-act-btn red-common"
+            type="button"
+            onClick={() => handleDeleteExtraCharge(i)}
+          >
+            <svg
+              fill="none"
+              height="10"
+              viewBox="0 0 6 8"
+              width="8"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
+                fill="#FF5D5D"
+              ></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    );
   };
 
   const handleAddData = () => {
@@ -272,52 +374,34 @@ const BookingForm = () => {
   const newbaseAmount = 500000;
 
   const discountSyncedFields = useSyncedFields(
-    formik,
     baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
+    setFieldValue,
   );
-
-  const discountExtraCharges = useSyncedFields(
-    formik,
-    baseAmount,
-    'extra_charges_disc_amt',
-    'extra_charges_disc_per',
-  );
-  const discountOtherCharges = useSyncedFields(
-    formik,
-    baseAmount,
-    'other_charges_disc_amt',
-    'other_charges_disc_per',
-  );
-
-  // const handleAreaRateChange = (index, key, value) => {
-  //   console.log(key, value, 'k');
-  //   const updatedCharges = [...extraCharges];
-  //   updatedCharges[index].[key] = value;
-  //   const amount = parseFloat(area) * parseFloat(rate) || 0;
-  //   updatedCharges[index].extra_charges_total = parseFloat(amount.toFixed(2));
-  //   setExtraCharges(updatedCharges);
-  // };
 
   // govt Taxes
-  const gstSyncedFields = useSyncedFields(formik, newbaseAmount, 'gst_amt', 'gst_per');
+  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
+    setFieldValue;
+  });
 
   const stampDutySyncedFields = useSyncedFields(
-    formik,
     newbaseAmount,
     'stampduty_amount',
     'stampduty_per',
+    setFieldValue,
   );
 
-  const registrationSyncedFields = useSyncedFields(formik, newbaseAmount, 'reg_amount', 'reg_per');
-
-  const taxesTotallSyncedFields = useSyncedFields(
-    formik,
+  const registrationSyncedFields = useSyncedFields(
     newbaseAmount,
-    'taxes_amount',
-    'taxes_per',
+    'reg_amount',
+    'reg_per',
+    setFieldValue,
   );
+
+  const taxesTotalSyncedFields = useSyncedFields(newbaseAmount, 'taxes_amount', 'taxes_per', () => {
+    setFieldValue;
+  });
 
   useEffect(() => {
     const { basic_rate_area = 0, basic_rate = 0 } = values;
@@ -327,14 +411,9 @@ const BookingForm = () => {
   }, [values]);
 
   useEffect(() => {
-    const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
-    if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
-      setFieldValue('basic_rate_basic_amount', 0);
-    } else {
-      setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.basic_rate_disc_amt]);
+    const { basic_rate_disc_amt = 0 } = values;
+    setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
+  }, [baseAmount, setFieldValue, values, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
   useEffect(() => {
     formik.setValues({
@@ -564,7 +643,7 @@ const BookingForm = () => {
                             <input
                               className="form-control"
                               name="basic_rate_area"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_area}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -585,7 +664,7 @@ const BookingForm = () => {
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
                               onChange={discountSyncedFields.onChangeAmount}
@@ -594,7 +673,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
                               onChange={discountSyncedFields.onChangePercent}
@@ -876,7 +955,7 @@ const BookingForm = () => {
                       name="taxes_per"
                       type="text"
                       value={values.taxes_per}
-                      onChange={taxesTotallSyncedFields.onChangePercent}
+                      onChange={taxesTotalSyncedFields.onChangePercent}
                     />
                   </div>
                   <div className="form-group col-3">
@@ -886,7 +965,7 @@ const BookingForm = () => {
                       name="taxes_amount"
                       type="text"
                       value={values.taxes_amount}
-                      onChange={taxesTotallSyncedFields.onChangeAmount}
+                      onChange={taxesTotalSyncedFields.onChangeAmount}
                     />
                   </div>
                 </div>
@@ -912,128 +991,7 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {extraCharges?.map((x, i) => (
-                        <tr key={i}>
-                          <td>{i + 1}</td>
-                          <td>
-                            <input
-                              className="form-control mb-2"
-                              type="text"
-                              value={x?.extra_charges_title}
-                              onChange={e =>
-                                handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)
-                              }
-                            />
-                          </td>
-                          <td>
-                            <select
-                              className="form-control"
-                              onChange={e =>
-                                handleUpdateExtraCharge(
-                                  i,
-                                  'extra_charges_distribution_method',
-                                  e.target.value,
-                                )
-                              }
-                            >
-                              {DISTRIBUTION_METHOD?.map((e, index) => {
-                                return (
-                                  <option key={index} value={e}>
-                                    {e}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </td>
-                          <td>
-                            <input
-                              className="form-control mb-2"
-                              type="text"
-                              value={x.extra_charges_area}
-                              onChange={e =>
-                                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value)
-                              }
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control mb-2"
-                              type="text"
-                              value={x.extra_charges_rate}
-                              onChange={e =>
-                                handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value)
-                              }
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control mb-2"
-                              name="extra_charges_disc_amt"
-                              placeholder="Amount"
-                              type="text"
-                              value={x.extra_charges_disc_amt}
-                              onChange={e => {
-                                const updatedCharges = extraCharges?.map((item, index) => {
-                                  if (index === i) {
-                                    discountExtraCharges.onChangeAmount(e);
-                                    return {
-                                      ...item,
-                                      extra_charges_disc_amt: parseFloat(e.target.value) || 0,
-                                    };
-                                  }
-                                  return item;
-                                });
-                                setExtraCharges(updatedCharges);
-                              }}
-                            />
-                            <input
-                              className="form-control"
-                              name="extra_charges_disc_per"
-                              placeholder="%"
-                              type="text"
-                              value={x.extra_charges_disc_per}
-                              onChange={e => {
-                                const updatedCharges = extraCharges.map((item, index) => {
-                                  if (index === i) {
-                                    discountExtraCharges.onChangePercent(e);
-                                    return {
-                                      ...item,
-                                      extra_charges_disc_per: parseFloat(e.target.value) || 0,
-                                    };
-                                  }
-                                  return item;
-                                });
-                                setExtraCharges(updatedCharges);
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control mb-2"
-                              type="text"
-                              value={x.extra_charges_total}
-                            />
-                          </td>
-                          <td>
-                            <button
-                              className="add-comp-btn m-0 acount-act-btn red-common"
-                              type="button"
-                              onClick={() => handleDeleteExtraCharge(i)}
-                            >
-                              <svg
-                                fill="none"
-                                height="10"
-                                viewBox="0 0 6 8"
-                                width="8"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
-                                  fill="#FF5D5D"
-                                ></path>
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
+                        <ExtraChargeRow key={i} i={i} x={x} />
                       ))}
                       {/* total */}
                       <tr>
