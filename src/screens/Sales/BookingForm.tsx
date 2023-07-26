@@ -23,7 +23,8 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  const [totalAmount, setTotalAmount] = useState(0);
+  const [rowAmounts, setRowAmounts] = useState({});
+
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -215,36 +216,33 @@ const BookingForm = () => {
     ]);
   };
   const handleOCListChange = (index, field, value) => {
-    
     setOCList((prevList) => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
       };
-
-      let newTotalAmount = 0;
-      newUnitRates.forEach((item) => {
-        const area = parseFloat(item.area) || 0;
-        const rate = parseFloat(item.rate) || 0;
-        const discount = parseFloat(item.other_charges_disc_amt) || 0;
-        const percentage = parseFloat(item.other_charges_disc_per) || 0;
-        const discountedAmount = area*rate -discount - (area*rate*percentage) /100
-        console.log('area:', area);
-        console.log('rate:', rate);
-        console.log('discount:', discount)
-        console.log('discountedAmount:', discountedAmount);
-        newTotalAmount += discountedAmount;
-      });
-
-      // Update the state with the new total amount
-      setTotalAmount(newTotalAmount);
+  
+      // Calculate the new amount for the current row
+      const area = parseFloat(newUnitRates[index].area) || 0;
+      const rate = parseFloat(newUnitRates[index].rate) || 0;
+      const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
+      const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
+      const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
+  
+      // Update the rowAmounts state with the new amount for this row
+      setRowAmounts((prevRowAmounts) => ({
+        ...prevRowAmounts,
+        [index]: discountedAmount,
+      }));
+  
       return {
         ...prevList,
         other_charge_unit_rates: newUnitRates,
       };
     });
   };
+  
 
   useEffect(() => {
     dispatch(
@@ -378,6 +376,14 @@ const BookingForm = () => {
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
     setFieldValue,
+  );
+  const discountOtherCharges = useSyncedFields(
+    baseAmount,
+    'basic_rate_disc_amt',
+    'basic_rate_disc_per',
+    ()=>{
+      handleOCListChange
+    },
   );
 
   // govt Taxes
@@ -816,7 +822,7 @@ const BookingForm = () => {
                               <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={discountOtherCharges.onChangePercent} />
                             </td>
                             <td>
-                              <input readOnly className="form-control" type="text" value={totalAmount} />
+                              <input readOnly className="form-control" type="text" value={rowAmounts[i] || 0}  />
 
                             </td>
                           </tr>
