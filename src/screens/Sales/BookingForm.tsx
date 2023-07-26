@@ -23,20 +23,20 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
-    {
-      extra_charges_no: 1,
-      extra_charges_title: '',
-      extra_charges_distribution_method: '',
-      extra_charges_area: 0,
-      extra_charges_rate: 0,
-      extra_charges_disc_amt: 0,
-      extra_charges_disc_per: 0,
-      extra_charges_amt: 0,
-      extra_charges_total: 0,
-      extra_charges_base: 0,
-    },
-  ]);
+  // const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
+  //   {
+  //     extra_charges_no: 1,
+  //     extra_charges_title: '',
+  //     extra_charges_distribution_method: '',
+  //     extra_charges_area: 0,
+  //     extra_charges_rate: 0,
+  //     extra_charges_disc_amt: 0,
+  //     extra_charges_disc_per: 0,
+  //     extra_charges_amt: 0,
+  //     extra_charges_total: 0,
+  //     extra_charges_base: 0,
+  //   },
+  // ]);
   const [baseAmount, setBaseAmount] = useState<number>();
   const [terms, setTerms] = useState<string>();
 
@@ -73,7 +73,7 @@ const BookingForm = () => {
   }, [termsList]);
 
   // extra charges update & delete
-  const handleUpdateExtraCharge = (index: number, field: string, value: string) => {
+  const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
@@ -87,6 +87,141 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
+  const handleTotalCharge = () => {
+    let total = 0;
+    extraCharges.forEach(charge => {
+      total += charge.extra_charges_amt;
+    });
+    return total.toFixed(2);
+  };
+
+  const [extraCharges, setExtraCharges] = useState([
+    {
+      extra_charges_no: 1,
+      extra_charges_title: 'PARKING',
+      extra_charges_distribution_method: 'Equally with all installments',
+      extra_charges_area: 55,
+      extra_charges_rate: 555,
+      extra_charges_disc_per: 4,
+      extra_charges_disc_amt: 300,
+      extra_charges_amt: 300,
+    },
+    {
+      extra_charges_no: 1,
+      extra_charges_title: 'PARKING',
+      extra_charges_distribution_method: 'Proportionately with all installment(Except First)',
+      extra_charges_area: 55,
+      extra_charges_rate: 555,
+      extra_charges_disc_per: 4,
+      extra_charges_disc_amt: 200,
+      extra_charges_amt: 200,
+    },
+    {
+      extra_charges_no: 1,
+      extra_charges_title: 'PARKING',
+      extra_charges_distribution_method: 'Connect with last installment',
+      extra_charges_area: 55,
+      extra_charges_rate: 555,
+      extra_charges_disc_per: 4,
+      extra_charges_disc_amt: 100000,
+      extra_charges_amt: 100,
+    },
+    {
+      extra_charges_no: 1,
+      extra_charges_title: 'PARKING',
+      extra_charges_distribution_method: 'Dont connect with installment',
+      extra_charges_area: 55,
+      extra_charges_rate: 555,
+      extra_charges_disc_per: 4,
+      extra_charges_disc_amt: 100000,
+      extra_charges_amt: 100,
+    },
+  ]);
+  const [installments, setInstallments] = useState([
+    {
+      custom_payment_no: 1,
+      custom_payment_installment: 'installment 1',
+      installment_due_date: '2023-07-19',
+      installment_per: 5,
+      installment_basic_amt: 83066.67,
+      installment_otherchages_amt: 555,
+      installment_amount: 565,
+      gst: 4,
+    },
+    {
+      custom_payment_no: 1,
+      custom_payment_installment: 'installment 1',
+      installment_due_date: '2023-07-19',
+      installment_per: 5,
+      installment_basic_amt: 83066.67,
+      installment_otherchages_amt: 555,
+      installment_amount: 565,
+      gst: 4,
+    },
+    {
+      custom_payment_no: 1,
+      custom_payment_installment: 'installment 1',
+      installment_due_date: '2023-07-19',
+      installment_per: 5,
+      installment_basic_amt: 83066.67,
+      installment_otherchages_amt: 555,
+      installment_amount: 565,
+      gst: 4,
+    },
+  ]); // Your installments data
+
+  useEffect(() => {
+    const updateInstallments = () => {
+      const updatedInstallments = [...installments];
+
+      extraCharges.forEach(extraCharge => {
+        const { extra_charges_distribution_method, extra_charges_amt } = extraCharge;
+
+        switch (extra_charges_distribution_method) {
+          case 'Equally with all installments':
+            // eslint-disable-next-line no-case-declarations
+            const equallyDistributedAmount = extra_charges_amt / installments.length;
+            updatedInstallments.forEach(installment => {
+              installment.installment_amount += equallyDistributedAmount;
+            });
+            console.log('1', equallyDistributedAmount)
+            break;
+
+          case 'Proportionately with all installment(Except First)':
+            // eslint-disable-next-line no-case-declarations
+            const proportionatelyDistributedAmount =
+              extra_charges_amt / (installments.length - 1);
+            updatedInstallments.forEach((installment, index) => {
+              if (index !== 0) {
+                installment.installment_amount += proportionatelyDistributedAmount;
+              }
+            });
+            console.log('2', proportionatelyDistributedAmount)
+            break;
+
+          case 'Connect with last installment':
+            // eslint-disable-next-line no-case-declarations
+            const lastIndex = installments.length - 1;
+            updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
+            console.log('3', extra_charges_amt)
+            break;
+
+
+          default:
+            // For other cases, directly add the amount to the total of all installments
+            updatedInstallments.forEach(installment => {
+              installment.installment_amount += extra_charges_amt;
+            });
+            console.log('4', extra_charges_amt)
+            break;
+        }
+      });
+
+      setInstallments(updatedInstallments);
+    };
+
+    updateInstallments();
+  }, [extraCharges]);
 
   const extraChargeRow = (i, x) => {
     const onChangeAmount = e => {
@@ -147,12 +282,12 @@ const BookingForm = () => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_base',
-                x.extra_charges_area * e.target.value,
+                x.extra_charges_area * e.target.valueAsNumber,
               );
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
-                x.extra_charges_area * e.target.value,
+                x.extra_charges_area * e.target.valueAsNumber,
               );
               handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value);
             }}
@@ -174,7 +309,7 @@ const BookingForm = () => {
             }}
             onChange={e => {
               onChangeAmount(e);
-              handleUpdateExtraCharge(i, '', e.target.value);
+              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
           />
           <input
@@ -187,7 +322,7 @@ const BookingForm = () => {
               onChangePercent(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
             }}
-            onKeyUp={e =>{
+            onKeyUp={e => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
@@ -230,13 +365,13 @@ const BookingForm = () => {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
         extra_charges_distribution_method: '',
-        extra_charges_area: undefined,
-        extra_charges_rate: undefined,
-        extra_charges_disc_amt: undefined,
-        extra_charges_disc_per: undefined,
-        extra_charges_amt: undefined,
-        extra_charges_total: undefined,
-        extra_charges_base: undefined,
+        extra_charges_area: 0,
+        extra_charges_rate: 0,
+        extra_charges_disc_amt: 0,
+        extra_charges_disc_per: 0,
+        extra_charges_amt: 0,
+        extra_charges_total: 0,
+        extra_charges_base: 0,
       },
     ]);
   };
@@ -987,7 +1122,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">Rs 10000000</td>
+                        <td className="text-right">Rs {handleTotalCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1112,32 +1247,36 @@ const BookingForm = () => {
                       <th className="text-right">Installment Amount</th>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>01</td>
-                        <td>Installment Will be here</td>
-                        <td>
-                          <input className="form-control" type="date" />
-                        </td>
-                        <td>
-                          <input className="form-control" type="text" />
-                        </td>
-                        <td>
-                          <input className="form-control" type="text" />
-                        </td>
-                        <td>
-                          <input className="form-control" type="text" />
-                        </td>
-                        <td>
-                          <input className="form-control" type="text" />
-                        </td>
-                        <td>
-                          <input readOnly className="form-control" type="text" />
-                        </td>
-                      </tr>
+                      {installments?.map((e, i) => {
+                        return (
+                          <tr key={`${i}_${e.custom_payment_no}`}>
+                            <td>01</td>
+                            <td>Installment Will be here</td>
+                            <td>
+                              <input className="form-control" type="date" />
+                            </td>
+                            <td>
+                              <input className="form-control" type="text" />
+                            </td>
+                            <td>
+                              <input className="form-control" type="text" />
+                            </td>
+                            <td>
+                              <input className="form-control" type="text" />
+                            </td>
+                            <td>
+                              <input className="form-control" type="text" />
+                            </td>
+                            <td>
+                              <input readOnly className="form-control" type="text" value={e.installment_amount} />
+                            </td>
+                          </tr>
+                        )
+                      })}
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={7}>
-                          Other Charges Total
+                          Installments Total
                         </td>
                         <td className="text-right">Rs 10000000</td>
                       </tr>
