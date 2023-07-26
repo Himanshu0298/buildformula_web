@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
+import { string } from 'yup';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -82,6 +83,7 @@ const BookingForm = () => {
 
   // extra charges update & delete
   const handleUpdateExtraCharge = (index:number, field: string, value: string) => {
+    console.log(index,field,value,'sirs value')
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
@@ -218,6 +220,7 @@ const BookingForm = () => {
     ]);
   };
   const handleOCListChange = (index, field, value) => {
+    console.log(index,field,value)
     setOCList((prevList) => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
       newUnitRates[index] = {
@@ -231,7 +234,9 @@ const BookingForm = () => {
       const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
       const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
       const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
-  
+        // console.log(discount,'discount')
+        // console.log(percentage,'percent')
+      
       // Update the rowAmounts state with the new amount for this row
       setRowAmounts((prevRowAmounts) => ({
         ...prevRowAmounts,
@@ -379,14 +384,73 @@ const BookingForm = () => {
     'basic_rate_disc_per',
     setFieldValue,
   );
-  const discountOtherCharges = useSyncedFields(
-    baseAmount,
-    'basic_rate_disc_amt',
-    'basic_rate_disc_per',
-    ()=>{
-      handleOCListChange
-    },
-  );
+
+    const OtherCharges = (i,x)=>{
+
+      const discountOtherCharges = useSyncedFields(
+        baseAmount,
+        'other_charges_disc_amt',
+        'other_charges_disc_per',
+        (...params)=>{
+          handleOCListChange(i,...params)
+        },
+      );
+      return (
+        <tr key={x.id}>
+          <td>{x.id}</td>
+          <td></td>
+          <td>
+          <select
+            className="form-control"
+            onChange={e =>
+              handleOCListChange(i, 'other_charges_distribution_method', e.target.value)
+            }
+          >
+            {DISTRIBUTION_METHOD?.map((e, index) => {
+              return (
+                <option key={index} value={e}>
+                  {e}
+                </option>
+              );
+            })}
+          </select>
+          </td>
+          <td>
+            <input className="form-control" type="text" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
+          </td>
+          <td>
+            <input
+              className="form-control"
+              type="text"
+              value={x.rate}
+              onChange={(e) => handleOCListChange(i, 'rate', e.target.value)}
+            />
+          </td>
+          <td>
+            <input
+              className="form-control mb-2"
+              placeholder="Amount"
+              type="text"
+              name='other_charges_disc_amt'
+              value={x.other_charges_disc_amt}
+              onChange={e => {
+                discountOtherCharges.onChangeAmount(e);
+                handleOCListChange(i, 'other_charges_disc_amt', e.target.value);
+              }}
+            />
+            <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={e => {
+                discountOtherCharges.onChangePercent(e);
+                handleOCListChange(i, 'other_charges_disc_per', e.target.value);
+              }} />
+          </td>
+          <td>
+            <input readOnly className="form-control" type="text" value={rowAmounts[i] || 0}  />
+
+          </td>
+        </tr>
+      );
+    }
+
 
   // govt Taxes
   const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
@@ -784,52 +848,7 @@ const BookingForm = () => {
                       <th className="text-right">Amount</th>
                     </thead>
                     <tbody>
-                      {oclist?.other_charge_unit_rates?.map((x, i) => {
-                        return (
-                          <tr key={x.id}>
-                            <td>{x.id}</td>
-                            <td></td>
-                            <td>
-                              <select className="form-control" >
-                                <option value="">Equally with all installments</option>
-                                <option value="">Proportionately with all installment</option>
-                                <option value="">
-                                  Proportionately with all installment(Except First)
-                                </option>
-                                <option value="">Connect with last installment</option>
-                                <option value="">Don't connect with installment</option>
-                              </select>
-                            </td>
-                            <td>
-                              <input className="form-control" type="text" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
-                            </td>
-                            <td>
-                              <input
-                                className="form-control"
-                                name="calculation_method"
-                                type="text"
-                                value={x.rate}
-                                onChange={(e) => handleOCListChange(i, 'rate', e.target.value)}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                className="form-control mb-2"
-                                placeholder="Amount"
-                                type="text"
-                                name='other_charges_disc_amt'
-                                value={x.other_charges_disc_amt}
-                                onChange={discountOtherCharges.onChangeAmount}
-                              />
-                              <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={discountOtherCharges.onChangePercent} />
-                            </td>
-                            <td>
-                              <input readOnly className="form-control" type="text" value={rowAmounts[i] || 0}  />
-
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {oclist?.other_charge_unit_rates?.map((x, i) =>   OtherCharges(i,x) )}
 
                       {/* total */}
                       <tr>
