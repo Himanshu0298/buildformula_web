@@ -23,6 +23,7 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+  const [totalAmount, setTotalAmount] = useState(0);
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -38,7 +39,7 @@ const BookingForm = () => {
   ]);
   const [baseAmount, setBaseAmount] = useState<number>();
   const [terms, setTerms] = useState<string>();
-
+  console.log(terms, 'terms')
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
@@ -46,6 +47,13 @@ const BookingForm = () => {
   const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
     s => s.sales,
   );
+  const [oclist, setOCList] = useState({
+    other_charge_unit_rates: [],
+  })
+  useEffect(() => {
+    setOCList(otherChargesList)
+  }, [otherChargesList])
+  // console.log(oclist, 'list')
 
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -103,6 +111,37 @@ const BookingForm = () => {
         extra_charges_total: undefined,
       },
     ]);
+  };
+  const handleOCListChange = (index, field, value) => {
+    
+    setOCList((prevList) => {
+      const newUnitRates = [...prevList.other_charge_unit_rates];
+      newUnitRates[index] = {
+        ...newUnitRates[index],
+        [field]: value,
+      };
+
+      let newTotalAmount = 0;
+      newUnitRates.forEach((item) => {
+        const area = parseFloat(item.area) || 0;
+        const rate = parseFloat(item.rate) || 0;
+        const discount = parseFloat(item.other_charges_disc_amt) || 0;
+        const percentage = parseFloat(item.other_charges_disc_per) || 0;
+        const discountedAmount = area*rate -discount - (area*rate*percentage) /100
+        console.log('area:', area);
+        console.log('rate:', rate);
+        console.log('discount:', discount)
+        console.log('discountedAmount:', discountedAmount);
+        newTotalAmount += discountedAmount;
+      });
+
+      // Update the state with the new total amount
+      setTotalAmount(newTotalAmount);
+      return {
+        ...prevList,
+        other_charge_unit_rates: newUnitRates,
+      };
+    });
   };
 
   useEffect(() => {
@@ -244,6 +283,12 @@ const BookingForm = () => {
     baseAmount,
     'extra_charges_disc_amt',
     'extra_charges_disc_per',
+  );
+  const discountOtherCharges = useSyncedFields(
+    formik,
+    baseAmount,
+    'other_charges_disc_amt',
+    'other_charges_disc_per',
   );
 
   // const handleAreaRateChange = (index, key, value) => {
@@ -652,13 +697,13 @@ const BookingForm = () => {
                       <th className="text-right">Amount</th>
                     </thead>
                     <tbody>
-                      {otherChargesList?.other_charge_unit_rates?.map(e => {
+                      {oclist?.other_charge_unit_rates?.map((x, i) => {
                         return (
-                          <tr key={e.id}>
-                            <td>{e.id}</td>
-                            <td>{e.title}</td>
+                          <tr key={x.id}>
+                            <td>{x.id}</td>
+                            <td></td>
                             <td>
-                              <select className="form-control">
+                              <select className="form-control" >
                                 <option value="">Equally with all installments</option>
                                 <option value="">Proportionately with all installment</option>
                                 <option value="">
@@ -669,15 +714,15 @@ const BookingForm = () => {
                               </select>
                             </td>
                             <td>
-                              <input className="form-control" type="text" />
+                              <input className="form-control" type="text" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
                             </td>
                             <td>
                               <input
                                 className="form-control"
                                 name="calculation_method"
                                 type="text"
-                                value={'rate_base'}
-                                onChange={formik.handleChange}
+                                value={x.rate}
+                                onChange={(e) => handleOCListChange(i, 'rate', e.target.value)}
                               />
                             </td>
                             <td>
@@ -685,11 +730,15 @@ const BookingForm = () => {
                                 className="form-control mb-2"
                                 placeholder="Amount"
                                 type="text"
+                                name='other_charges_disc_amt'
+                                value={x.other_charges_disc_amt}
+                                onChange={discountOtherCharges.onChangeAmount}
                               />
-                              <input className="form-control" placeholder="%" type="text" />
+                              <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={discountOtherCharges.onChangePercent} />
                             </td>
                             <td>
-                              <input readOnly className="form-control" type="text" />
+                              <input readOnly className="form-control" type="text" value={totalAmount} />
+
                             </td>
                           </tr>
                         );
