@@ -30,12 +30,12 @@ const BookingForm = () => {
       extra_charges_no: 1,
       extra_charges_title: '',
       extra_charges_distribution_method: '',
-      extra_charges_area: undefined,
-      extra_charges_rate: undefined,
-      extra_charges_disc_amt: undefined,
-      extra_charges_disc_per: undefined,
-      extra_charges_amt: undefined,
-      extra_charges_total: undefined,
+      extra_charges_area: 0,
+      extra_charges_rate: 0,
+      extra_charges_disc_amt: 0,
+      extra_charges_disc_per: 0,
+      extra_charges_amt: 0,
+      extra_charges_total: 0,
     },
   ]);
   const [baseAmount, setBaseAmount] = useState<number>();
@@ -81,14 +81,14 @@ const BookingForm = () => {
   }, [termsList]);
 
   // extra charges update & delete
-  const handleUpdateExtraCharge = (index, field, value) => {
+  const handleUpdateExtraCharge = (index:number, field: string, value: string) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
       return updatedExtraCharges;
     });
   };
-  const handleDeleteExtraCharge = index => {
+  const handleDeleteExtraCharge =(index: number) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges.splice(index, 1);
@@ -96,15 +96,14 @@ const BookingForm = () => {
     });
   };
 
-  const ExtraChargeRow = ({ i, x }) => {
-    // const extraChargesDiscount = useSyncedFields(
-    //   baseAmount,
-    //   'x.extra_charges_amt',
-    //   'x.extra_charges_per',
-    //   () => {
-    //     handleUpdateExtraCharge;
-    //   },
-    // );
+  const ExtraChargeRow = ( i, x ) => {
+    const [extraBaseAmount, setExtraBaseAmount] = useState(0);
+    const extraChargesDiscount = useSyncedFields(
+      extraBaseAmount,
+      'extra_charges_disc_amt',
+      'extra_charges_disc_per',
+      (...params) => handleUpdateExtraCharge(i, ...params),
+    );
     return (
       <tr key={i}>
         <td>{i + 1}</td>
@@ -146,6 +145,7 @@ const BookingForm = () => {
             type="number"
             value={x.extra_charges_rate}
             onChange={e => {
+              setExtraBaseAmount(x.extra_charges_area * parseInt(e.target.value));
               handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value);
             }}
           />
@@ -158,6 +158,7 @@ const BookingForm = () => {
             type="number"
             value={x.extra_charges_disc_amt}
             onChange={e => {
+              extraChargesDiscount.onChangeAmount(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
           />
@@ -168,6 +169,7 @@ const BookingForm = () => {
             type="number"
             value={x.extra_charges_disc_per}
             onChange={e => {
+              extraChargesDiscount.onChangePercent(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
             }}
           />
@@ -996,9 +998,7 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {extraCharges?.map((x, i) => (
-                        <ExtraChargeRow key={i} i={i} x={x} />
-                      ))}
+                      {extraCharges?.map((x, i) => ExtraChargeRow(i, x ))}
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
