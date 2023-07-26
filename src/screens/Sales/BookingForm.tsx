@@ -81,8 +81,8 @@ const BookingForm = () => {
     basic_rate_basic_amount: undefined,
     gst_per: 0,
     gst_amt: '',
-    stampduty_per:'',
-    stampduty_amount:'',
+    stampduty_per: '',
+    stampduty_amount: '',
     reg_per: '',
     reg_amount: '',
     taxes_per: '',
@@ -148,6 +148,12 @@ const BookingForm = () => {
     //   }),
     // );
   };
+ 
+
+  
+
+
+
 
   const formik = useFormik({
     initialValues,
@@ -157,15 +163,24 @@ const BookingForm = () => {
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
 
-  const newbaseAmount = 500000;
-
+  const baseRate = parseFloat(formik.values.basic_rate) || 0;
   const discountSyncedFields = useSyncedFields(
     formik,
-    baseAmount,
+    baseRate,
     'basic_rate_disc_amt',
-    'basic_rate_disc_per',
-  );
-  
+    'basic_rate_disc_per'
+  )
+
+
+  // const discountSyncedFields = useSyncedFields(
+  //   formik,
+  //   baseAmount,
+  //   'basic_rate_disc_amt',
+  //   'basic_rate_disc_per',
+  // );
+
+
+  const newbaseAmount = 500000;
   // govt Taxes
   const gstSyncedFields = useSyncedFields(
     formik,
@@ -202,15 +217,32 @@ const BookingForm = () => {
     setBaseAmount(basic_rate_total);
   }, [values]);
 
+
+  // useEffect(() => {
+  //   const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
+  //   if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
+  //     setFieldValue('basic_rate_basic_amount', 0);
+  //   } else  {
+  //     setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [values.basic_rate_disc_amt]);
+
+
+  
   useEffect(() => {
-    const { basic_rate_disc_amt = 0, basic_rate_disc_per = 0 } = values;
-    if (isNaN(basic_rate_disc_amt) || isNaN(basic_rate_disc_per)) {
-      setFieldValue('basic_rate_basic_amount', 0);
-    } else {
-      setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
+    const basicRate = parseFloat(values.basic_rate) || 0;
+    const discountAmount = parseFloat(values.basic_rate_disc_amt) || 0;
+    let basicAmount = 0;
+    if (values.calculation_method === 'rate_base') {
+      const basicArea = parseFloat(values.basic_rate_area) || 0;
+      basicAmount = (basicArea * basicRate - discountAmount);
+    } else if (values.calculation_method === 'fixed_amount') {
+      basicAmount = (basicRate - discountAmount);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.basic_rate_disc_amt]);
+    setFieldValue('basic_rate_basic_amount', basicAmount.toFixed(2));
+  }, [values.basic_rate_disc_amt, values.basic_rate, values.basic_rate_area, values.calculation_method, setFieldValue]);
+
 
   useEffect(() => {
     formik.setValues({
@@ -511,7 +543,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -522,10 +554,10 @@ const BookingForm = () => {
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
-                              onChange={handleChange}
+                              onChange={discountSyncedFields.onChangeAmount}
                             />
                             <input
                               className="form-control"
@@ -534,7 +566,7 @@ const BookingForm = () => {
                               type="text"
                               value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
-                              onChange={handleChange}
+                              onChange={discountSyncedFields.onChangePercent}
                             />
                           </td>
                           <td>
@@ -542,7 +574,7 @@ const BookingForm = () => {
                               readOnly
                               className="form-control"
                               name="basic_rate_basic_amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_basic_amount}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -661,7 +693,7 @@ const BookingForm = () => {
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>GOVERNMENT TAXES</h5>
-               
+
                 <div className="form-row">
                   <div className="form-group col-3 form-col-gap">
                     <label>GST</label>
@@ -673,7 +705,7 @@ const BookingForm = () => {
                       value={values.gst_per}
                       name='gst_per'
                       type="text"
-                      onChange={gstSyncedFields.onChangePercent} 
+                      onChange={gstSyncedFields.onChangePercent}
                     />
                   </div>
                   <div className="form-group col-3">
@@ -723,7 +755,7 @@ const BookingForm = () => {
                       value={values.reg_per}
                       name='reg_per'
                       type="text"
-                      onChange={registrationSyncedFields.onChangePercent} 
+                      onChange={registrationSyncedFields.onChangePercent}
                     />
                   </div>
                   <div className="form-group col-3">
@@ -748,7 +780,7 @@ const BookingForm = () => {
                       value={values.taxes_per}
                       name='taxes_per'
                       type="text"
-                      onChange={taxesTotallSyncedFields.onChangePercent} 
+                      onChange={taxesTotallSyncedFields.onChangePercent}
                     />
                   </div>
                   <div className="form-group col-3">
