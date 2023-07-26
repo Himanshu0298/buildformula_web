@@ -1,34 +1,34 @@
-type HandleChangeEvent = {
-  target: {
-    value: string;
-  };
-};
+import { ChangeEventHandler } from "react";
 
-// The custom hook
-export function useSyncedFields(formik, base = 0, amountKey: string, percentKey: string) {
-  const onChangeAmount = (e: HandleChangeEvent) => {
-    const { value: amount } = e.target;
-    formik.setFieldValue(amountKey, amount);
+export function useSyncedFields(
+  base = 0,
+  amountKey: string,
+  percentKey: string,
+  set: (key: string, value: number) => void,
+) {
+  const onChangeAmount: ChangeEventHandler<HTMLInputElement> = e => {
+    const { valueAsNumber: amount } = e.target;
+    set(amountKey, amount);
 
     // Calculate the percentage based on the new amount and update the formik value for the percentage field
-    const percent = ((parseInt(amount) / base) * 100).toFixed(2);
-    if (isNaN(parseInt(amount)) || parseInt(percent) === 100) {
-      formik.setFieldValue(percentKey, 0);
+    const percent = ((amount / base) * 100).toFixed(2);
+    if (isNaN(amount) || parseInt(percent) === 100) {
+      set(percentKey, 0);
     } else {
-      formik.setFieldValue(percentKey, percent);
+      set(percentKey, parseInt(percent));
     }
   };
 
-  const onChangePercent = (e: HandleChangeEvent) => {
-    const { value: percent } = e.target;
-    formik.setFieldValue(percentKey, percent);
+  const onChangePercent: ChangeEventHandler<HTMLInputElement> = e => {
+    const { valueAsNumber: percent } = e.target;
+    set(percentKey, percent);
 
     // Calculate the amount based on the new percentage and update the formik value for the amount field
-    const amount = ((base * parseFloat(percent)) / 100).toFixed(2);
-    if (isNaN(parseInt(percent)) || parseInt(amount) > base) {
-      formik.setFieldValue(amountKey, 0);
+    const amount = ((base * percent) / 100).toFixed(2);
+    if (isNaN(percent) || parseInt(amount) > base) {
+      set(amountKey, 0);
     } else {
-      formik.setFieldValue(amountKey, amount);
+      set(amountKey, parseInt(amount));
     }
   };
 
