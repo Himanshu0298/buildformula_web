@@ -34,6 +34,7 @@ const BookingForm = () => {
       extra_charges_disc_per: 0,
       extra_charges_amt: 0,
       extra_charges_total: 0,
+      extra_charges_base: 0,
     },
   ]);
   const [baseAmount, setBaseAmount] = useState<number>();
@@ -72,14 +73,14 @@ const BookingForm = () => {
   }, [termsList]);
 
   // extra charges update & delete
-  const handleUpdateExtraCharge = (index:number, field: string, value: string) => {
+  const handleUpdateExtraCharge = (index: number, field: string, value: string) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
       return updatedExtraCharges;
     });
   };
-  const handleDeleteExtraCharge =(index: number) => {
+  const handleDeleteExtraCharge = (index: number) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges.splice(index, 1);
@@ -87,16 +88,23 @@ const BookingForm = () => {
     });
   };
 
-  const ExtraChargeRow = ( i, x ) => {
-    const [extraBaseAmount, setExtraBaseAmount] = useState(0);
-    const extraChargesDiscount = useSyncedFields(
-      extraBaseAmount,
-      'extra_charges_disc_amt',
-      'extra_charges_disc_per',
-      (...params) => handleUpdateExtraCharge(i, ...params),
-    );
+  const extraChargeRow = (i, x) => {
+    const onChangeAmount = e => {
+      const { valueAsNumber: amount } = e.target;
+
+      const percent = ((amount / x.extra_charges_base) * 100).toFixed(2);
+      handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent);
+    };
+
+    const onChangePercent = e => {
+      const { valueAsNumber: percent } = e.target;
+
+      const amount = ((x.extra_charges_base * percent) / 100).toFixed(2);
+      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
+    };
+
     return (
-      <tr key={i}>
+      <tr>
         <td>{i + 1}</td>
         <td>
           <input
@@ -136,7 +144,16 @@ const BookingForm = () => {
             type="number"
             value={x.extra_charges_rate}
             onChange={e => {
-              setExtraBaseAmount(x.extra_charges_area * parseInt(e.target.value));
+              handleUpdateExtraCharge(
+                i,
+                'extra_charges_base',
+                x.extra_charges_area * e.target.value,
+              );
+              handleUpdateExtraCharge(
+                i,
+                'extra_charges_total',
+                x.extra_charges_area * e.target.value,
+              );
               handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value);
             }}
           />
@@ -148,9 +165,16 @@ const BookingForm = () => {
             placeholder="Amount"
             type="number"
             value={x.extra_charges_disc_amt}
+            onKeyUp={e => {
+              handleUpdateExtraCharge(
+                i,
+                'extra_charges_total',
+                x.extra_charges_base - e.target.value,
+              );
+            }}
             onChange={e => {
-              extraChargesDiscount.onChangeAmount(e);
-              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
+              onChangeAmount(e);
+              handleUpdateExtraCharge(i, '', e.target.value);
             }}
           />
           <input
@@ -160,8 +184,15 @@ const BookingForm = () => {
             type="number"
             value={x.extra_charges_disc_per}
             onChange={e => {
-              extraChargesDiscount.onChangePercent(e);
+              onChangePercent(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
+            }}
+            onKeyUp={e =>{
+              handleUpdateExtraCharge(
+                i,
+                'extra_charges_total',
+                x.extra_charges_base - x.extra_charges_disc_amt,
+              );
             }}
           />
         </td>
@@ -205,6 +236,7 @@ const BookingForm = () => {
         extra_charges_disc_per: undefined,
         extra_charges_amt: undefined,
         extra_charges_total: undefined,
+        extra_charges_base: undefined,
       },
     ]);
   };
@@ -949,7 +981,7 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {extraCharges?.map((x, i) => ExtraChargeRow(i, x ))}
+                      {extraCharges?.map((x, i) => extraChargeRow(i, x))}
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
