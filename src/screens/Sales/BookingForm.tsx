@@ -15,7 +15,7 @@ import {
 } from 'redux/sales';
 import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DISTRIBUTION_METHOD } from 'utils/constant';
+import { DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
@@ -23,20 +23,20 @@ const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  // const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
-  //   {
-  //     extra_charges_no: 1,
-  //     extra_charges_title: '',
-  //     extra_charges_distribution_method: '',
-  //     extra_charges_area: 0,
-  //     extra_charges_rate: 0,
-  //     extra_charges_disc_amt: 0,
-  //     extra_charges_disc_per: 0,
-  //     extra_charges_amt: 0,
-  //     extra_charges_total: 0,
-  //     extra_charges_base: 0,
-  //   },
-  // ]);
+  const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
+    {
+      extra_charges_no: 1,
+      extra_charges_title: '',
+      extra_charges_distribution_method: '',
+      extra_charges_area: 0,
+      extra_charges_rate: 0,
+      extra_charges_disc_amt: 0,
+      extra_charges_disc_per: 0,
+      extra_charges_amt: 0,
+      extra_charges_total: 0,
+      extra_charges_base: 0,
+    },
+  ]);
   const [baseAmount, setBaseAmount] = useState<number>();
   const [terms, setTerms] = useState<string>();
 
@@ -95,48 +95,6 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
 
-  const [extraCharges, setExtraCharges] = useState([
-    {
-      extra_charges_no: 1,
-      extra_charges_title: 'PARKING',
-      extra_charges_distribution_method: 'Equally with all installments',
-      extra_charges_area: 55,
-      extra_charges_rate: 555,
-      extra_charges_disc_per: 4,
-      extra_charges_disc_amt: 300,
-      extra_charges_amt: 300,
-    },
-    {
-      extra_charges_no: 1,
-      extra_charges_title: 'PARKING',
-      extra_charges_distribution_method: 'Proportionately with all installment(Except First)',
-      extra_charges_area: 55,
-      extra_charges_rate: 555,
-      extra_charges_disc_per: 4,
-      extra_charges_disc_amt: 200,
-      extra_charges_amt: 200,
-    },
-    {
-      extra_charges_no: 1,
-      extra_charges_title: 'PARKING',
-      extra_charges_distribution_method: 'Connect with last installment',
-      extra_charges_area: 55,
-      extra_charges_rate: 555,
-      extra_charges_disc_per: 4,
-      extra_charges_disc_amt: 100000,
-      extra_charges_amt: 100,
-    },
-    {
-      extra_charges_no: 1,
-      extra_charges_title: 'PARKING',
-      extra_charges_distribution_method: 'Dont connect with installment',
-      extra_charges_area: 55,
-      extra_charges_rate: 555,
-      extra_charges_disc_per: 4,
-      extra_charges_disc_amt: 100000,
-      extra_charges_amt: 100,
-    },
-  ]);
   const [installments, setInstallments] = useState([
     {
       custom_payment_no: 1,
@@ -168,60 +126,53 @@ const BookingForm = () => {
       installment_amount: 565,
       gst: 4,
     },
-  ]); // Your installments data
+  ]);
 
-  useEffect(() => {
-    const updateInstallments = () => {
-      const updatedInstallments = [...installments];
+  const updateInstallments = () => {
+    const updatedInstallments = [...installments];
 
-      extraCharges.forEach(extraCharge => {
-        const { extra_charges_distribution_method, extra_charges_amt } = extraCharge;
+    extraCharges.forEach(extraCharge => {
+      const { extra_charges_distribution_method, extra_charges_amt } = extraCharge;
 
-        switch (extra_charges_distribution_method) {
-          case 'Equally with all installments':
-            // eslint-disable-next-line no-case-declarations
-            const equallyDistributedAmount = extra_charges_amt / installments.length;
-            updatedInstallments.forEach(installment => {
-              installment.installment_amount += equallyDistributedAmount;
-            });
-            console.log('1', equallyDistributedAmount)
-            break;
+      switch (extra_charges_distribution_method) {
+        case 'Equally with all installments':
+          // eslint-disable-next-line no-case-declarations
+          const equallyDistributedAmount = extra_charges_amt / installments.length;
+          updatedInstallments.forEach(installment => {
+            installment.installment_amount += equallyDistributedAmount;
+          });
+          break;
 
-          case 'Proportionately with all installment(Except First)':
-            // eslint-disable-next-line no-case-declarations
-            const proportionatelyDistributedAmount =
-              extra_charges_amt / (installments.length - 1);
-            updatedInstallments.forEach((installment, index) => {
-              if (index !== 0) {
-                installment.installment_amount += proportionatelyDistributedAmount;
-              }
-            });
-            console.log('2', proportionatelyDistributedAmount)
-            break;
+        case 'Proportionately with all installment(Except First)':
+          // eslint-disable-next-line no-case-declarations
+          const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
+          updatedInstallments.forEach((installment, index) => {
+            if (index !== 0) {
+              installment.installment_amount += proportionatelyDistributedAmount;
+            }
+          });
+          console.log('2', proportionatelyDistributedAmount);
+          break;
 
-          case 'Connect with last installment':
-            // eslint-disable-next-line no-case-declarations
-            const lastIndex = installments.length - 1;
-            updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
-            console.log('3', extra_charges_amt)
-            break;
+        case 'Connect with last installment':
+          // eslint-disable-next-line no-case-declarations
+          const lastIndex = installments.length - 1;
+          updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
+          console.log('3', extra_charges_amt);
+          break;
 
+        default:
+          // For other cases, directly add the amount to the total of all installments
+          updatedInstallments.forEach(installment => {
+            installment.installment_amount += extra_charges_amt;
+          });
+          console.log('4', extra_charges_amt);
+          break;
+      }
+    });
 
-          default:
-            // For other cases, directly add the amount to the total of all installments
-            updatedInstallments.forEach(installment => {
-              installment.installment_amount += extra_charges_amt;
-            });
-            console.log('4', extra_charges_amt)
-            break;
-        }
-      });
-
-      setInstallments(updatedInstallments);
-    };
-
-    updateInstallments();
-  }, [extraCharges]);
+    setInstallments(updatedInstallments);
+  };
 
   const extraChargeRow = (i, x) => {
     const onChangeAmount = e => {
@@ -294,6 +245,9 @@ const BookingForm = () => {
           />
         </td>
         <td>
+          <span className="muted-text" style={{ fontSize: '12px' }}>
+            Amt.
+          </span>
           <input
             className="form-control mb-2"
             name="extra_charges_disc_amt"
@@ -312,6 +266,9 @@ const BookingForm = () => {
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
           />
+          <span className="muted-text" style={{ fontSize: '12px' }}>
+            %
+          </span>
           <input
             className="form-control"
             name="extra_charges_disc_per"
@@ -370,8 +327,8 @@ const BookingForm = () => {
         extra_charges_disc_amt: 0,
         extra_charges_disc_per: 0,
         extra_charges_amt: 0,
-        extra_charges_total: 0,
         extra_charges_base: 0,
+        extra_charges_total: 0,
       },
     ]);
   };
@@ -421,7 +378,7 @@ const BookingForm = () => {
     basic_rate_disc_per: 0,
     basic_rate_basic_amount: undefined,
     custom_payment_remark_id: 0,
-    custom_payment_remark: '',
+    custom_payment_remark: terms || '',
     extra_charges: extraCharges,
     gst_per: 0,
     gst_amt: '',
@@ -575,13 +532,13 @@ const BookingForm = () => {
           </button>
           <h2 className="mx-4">Booking Form</h2>
         </div>
-        <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
+        {/* <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
           <div className="booking-timer">
             <p>
               Time Left: <span>27 : 29</span>
             </p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <hr />
@@ -790,6 +747,9 @@ const BookingForm = () => {
                             />
                           </td>
                           <td>
+                            <span className="muted-text" style={{ fontSize: '12px' }}>
+                              Amt.
+                            </span>
                             <input
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
@@ -799,6 +759,9 @@ const BookingForm = () => {
                               onBlur={handleBlur}
                               onChange={discountSyncedFields.onChangeAmount}
                             />
+                            <span className="muted-text" style={{ fontSize: '12px' }}>
+                              %
+                            </span>
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
@@ -851,6 +814,9 @@ const BookingForm = () => {
                             />
                           </td>
                           <td>
+                            <span className="muted-text" style={{ fontSize: '12px' }}>
+                              Amt.
+                            </span>
                             <input
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
@@ -860,6 +826,9 @@ const BookingForm = () => {
                               onBlur={handleBlur}
                               onChange={handleChange}
                             />
+                            <span className="muted-text" style={{ fontSize: '12px' }}>
+                              %
+                            </span>
                             <input
                               className="form-control"
                               name="basic_rate_disc_per"
@@ -935,11 +904,17 @@ const BookingForm = () => {
                               />
                             </td>
                             <td>
+                              <span className="muted-text" style={{ fontSize: '12px' }}>
+                                Amt.
+                              </span>
                               <input
                                 className="form-control mb-2"
                                 placeholder="Amount"
                                 type="text"
                               />
+                              <span className="muted-text" style={{ fontSize: '12px' }}>
+                                %
+                              </span>
                               <input className="form-control" placeholder="%" type="text" />
                             </td>
                             <td>
@@ -1122,7 +1097,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">Rs {handleTotalCharge()}</td>
+                        <td className="text-right">₹ {handleTotalCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1234,6 +1209,25 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <h5>PAYMENT SCHEDULE</h5>
 
+                <div className="form-row mb-4">
+                  <div className="col-4">
+                    <label>Select T&C Template</label>
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={termsOptions}
+                      placeholder="Select Terms & Conditions"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          marginTop: 10,
+                          marginBottom: 50,
+                        }),
+                      }}
+                      onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <table className="table">
                     <thead>
@@ -1250,7 +1244,7 @@ const BookingForm = () => {
                       {installments?.map((e, i) => {
                         return (
                           <tr key={`${i}_${e.custom_payment_no}`}>
-                            <td>01</td>
+                            <td onClick={updateInstallments}>01</td>
                             <td>Installment Will be here</td>
                             <td>
                               <input className="form-control" type="date" />
@@ -1268,10 +1262,15 @@ const BookingForm = () => {
                               <input className="form-control" type="text" />
                             </td>
                             <td>
-                              <input readOnly className="form-control" type="text" value={e.installment_amount} />
+                              <input
+                                readOnly
+                                className="form-control"
+                                type="text"
+                                value={e.installment_amount}
+                              />
                             </td>
                           </tr>
-                        )
+                        );
                       })}
                       {/* total */}
                       <tr>
@@ -1305,10 +1304,17 @@ const BookingForm = () => {
                           marginBottom: 50,
                         }),
                       }}
-                      onChange={e => setTerms(e.details)}
+                      onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
                     />
                   </div>
-                  <div className="col-10 px-0"></div>
+                  <div className="col-10 px-0">
+                    <textarea
+                      className="form-control"
+                      name="custom_payment_remark"
+                      value={values.custom_payment_remark}
+                      onChange={handleChange}
+                    ></textarea>
+                  </div>
                 </div>
               </div>
 
