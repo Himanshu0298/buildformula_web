@@ -115,6 +115,20 @@ export const getTermsnConditions = createAsyncThunk<ITermsnConditions[], CommonP
   },
 );
 
+export const getBankList = createAsyncThunk(
+  'sales/getTerms&Conditions',
+  async (params,thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBankList();
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 const initialState: ISalesState = {
   loading: false,
   visitorList: [],
@@ -122,6 +136,7 @@ const initialState: ISalesState = {
   unitParkingInfo: {} as IUnitParkingInfo,
   otherChargesList: {} as IOtherCharges,
   termsList: [],
+  banksList: []
 };
 
 const salesSlice = createSlice({
@@ -188,6 +203,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         termsList: action?.payload,
+      };
+    });
+    // get banks List
+    builder.addCase(getBankList.rejected, handleReject);
+    builder.addCase(getBankList.pending, handleLoading);
+    builder.addCase(getBankList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        banksList: action?.payload,
       };
     });
   },

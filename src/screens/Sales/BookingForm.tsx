@@ -12,6 +12,7 @@ import {
   getUnitInfo,
   getUnitParkingInfo,
   getVisitorsList,
+  getBankList
 } from 'redux/sales';
 import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -27,6 +28,7 @@ const BookingForm = () => {
 
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+  const [isToggle,setIsToggle] = useState(true)
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -92,10 +94,10 @@ const BookingForm = () => {
     });
   };
   
-  const handleTotalCharge = () => {
+  const handleTotalExtraCharge = () => {
     let total = 0;
     extraCharges.forEach(charge => {
-      total += charge.extra_charges_amt;
+      total += charge.extra_charges_total;
     });
     return total.toFixed(2);
   };
@@ -399,7 +401,10 @@ const BookingForm = () => {
       };
     });
   };
-  
+
+  const handleToggle = () =>{
+    setIsToggle(!isToggle)
+  }
   
   useEffect(() => {
     dispatch(
@@ -456,6 +461,10 @@ const BookingForm = () => {
     reg_amount: undefined,
     taxes_per: undefined,
     taxes_amount: undefined,
+    is_loan: isToggle ? 'yes' : 'no',
+    loan_amt: undefined,
+    bank: 0,
+    loan_remarks: undefined,
   };
 
   const handleSubmit = values => {
@@ -1182,7 +1191,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
+                        <td className="text-right">₹ {handleTotalExtraCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1241,53 +1250,70 @@ const BookingForm = () => {
 
             {/* 9th section */}
             <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-6">
-                <h5>LOAN DETAILS</h5>
+      <div className="booking-form-col-6">
+        <h5>LOAN DETAILS</h5>
 
-                <div className="form-row">
-                  <div className="col-6">
-                    <label>Do you wish to take a loan?</label>
-                    <div className="form-row">
-                      <div className="col-6">
-                        <div className="rd-grp form-check-inline">
-                          <label className="rd-container check-yes">
-                            Yes
-                            <input checked={true} name="radio" type="radio" />
-                            <span className="checkmark"></span>
-                          </label>
-                          <label className="rd-container check-no">
-                            No
-                            <input name="radio" type="radio" />
-                            <span className="checkmark"></span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-row mt-3">
-                  <div className="form-group col form-col-gap">
-                    <label>Loan Amount</label>
-                    <input className="form-control" type="text" />
-                  </div>
-                  <div className="form-group col">
-                    <label>Bank</label>
-                    <select className="form-control">
-                      <option value="">SBI</option>
-                      <option value="">HDFC</option>
-                      <option value="">Kotak</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col">
-                    <label>Remarks</label>
-                    <textarea className="form-control" cols={20} id="" name="" rows={10}></textarea>
-                  </div>
+        <div className="form-row">
+          <div className="col-6">
+            <label>Do you wish to take a loan?</label>
+            <div className="form-row">
+              <div className="col-6">
+                <div className="rd-grp form-check-inline">
+                  <label className="rd-container check-yes">
+                    Yes
+                    <input
+                      checked={isToggle}
+                      name="radio"
+                      type="radio"
+                      value={values.is_loan}
+                      onChange={handleToggle}
+                    />
+                    <span className="checkmark"></span>
+                  </label>
+                  <label className="rd-container check-no">
+                    No
+                    <input
+                      checked={!isToggle}
+                      name="radio"
+                      type="radio"
+                      value={values.is_loan}
+                      onChange={handleToggle}
+                    />
+                    <span className="checkmark"></span>
+                  </label>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {isToggle && ( 
+          <>
+          <div className="form-row mt-3">
+            <div className="form-group col form-col-gap">
+              <label>Loan Amount</label>
+              <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+            </div>
+            <div className="form-group col">
+              <label>Bank</label>
+              <select className="form-control" id='bank' name='bank' onChange={handleChange}>
+                <option value={values.bank}>SBI</option>
+                <option value={values.bank}>HDFC</option>
+                <option value={values.bank}>Kotak</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+          <div className="form-group col">
+            <label>Remarks</label>
+            <textarea className="form-control" cols={20} id="loan_remarks" name="loan_remarks" rows={10} value={values.loan_remarks} onChange={handleChange} ></textarea>
+          </div>
+        </div>
+        </>
+        )}
+</div>
+</div>
+        
 
             {/* 10th section */}
             <div className="booking-form-box shwan-form mt-4">

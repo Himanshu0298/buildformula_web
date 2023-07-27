@@ -61,3 +61,7 @@ export const getOtherCharges = data => {
 export const getTermsnContions = data => {
   return instance.post('/booking_terms_conditions', data, params);
 };
+
+export const getBankList = () => {
+  return instance.get('/get_banks', params);
+};
