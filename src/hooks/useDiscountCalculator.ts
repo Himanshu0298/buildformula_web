@@ -6,7 +6,6 @@ export function useSyncedFields(
   percentKey: string,
   set: (key: string, value: number) => void,
 ) {
-  // console.log('🚀 ~', amountKey, percentKey, base);
   const onChangeAmount: ChangeEventHandler<HTMLInputElement> = e => {
     const { valueAsNumber: amount } = e.target;
     set(amountKey, amount);
