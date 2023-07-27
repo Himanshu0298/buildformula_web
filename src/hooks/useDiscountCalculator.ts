@@ -8,12 +8,15 @@ export function useSyncedFields(
 ) {
   const onChangeAmount: ChangeEventHandler<HTMLInputElement> = e => {
     const { valueAsNumber: amount } = e.target;
-    set(amountKey, amount);
+
+    //Fixing the amount 
+    const fixAmount = amount > base ? base:amount
+    set(amountKey, fixAmount);
 
     // Calculate the percentage based on the new amount and update the formik value for the percentage field
-    const percent = ((amount / base) * 100).toFixed(2);
-    if (isNaN(amount) || parseInt(percent) === 100) {
-      set(percentKey, 0);
+    const percent = ((fixAmount / base) * 100).toFixed(2);
+    if (isNaN(fixAmount) || parseInt(percent) >= 100) {
+      set(percentKey, 100);
     } else {
       set(percentKey, parseInt(percent));
     }
@@ -21,11 +24,13 @@ export function useSyncedFields(
 
   const onChangePercent: ChangeEventHandler<HTMLInputElement> = e => {
     const { valueAsNumber: percent } = e.target;
-    set(percentKey, percent);
+    //Fixing the percent 
+    const fixPercent = percent > 100 ? 100 : percent;
+    set(percentKey, fixPercent);
 
     // Calculate the amount based on the new percentage and update the formik value for the amount field
-    const amount = ((base * percent) / 100).toFixed(2);
-    if (isNaN(percent) || parseInt(amount) > base) {
+    const amount = ((base * fixPercent) / 100).toFixed(2);
+    if (isNaN(fixPercent) || parseInt(amount) > base) {
       set(amountKey, 0);
     } else {
       set(amountKey, parseInt(amount));

@@ -18,6 +18,7 @@ import {
   IUnitParkingInfo,
   IVisitor,
   UnitInfoParams,
+  IBanksList,
 } from './salesInterface';
 
 export const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
@@ -137,6 +138,12 @@ export const getInstallmentDetails = createAsyncThunk<IInstallmentDetails, Insta
   async (params, thunkApi) => {
     try {
       const { data: res } = await visitorService.getInstallmentData(params);
+      
+export const getBankList = createAsyncThunk(
+  'sales/getTerms&Conditions',
+  async (params,thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBankList();
       return res.data;
     } catch (err) {
       const processedError = processError(err);
@@ -155,6 +162,7 @@ const initialState: ISalesState = {
   termsList: [],
   installmentsList: {} as IInstallmentOptions,
   IInstallmentInformation: {} as IInstallmentDetails,
+  banksList: [],
 };
 
 const salesSlice = createSlice({
@@ -239,6 +247,13 @@ const salesSlice = createSlice({
       return {
         ...state,
         IInstallmentInformation: action?.payload,
+    // get banks List
+    builder.addCase(getBankList.rejected, handleReject);
+    builder.addCase(getBankList.pending, handleLoading);
+    builder.addCase(getBankList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        banksList: action?.payload,
       };
     });
   },

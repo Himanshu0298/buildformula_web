@@ -14,6 +14,7 @@ import {
   getUnitInfo,
   getUnitParkingInfo,
   getVisitorsList,
+  getBankList
 } from 'redux/sales';
 import { ExtraCharge, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -23,8 +24,13 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
+    s => s.sales,
+  );
+
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+  const [isToggle,setIsToggle] = useState(true)
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -58,6 +64,7 @@ const BookingForm = () => {
     installmentsList,
     IInstallmentInformation,
   } = useAppSelector(s => s.sales);
+
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -106,10 +113,10 @@ const BookingForm = () => {
     });
   };
 
-  const handleTotalCharge = () => {
+  const handleTotalExtraCharge = () => {
     let total = 0;
     extraCharges.forEach(charge => {
-      total += charge.extra_charges_amt;
+      total += charge.extra_charges_total;
     });
     return total.toFixed(2);
   };
@@ -327,6 +334,11 @@ const BookingForm = () => {
     });
     return total.toFixed(2);
   };
+        
+  // Other Charges
+  useEffect(() => {
+    setOCList(otherChargesList)
+  }, [otherChargesList]);
 
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
@@ -336,27 +348,40 @@ const BookingForm = () => {
         [field]: value,
       };
 
-      // Calculate the new amount for the current row
+  
+      // Calculate the new amount for the current row Other Charges
       const area = parseFloat(newUnitRates[index].area) || 0;
       const rate = parseFloat(newUnitRates[index].rate) || 0;
-      const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
-      const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
-
-      //  calculate the percentage
+      let discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
+      let percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
+  
+      // Calculate the total amount
+      const totalAmount = area * rate;
+  
+      // Adjust percentage and discount if they exceed the limits
       if (field === 'other_charges_disc_amt') {
-        const totalAmount = area * rate;
+        // Calculate the new percentage
         const calculatedPercentage = (discount / totalAmount) * 100;
-        newUnitRates[index].other_charges_disc_per = calculatedPercentage.toFixed(2);
-      } else if (field === 'other_charges_disc_per') {
-        //calculate the discount amount
-        const totalAmount = area * rate;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
+        // Calculate the new discount based on the adjusted percentage
         const calculatedDiscount = (totalAmount * percentage) / 100;
-        newUnitRates[index].other_charges_disc_amt = calculatedDiscount.toFixed(2);
+        discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
+      } else if (field === 'other_charges_disc_per') {
+        
+        // Calculate the new discount
+        const calculatedDiscount = (totalAmount * percentage) / 100;
+        discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
+
+        // Calculate the new percentage based on the adjusted discount
+        const calculatedPercentage = (discount / totalAmount) * 100;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
       }
 
-      // Calculate the new discounted amount
-      const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
-
+      // Calculate the new discounted amount Other Charges
+      const discountedAmount = totalAmount - discount;
+  
+      newUnitRates[index].other_charges_disc_amt = discount.toFixed(2);
+      newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
       newUnitRates[index].otherChargesTotal = discountedAmount.toFixed(2);
 
       return {
@@ -367,6 +392,10 @@ const BookingForm = () => {
   };
 
   // Api calls
+  const handleToggle = () =>{
+    setIsToggle(!isToggle)
+  }
+  
   useEffect(() => {
     dispatch(
       getVisitorsList({
@@ -429,13 +458,17 @@ const BookingForm = () => {
     custom_payment_remark: terms || '',
     extra_charges: extraCharges,
     gst_per: 0,
-    gst_amt: '',
-    stampduty_per: '',
-    stampduty_amount: '',
-    reg_per: '',
-    reg_amount: '',
-    taxes_per: '',
-    taxes_amount: '',
+    gst_amt: undefined,
+    stampduty_per: undefined,
+    stampduty_amount: undefined,
+    reg_per: undefined,
+    reg_amount: undefined,
+    taxes_per: undefined,
+    taxes_amount: undefined,
+    is_loan: isToggle ? 'yes' : 'no',
+    loan_amt: undefined,
+    bank: 0,
+    loan_remarks: undefined,
   };
 
   const handleSubmit = values => {
@@ -546,17 +579,12 @@ const BookingForm = () => {
             </select>
           </td>
           <td>
-            <input
-              className="form-control"
-              type="text"
-              value={x.area}
-              onChange={e => handleOCListChange(i, 'area', e.target.value)}
-            />
+            <input className="form-control" type="number" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
           </td>
           <td>
             <input
               className="form-control"
-              type="text"
+              type="number"
               value={x.rate}
               onChange={e => {
                 handleOCListChange(i, 'rate', e.target.value);
@@ -568,27 +596,24 @@ const BookingForm = () => {
               className="form-control mb-2"
               name="other_charges_disc_amt"
               placeholder="Amount"
-              type="text"
+              type="number"
+              name='other_charges_disc_amt'
               value={x.other_charges_disc_amt}
               onChange={e => {
                 discountOtherCharges.onChangeAmount(e);
                 handleOCListChange(i, 'other_charges_disc_amt', e.target.value);
               }}
             />
-            <input
-              className="form-control"
-              name="other_charges_disc_per"
-              placeholder="%"
-              type="text"
-              value={x.other_charges_disc_per}
-              onChange={e => {
+
+            <input className="form-control" placeholder="%" type="number" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={e => {
                 discountOtherCharges.onChangePercent(e);
                 handleOCListChange(i, 'other_charges_disc_per', e.target.value);
               }}
             />
           </td>
           <td>
-            <input readOnly className="form-control" type="text" value={x.otherChargesTotal || 0} />
+
+          <input readOnly className="form-control" type="number" value={x.otherChargesTotal || 0}   />
           </td>
         </tr>
       </>
@@ -596,9 +621,7 @@ const BookingForm = () => {
   };
 
   // govt Taxes
-  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
-    setFieldValue;
-  });
+  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', setFieldValue);
 
   const stampDutySyncedFields = useSyncedFields(
     newbaseAmount,
@@ -614,9 +637,8 @@ const BookingForm = () => {
     setFieldValue,
   );
 
-  const taxesTotalSyncedFields = useSyncedFields(newbaseAmount, 'taxes_amount', 'taxes_per', () => {
-    setFieldValue;
-  });
+  const taxesTotalSyncedFields = useSyncedFields(newbaseAmount, 'taxes_amount', 'taxes_per', setFieldValue
+);
 
   useEffect(() => {
     const { basic_rate_area = 0, basic_rate = 0 } = values;
@@ -773,7 +795,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       readOnly={true}
-                      type="text"
+                      type="number"
                       value={unitInfoValues?.super_build_up_area}
                     />
                   </div>
@@ -796,7 +818,7 @@ const BookingForm = () => {
                         className="form-control"
                         name="parking_no"
                         readOnly={true}
-                        type="text"
+                        type="number"
                         value={formik.values.parking_no}
                       />
                     </div>
@@ -868,7 +890,7 @@ const BookingForm = () => {
                             <input
                               className="form-control"
                               name="basic_rate"
-                              type="text"
+                              type="number"
                               value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -905,7 +927,7 @@ const BookingForm = () => {
                               readOnly
                               className="form-control"
                               name="basic_rate_basic_amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_basic_amount}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -935,7 +957,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -949,7 +971,7 @@ const BookingForm = () => {
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -961,7 +983,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -972,7 +994,7 @@ const BookingForm = () => {
                               readOnly
                               className="form-control"
                               name="basic_rate_basic_amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_basic_amount}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -1024,7 +1046,7 @@ const BookingForm = () => {
                 <div className="form-row">
                   <div className="form-group col form-col-gap">
                     <label>Sub Total Amount (Basic Amt + Other Charges)</label>
-                    <input readOnly className="form-control" type="text" />
+                    <input readOnly className="form-control" type="number" value={parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge())}/>
                   </div>
                 </div>
 
@@ -1058,7 +1080,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="gst_per"
-                      type="text"
+                      type="number"
                       value={values.gst_per}
                       onChange={gstSyncedFields.onChangePercent}
                     />
@@ -1068,7 +1090,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="gst_amt"
-                      type="text"
+                      type="number"
                       value={values.gst_amt}
                       onChange={gstSyncedFields.onChangeAmount}
                     />
@@ -1083,7 +1105,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="stampduty_per"
-                      type="text"
+                      type="number"
                       value={values.stampduty_per}
                       onChange={stampDutySyncedFields.onChangePercent}
                     />
@@ -1093,7 +1115,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="stampduty_amount"
-                      type="text"
+                      type="number"
                       value={values.stampduty_amount}
                       onChange={stampDutySyncedFields.onChangeAmount}
                     />
@@ -1108,7 +1130,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="reg_per"
-                      type="text"
+                      type="number"
                       value={values.reg_per}
                       onChange={registrationSyncedFields.onChangePercent}
                     />
@@ -1118,7 +1140,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="reg_amount"
-                      type="text"
+                      type="number"
                       value={values.reg_amount}
                       onChange={registrationSyncedFields.onChangeAmount}
                     />
@@ -1133,7 +1155,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="taxes_per"
-                      type="text"
+                      type="number"
                       value={values.taxes_per}
                       onChange={taxesTotalSyncedFields.onChangePercent}
                     />
@@ -1143,7 +1165,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="taxes_amount"
-                      type="text"
+                      type="number"
                       value={values.taxes_amount}
                       onChange={taxesTotalSyncedFields.onChangeAmount}
                     />
@@ -1176,7 +1198,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
+                        <td className="text-right">₹ {handleTotalExtraCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1235,53 +1257,70 @@ const BookingForm = () => {
 
             {/* 9th section */}
             <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-6">
-                <h5>LOAN DETAILS</h5>
+      <div className="booking-form-col-6">
+        <h5>LOAN DETAILS</h5>
 
-                <div className="form-row">
-                  <div className="col-6">
-                    <label>Do you wish to take a loan?</label>
-                    <div className="form-row">
-                      <div className="col-6">
-                        <div className="rd-grp form-check-inline">
-                          <label className="rd-container check-yes">
-                            Yes
-                            <input checked={true} name="radio" type="radio" />
-                            <span className="checkmark"></span>
-                          </label>
-                          <label className="rd-container check-no">
-                            No
-                            <input name="radio" type="radio" />
-                            <span className="checkmark"></span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-row mt-3">
-                  <div className="form-group col form-col-gap">
-                    <label>Loan Amount</label>
-                    <input className="form-control" type="text" />
-                  </div>
-                  <div className="form-group col">
-                    <label>Bank</label>
-                    <select className="form-control">
-                      <option value="">SBI</option>
-                      <option value="">HDFC</option>
-                      <option value="">Kotak</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col">
-                    <label>Remarks</label>
-                    <textarea className="form-control" cols={20} id="" name="" rows={10}></textarea>
-                  </div>
+        <div className="form-row">
+          <div className="col-6">
+            <label>Do you wish to take a loan?</label>
+            <div className="form-row">
+              <div className="col-6">
+                <div className="rd-grp form-check-inline">
+                  <label className="rd-container check-yes">
+                    Yes
+                    <input
+                      checked={isToggle}
+                      name="radio"
+                      type="radio"
+                      value={values.is_loan}
+                      onChange={handleToggle}
+                    />
+                    <span className="checkmark"></span>
+                  </label>
+                  <label className="rd-container check-no">
+                    No
+                    <input
+                      checked={!isToggle}
+                      name="radio"
+                      type="radio"
+                      value={values.is_loan}
+                      onChange={handleToggle}
+                    />
+                    <span className="checkmark"></span>
+                  </label>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {isToggle && ( 
+          <>
+          <div className="form-row mt-3">
+            <div className="form-group col form-col-gap">
+              <label>Loan Amount</label>
+              <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+            </div>
+            <div className="form-group col">
+              <label>Bank</label>
+              <select className="form-control" id='bank' name='bank' onChange={handleChange}>
+                <option value={values.bank}>SBI</option>
+                <option value={values.bank}>HDFC</option>
+                <option value={values.bank}>Kotak</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+          <div className="form-group col">
+            <label>Remarks</label>
+            <textarea className="form-control" cols={20} id="loan_remarks" name="loan_remarks" rows={10} value={values.loan_remarks} onChange={handleChange} ></textarea>
+          </div>
+        </div>
+        </>
+        )}
+</div>
+</div>
+        
 
             {/* 10th section */}
             <div className="booking-form-box shwan-form mt-4">
