@@ -57,3 +57,7 @@ export const addBooking = data => {
 export const getOtherCharges = data => {
   return instance.post('/unit_bookingform_other_charges', data, params);
 };
+
+export const getTermsnContions = data => {
+  return instance.post('/booking_terms_conditions', data, params);
+};

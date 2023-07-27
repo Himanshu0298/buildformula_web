@@ -10,6 +10,7 @@ import {
   IOtherCharges,
   IOtherChargesParam,
   ISalesState,
+  ITermsnConditions,
   IUnitInfo,
   IUnitParkingInfo,
   IVisitor,
@@ -100,12 +101,27 @@ export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherCharges
   },
 );
 
+export const getTermsnConditions = createAsyncThunk<ITermsnConditions[], CommonParams>(
+  'sales/getTerms&Conditions',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getTermsnContions(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 const initialState: ISalesState = {
   loading: false,
   visitorList: [],
   unitInfo: {} as IUnitInfo,
   unitParkingInfo: {} as IUnitParkingInfo,
   otherChargesList: {} as IOtherCharges,
+  termsList: [],
 };
 
 const salesSlice = createSlice({
@@ -163,6 +179,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         otherChargesList: action?.payload,
+      };
+    });
+    // get terms and conditions
+    builder.addCase(getTermsnConditions.rejected, handleReject);
+    builder.addCase(getTermsnConditions.pending, handleLoading);
+    builder.addCase(getTermsnConditions.fulfilled, (state, action) => {
+      return {
+        ...state,
+        termsList: action?.payload,
       };
     });
   },

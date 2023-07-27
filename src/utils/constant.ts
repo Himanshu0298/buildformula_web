@@ -160,3 +160,11 @@ export const MONTHS = [
   'Nov',
   'Dec',
 ];
+
+export const DISTRIBUTION_METHOD = [
+  'Equally with all installments',
+  'Proportionately with all installment',
+  'Proportionately with all installment(Except First)',
+  'Connect with last installment',
+  'Dont connect with installment',
+];
