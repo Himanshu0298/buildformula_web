@@ -19,13 +19,10 @@ import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
-
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  const [rowAmounts, setRowAmounts] = useState({});
-
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -39,6 +36,9 @@ const BookingForm = () => {
       extra_charges_total: 0,
     },
   ]);
+  const [oclist, setOCList] = useState({
+    other_charge_unit_rates: [],
+  });
   const [baseAmount, setBaseAmount] = useState<number>();
   const [terms, setTerms] = useState<string>();
   console.log(terms, 'terms')
@@ -49,15 +49,7 @@ const BookingForm = () => {
   const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
     s => s.sales,
   );
-  const [oclist, setOCList] = useState({
-    other_charge_unit_rates: [],
-  })
-  useEffect(() => {
-    setOCList(otherChargesList)
-  }, [otherChargesList])
-  
-  console.log(oclist, 'list')
-  
+  // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
@@ -82,7 +74,7 @@ const BookingForm = () => {
     }));
   }, [termsList]);
 
-  // extra charges update & delete
+  // extra charges update, delete & total
   const handleUpdateExtraCharge = (index:number, field: string, value: string) => {
     console.log(index,field,value,'sirs value')
     setExtraCharges(prevExtraCharges => {
@@ -229,9 +221,6 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
   
-  useEffect(()=>{
-    handleTotalOtherCharge()
-  },[oclist])
   const handleOCListChange = (index, field, value) => {
     setOCList((prevList) => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -270,8 +259,6 @@ const BookingForm = () => {
     });
   };
   
-  
-
   useEffect(() => {
     dispatch(
       getVisitorsList({
@@ -407,7 +394,6 @@ const BookingForm = () => {
   );
 
     const OtherCharges = (i,x)=>{
-
       const discountOtherCharges = useSyncedFields(
         baseAmount,
         'other_charges_disc_amt',
@@ -446,7 +432,6 @@ const BookingForm = () => {
               type="text"
               value={x.rate}
               onChange={(e) => {
-               
                 handleOCListChange(i, 'rate', e.target.value)
               }
               }
@@ -476,7 +461,6 @@ const BookingForm = () => {
         </>
       );
     }
-
 
   // govt Taxes
   const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
