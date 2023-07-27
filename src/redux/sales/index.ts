@@ -7,6 +7,9 @@ import {
   CommonParams,
   CreateCustomerParams,
   IBookingFormParams,
+  IInstallmentDetails,
+  IInstallmentOptions,
+  InstallmentParams,
   IOtherCharges,
   IOtherChargesParam,
   ISalesState,
@@ -116,6 +119,26 @@ export const getTermsnConditions = createAsyncThunk<ITermsnConditions[], CommonP
   },
 );
 
+export const getInstallmentOptions = createAsyncThunk<IInstallmentOptions, CommonParams>(
+  'sales/getInstallmentOptions',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getInstallmentOptions(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const getInstallmentDetails = createAsyncThunk<IInstallmentDetails, InstallmentParams>(
+  'sales/getInstallmentDetails',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getInstallmentData(params);
+      
 export const getBankList = createAsyncThunk(
   'sales/getTerms&Conditions',
   async (params,thunkApi) => {
@@ -137,7 +160,9 @@ const initialState: ISalesState = {
   unitParkingInfo: {} as IUnitParkingInfo,
   otherChargesList: {} as IOtherCharges,
   termsList: [],
-  banksList: []
+  installmentsList: {} as IInstallmentOptions,
+  IInstallmentInformation: {} as IInstallmentDetails,
+  banksList: [],
 };
 
 const salesSlice = createSlice({
@@ -206,6 +231,22 @@ const salesSlice = createSlice({
         termsList: action?.payload,
       };
     });
+    // get installments options
+    builder.addCase(getInstallmentOptions.rejected, handleReject);
+    builder.addCase(getInstallmentOptions.pending, handleLoading);
+    builder.addCase(getInstallmentOptions.fulfilled, (state, action) => {
+      return {
+        ...state,
+        installmentsList: action?.payload,
+      };
+    });
+    // get installments details
+    builder.addCase(getInstallmentDetails.rejected, handleReject);
+    builder.addCase(getInstallmentDetails.pending, handleLoading);
+    builder.addCase(getInstallmentDetails.fulfilled, (state, action) => {
+      return {
+        ...state,
+        IInstallmentInformation: action?.payload,
     // get banks List
     builder.addCase(getBankList.rejected, handleReject);
     builder.addCase(getBankList.pending, handleLoading);

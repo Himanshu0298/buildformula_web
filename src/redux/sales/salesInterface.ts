@@ -5,6 +5,8 @@ export interface ISalesState {
   unitParkingInfo: IUnitParkingInfo;
   otherChargesList: IOtherCharges;
   termsList: ITermsnConditions[];
+  installmentsList: IInstallmentOptions;
+  IInstallmentInformation: IInstallmentDetails;
   banksList: IBanksList
 }
 
@@ -257,6 +259,35 @@ export interface ITermsnConditions {
   status: number;
   created: string;
 }
+
+export interface IInstallmentOptions {
+  payment_scheduled_master: IPaymentInfo[];
+}
+
+export interface IPaymentInfo {
+  id: number;
+  project_id: number;
+  title: string;
+  status: number;
+  created: string;
+}
+
+export interface InstallmentParams {
+  project_id: number;
+  payment_scheduled_master_id: number;
+}
+
+export interface IInstallmentDetails {
+  payment_scheduled_details_master: IInstallmentInfo[];
+}
+
+export interface IInstallmentInfo {
+  id: number;
+  project_id: number;
+  payment_scheduled_master_id: number;
+  title: string;
+  percentage: string;
+  created: string;
 
 export interface IBanksList {
   id: number;
