@@ -7,6 +7,8 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
 import {
+  getInstallmentDetails,
+  getInstallmentOptions,
   getOtherChargesList,
   getTermsnConditions,
   getUnitInfo,
@@ -42,14 +44,20 @@ const BookingForm = () => {
   });
   const [baseAmount, setBaseAmount] = useState<number>();
   const [terms, setTerms] = useState<string>();
-  console.log(terms, 'terms')
+  const [installmentId, setInstallmentId] = useState<number>(0);
   const toggleModal = () => setShow(!show);
   const unitId = 28;
 
   // visitors list
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
-    s => s.sales,
-  );
+  const {
+    visitorList,
+    unitInfo,
+    unitParkingInfo,
+    otherChargesList,
+    termsList,
+    installmentsList,
+    IInstallmentInformation,
+  } = useAppSelector(s => s.sales);
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -74,6 +82,13 @@ const BookingForm = () => {
       details: e.description,
     }));
   }, [termsList]);
+  // installment options
+  const installmentOptions = useMemo(() => {
+    return installmentsList?.payment_scheduled_master?.map(e => ({
+      label: e.title,
+      value: e.id,
+    }));
+  }, [installmentsList]);
 
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
@@ -90,7 +105,7 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
-  
+
   const handleTotalCharge = () => {
     let total = 0;
     extraCharges.forEach(charge => {
@@ -99,38 +114,7 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
 
-  const [installments, setInstallments] = useState([
-    {
-      custom_payment_no: 1,
-      custom_payment_installment: 'installment 1',
-      installment_due_date: '2023-07-19',
-      installment_per: 5,
-      installment_basic_amt: 83066.67,
-      installment_otherchages_amt: 555,
-      installment_amount: 565,
-      gst: 4,
-    },
-    {
-      custom_payment_no: 1,
-      custom_payment_installment: 'installment 1',
-      installment_due_date: '2023-07-19',
-      installment_per: 5,
-      installment_basic_amt: 83066.67,
-      installment_otherchages_amt: 555,
-      installment_amount: 565,
-      gst: 4,
-    },
-    {
-      custom_payment_no: 1,
-      custom_payment_installment: 'installment 1',
-      installment_due_date: '2023-07-19',
-      installment_per: 5,
-      installment_basic_amt: 83066.67,
-      installment_otherchages_amt: 555,
-      installment_amount: 565,
-      gst: 4,
-    },
-  ]);
+  const [installments, setInstallments] = useState([installmentsList?.payment_scheduled_master]);
 
   const updateInstallments = () => {
     const updatedInstallments = [...installments];
@@ -257,16 +241,16 @@ const BookingForm = () => {
             placeholder="Amount"
             type="number"
             value={x.extra_charges_disc_amt}
+            onChange={e => {
+              onChangeAmount(e);
+              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
+            }}
             onKeyUp={e => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
                 x.extra_charges_base - e.target.value,
               );
-            }}
-            onChange={e => {
-              onChangeAmount(e);
-              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
@@ -335,7 +319,7 @@ const BookingForm = () => {
       },
     ]);
   };
-  
+
   const handleTotalOtherCharge = () => {
     let total = 0;
     oclist?.other_charge_unit_rates?.forEach(charge => {
@@ -343,21 +327,21 @@ const BookingForm = () => {
     });
     return total.toFixed(2);
   };
-  
+
   const handleOCListChange = (index, field, value) => {
-    setOCList((prevList) => {
+    setOCList(prevList => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
       };
-  
+
       // Calculate the new amount for the current row
       const area = parseFloat(newUnitRates[index].area) || 0;
       const rate = parseFloat(newUnitRates[index].rate) || 0;
       const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
       const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
-  
+
       //  calculate the percentage
       if (field === 'other_charges_disc_amt') {
         const totalAmount = area * rate;
@@ -369,19 +353,20 @@ const BookingForm = () => {
         const calculatedDiscount = (totalAmount * percentage) / 100;
         newUnitRates[index].other_charges_disc_amt = calculatedDiscount.toFixed(2);
       }
-  
+
       // Calculate the new discounted amount
       const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
-      
+
       newUnitRates[index].otherChargesTotal = discountedAmount.toFixed(2);
-  
+
       return {
         ...prevList,
         other_charge_unit_rates: newUnitRates,
       };
     });
   };
-  
+
+  // Api calls
   useEffect(() => {
     dispatch(
       getVisitorsList({
@@ -410,7 +395,21 @@ const BookingForm = () => {
         project_id: 18,
       }),
     );
+    dispatch(
+      getInstallmentOptions({
+        project_id: 18,
+      }),
+    );
   }, []);
+  // installments details
+  useEffect(() => {
+    dispatch(
+      getInstallmentDetails({
+        project_id: 18,
+        payment_scheduled_master_id: installmentId,
+      }),
+    );
+  }, [installmentId]);
 
   const initialValues = {
     project_id: 18,
@@ -516,74 +515,85 @@ const BookingForm = () => {
     setFieldValue,
   );
 
-    const OtherCharges = (i,x)=>{
-      const discountOtherCharges = useSyncedFields(
-        baseAmount,
-        'other_charges_disc_amt',
-        'other_charges_disc_per',
-        (...params)=>{
-          handleOCListChange(i,...params)
-        },
-      );
-      return (
-        <>
+  const OtherCharges = (i, x) => {
+    const discountOtherCharges = useSyncedFields(
+      baseAmount,
+      'other_charges_disc_amt',
+      'other_charges_disc_per',
+      (...params) => {
+        handleOCListChange(i, ...params);
+      },
+    );
+    return (
+      <>
         <tr key={x.id}>
           <td>{x.id}</td>
           <td></td>
           <td>
-          <select
-            className="form-control"
-            onChange={e =>
-              handleOCListChange(i, 'other_charges_distribution_method', e.target.value)
-            }
-          >
-            {DISTRIBUTION_METHOD?.map((e, index) => {
-              return (
-                <option key={index} value={e}>
-                  {e}
-                </option>
-              );
-            })}
-          </select>
+            <select
+              className="form-control"
+              onChange={e =>
+                handleOCListChange(i, 'other_charges_distribution_method', e.target.value)
+              }
+            >
+              {DISTRIBUTION_METHOD?.map((e, index) => {
+                return (
+                  <option key={index} value={e}>
+                    {e}
+                  </option>
+                );
+              })}
+            </select>
           </td>
           <td>
-            <input className="form-control" type="text" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
+            <input
+              className="form-control"
+              type="text"
+              value={x.area}
+              onChange={e => handleOCListChange(i, 'area', e.target.value)}
+            />
           </td>
           <td>
             <input
               className="form-control"
               type="text"
               value={x.rate}
-              onChange={(e) => {
-                handleOCListChange(i, 'rate', e.target.value)
-              }
-              }
+              onChange={e => {
+                handleOCListChange(i, 'rate', e.target.value);
+              }}
             />
           </td>
           <td>
             <input
               className="form-control mb-2"
+              name="other_charges_disc_amt"
               placeholder="Amount"
               type="text"
-              name='other_charges_disc_amt'
               value={x.other_charges_disc_amt}
               onChange={e => {
                 discountOtherCharges.onChangeAmount(e);
                 handleOCListChange(i, 'other_charges_disc_amt', e.target.value);
               }}
             />
-            <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={e => {
+            <input
+              className="form-control"
+              name="other_charges_disc_per"
+              placeholder="%"
+              type="text"
+              value={x.other_charges_disc_per}
+              onChange={e => {
                 discountOtherCharges.onChangePercent(e);
                 handleOCListChange(i, 'other_charges_disc_per', e.target.value);
-              }} />
+              }}
+            />
           </td>
           <td>
-            <input readOnly className="form-control" type="text" value={x.otherChargesTotal || 0}   />
+            <input readOnly className="form-control" type="text" value={x.otherChargesTotal || 0} />
           </td>
         </tr>
-        </>
-      );
-    }
+      </>
+    );
+  };
 
   // govt Taxes
   const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
@@ -993,7 +1003,7 @@ const BookingForm = () => {
                       <th className="text-right">Amount</th>
                     </thead>
                     <tbody>
-                      {oclist?.other_charge_unit_rates?.map((x, i) =>   OtherCharges(i,x) )}
+                      {oclist?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
@@ -1278,21 +1288,21 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <h5>PAYMENT SCHEDULE</h5>
 
-                <div className="form-row mb-4">
+                <div className="form-row">
                   <div className="col-4">
-                    <label>Select T&C Template</label>
+                    <label>Select Payment Installment</label>
                     <Select
                       closeMenuOnSelect={true}
-                      options={termsOptions}
-                      placeholder="Select Terms & Conditions"
+                      options={installmentOptions}
+                      placeholder="Select Payment Installment"
                       styles={{
                         container: base => ({
                           ...base,
                           marginTop: 10,
-                          marginBottom: 50,
+                          marginBottom: 20,
                         }),
                       }}
-                      onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
+                      onChange={e => setInstallmentId(e.value)}
                     />
                   </div>
                 </div>
@@ -1310,16 +1320,16 @@ const BookingForm = () => {
                       <th className="text-right">Installment Amount</th>
                     </thead>
                     <tbody>
-                      {installments?.map((e, i) => {
+                      {IInstallmentInformation?.payment_scheduled_details_master?.map((e, i) => {
                         return (
-                          <tr key={`${i}_${e.custom_payment_no}`}>
+                          <tr key={`${i}_${e.id}`}>
                             <td onClick={updateInstallments}>01</td>
-                            <td>Installment Will be here</td>
+                            <td>{e.title}</td>
                             <td>
                               <input className="form-control" type="date" />
                             </td>
                             <td>
-                              <input className="form-control" type="text" />
+                              <input className="form-control" type="text" value={e.percentage}/>
                             </td>
                             <td>
                               <input className="form-control" type="text" />
@@ -1335,7 +1345,7 @@ const BookingForm = () => {
                                 readOnly
                                 className="form-control"
                                 type="text"
-                                value={e.installment_amount}
+                                value={e.percentage}
                               />
                             </td>
                           </tr>

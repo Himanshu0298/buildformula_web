@@ -61,3 +61,11 @@ export const getOtherCharges = data => {
 export const getTermsnContions = data => {
   return instance.post('/booking_terms_conditions', data, params);
 };
+
+export const getInstallmentOptions = data => {
+  return instance.post('/payment_scheduled_master_list', data, params);
+};
+
+export const getInstallmentData = data => {
+  return instance.post('/payment_scheduled_details_master', data, params);
+};
