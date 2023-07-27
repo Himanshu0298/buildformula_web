@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import { DISTRIBUTION_METHOD } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
-import { string } from 'yup';
+
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -55,8 +55,9 @@ const BookingForm = () => {
   useEffect(() => {
     setOCList(otherChargesList)
   }, [otherChargesList])
-  // console.log(oclist, 'list')
-
+  
+  console.log(oclist, 'list')
+  
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
@@ -97,7 +98,7 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
-
+  
   const ExtraChargeRow = ( i, x ) => {
     const [extraBaseAmount, setExtraBaseAmount] = useState(0);
     const extraChargesDiscount = useSyncedFields(
@@ -219,8 +220,19 @@ const BookingForm = () => {
       },
     ]);
   };
+  
+  const handleTotalOtherCharge = () => {
+    let total = 0;
+    oclist?.other_charge_unit_rates?.forEach(charge => {
+      total += parseFloat(charge?.otherChargesTotal) || 0;
+    });
+    return total.toFixed(2);
+  };
+  
+  useEffect(()=>{
+    handleTotalOtherCharge()
+  },[oclist])
   const handleOCListChange = (index, field, value) => {
-    console.log(index,field,value)
     setOCList((prevList) => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
       newUnitRates[index] = {
@@ -233,15 +245,23 @@ const BookingForm = () => {
       const rate = parseFloat(newUnitRates[index].rate) || 0;
       const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
       const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
+  
+      //  calculate the percentage
+      if (field === 'other_charges_disc_amt') {
+        const totalAmount = area * rate;
+        const calculatedPercentage = (discount / totalAmount) * 100;
+        newUnitRates[index].other_charges_disc_per = calculatedPercentage.toFixed(2);
+      } else if (field === 'other_charges_disc_per') {
+        //calculate the discount amount
+        const totalAmount = area * rate;
+        const calculatedDiscount = (totalAmount * percentage) / 100;
+        newUnitRates[index].other_charges_disc_amt = calculatedDiscount.toFixed(2);
+      }
+  
+      // Calculate the new discounted amount
       const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
-        // console.log(discount,'discount')
-        // console.log(percentage,'percent')
       
-      // Update the rowAmounts state with the new amount for this row
-      setRowAmounts((prevRowAmounts) => ({
-        ...prevRowAmounts,
-        [index]: discountedAmount,
-      }));
+      newUnitRates[index].otherChargesTotal = discountedAmount.toFixed(2);
   
       return {
         ...prevList,
@@ -249,6 +269,7 @@ const BookingForm = () => {
       };
     });
   };
+  
   
 
   useEffect(() => {
@@ -396,6 +417,7 @@ const BookingForm = () => {
         },
       );
       return (
+        <>
         <tr key={x.id}>
           <td>{x.id}</td>
           <td></td>
@@ -423,7 +445,11 @@ const BookingForm = () => {
               className="form-control"
               type="text"
               value={x.rate}
-              onChange={(e) => handleOCListChange(i, 'rate', e.target.value)}
+              onChange={(e) => {
+               
+                handleOCListChange(i, 'rate', e.target.value)
+              }
+              }
             />
           </td>
           <td>
@@ -444,10 +470,10 @@ const BookingForm = () => {
               }} />
           </td>
           <td>
-            <input readOnly className="form-control" type="text" value={rowAmounts[i] || 0}  />
-
+            <input readOnly className="form-control" type="text" value={x.otherChargesTotal || 0}   />
           </td>
         </tr>
+        </>
       );
     }
 
@@ -849,13 +875,11 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {oclist?.other_charge_unit_rates?.map((x, i) =>   OtherCharges(i,x) )}
-
-                      {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">₹ 10000000</td>
+                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1023,7 +1047,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">Rs 10000000</td>
+                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
