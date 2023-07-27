@@ -5,7 +5,7 @@ export interface ISalesState {
   unitParkingInfo: IUnitParkingInfo;
   otherChargesList: IOtherCharges;
   termsList: ITermsnConditions[];
-  banksList: IBankList
+  banksList: IBanksList
 }
 
 export type CommonParams = {
@@ -258,7 +258,7 @@ export interface ITermsnConditions {
   created: string;
 }
 
-export interface IBankList {
+export interface IBanksList {
   id: number;
   title: string;
 }

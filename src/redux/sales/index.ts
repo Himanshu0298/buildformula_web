@@ -15,6 +15,7 @@ import {
   IUnitParkingInfo,
   IVisitor,
   UnitInfoParams,
+  IBanksList,
 } from './salesInterface';
 
 export const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
