@@ -21,6 +21,10 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
+    s => s.sales,
+  );
+
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
@@ -46,9 +50,6 @@ const BookingForm = () => {
   const unitId = 28;
 
   // visitors list
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
-    s => s.sales,
-  );
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -221,6 +222,11 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
   
+  // Other Charges
+  useEffect(() => {
+    setOCList(otherChargesList)
+  }, [otherChargesList]);
+
   const handleOCListChange = (index, field, value) => {
     setOCList((prevList) => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -229,27 +235,39 @@ const BookingForm = () => {
         [field]: value,
       };
   
-      // Calculate the new amount for the current row
+      // Calculate the new amount for the current row Other Charges
       const area = parseFloat(newUnitRates[index].area) || 0;
       const rate = parseFloat(newUnitRates[index].rate) || 0;
-      const discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
-      const percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
+      let discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
+      let percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
   
-      //  calculate the percentage
+      // Calculate the total amount
+      const totalAmount = area * rate;
+  
+      // Adjust percentage and discount if they exceed the limits
       if (field === 'other_charges_disc_amt') {
-        const totalAmount = area * rate;
+        // Calculate the new percentage
         const calculatedPercentage = (discount / totalAmount) * 100;
-        newUnitRates[index].other_charges_disc_per = calculatedPercentage.toFixed(2);
-      } else if (field === 'other_charges_disc_per') {
-        //calculate the discount amount
-        const totalAmount = area * rate;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
+        // Calculate the new discount based on the adjusted percentage
         const calculatedDiscount = (totalAmount * percentage) / 100;
-        newUnitRates[index].other_charges_disc_amt = calculatedDiscount.toFixed(2);
+        discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
+      } else if (field === 'other_charges_disc_per') {
+        
+        // Calculate the new discount
+        const calculatedDiscount = (totalAmount * percentage) / 100;
+        discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
+
+        // Calculate the new percentage based on the adjusted discount
+        const calculatedPercentage = (discount / totalAmount) * 100;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
       }
   
-      // Calculate the new discounted amount
-      const discountedAmount = area * rate - discount - (area * rate * percentage) / 100;
-      
+      // Calculate the new discounted amount Other Charges
+      const discountedAmount = totalAmount - discount;
+  
+      newUnitRates[index].other_charges_disc_amt = discount.toFixed(2);
+      newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
       newUnitRates[index].otherChargesTotal = discountedAmount.toFixed(2);
   
       return {
@@ -258,6 +276,7 @@ const BookingForm = () => {
       };
     });
   };
+  
   
   useEffect(() => {
     dispatch(
@@ -307,13 +326,13 @@ const BookingForm = () => {
     custom_payment_remark: '',
     extra_charges: extraCharges,
     gst_per: 0,
-    gst_amt: '',
-    stampduty_per: '',
-    stampduty_amount: '',
-    reg_per: '',
-    reg_amount: '',
-    taxes_per: '',
-    taxes_amount: '',
+    gst_amt: undefined,
+    stampduty_per: undefined,
+    stampduty_amount: undefined,
+    reg_per: undefined,
+    reg_amount: undefined,
+    taxes_per: undefined,
+    taxes_amount: undefined,
   };
 
   const handleSubmit = values => {
@@ -424,12 +443,12 @@ const BookingForm = () => {
           </select>
           </td>
           <td>
-            <input className="form-control" type="text" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
+            <input className="form-control" type="number" value={x.area} onChange={(e) => handleOCListChange(i, 'area', e.target.value)} />
           </td>
           <td>
             <input
               className="form-control"
-              type="text"
+              type="number"
               value={x.rate}
               onChange={(e) => {
                 handleOCListChange(i, 'rate', e.target.value)
@@ -441,7 +460,7 @@ const BookingForm = () => {
             <input
               className="form-control mb-2"
               placeholder="Amount"
-              type="text"
+              type="number"
               name='other_charges_disc_amt'
               value={x.other_charges_disc_amt}
               onChange={e => {
@@ -449,13 +468,13 @@ const BookingForm = () => {
                 handleOCListChange(i, 'other_charges_disc_amt', e.target.value);
               }}
             />
-            <input className="form-control" placeholder="%" type="text" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={e => {
+            <input className="form-control" placeholder="%" type="number" name='other_charges_disc_per' value={x.other_charges_disc_per} onChange={e => {
                 discountOtherCharges.onChangePercent(e);
                 handleOCListChange(i, 'other_charges_disc_per', e.target.value);
               }} />
           </td>
           <td>
-            <input readOnly className="form-control" type="text" value={x.otherChargesTotal || 0}   />
+            <input readOnly className="form-control" type="number" value={x.otherChargesTotal || 0}   />
           </td>
         </tr>
         </>
@@ -463,9 +482,7 @@ const BookingForm = () => {
     }
 
   // govt Taxes
-  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', () => {
-    setFieldValue;
-  });
+  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', setFieldValue);
 
   const stampDutySyncedFields = useSyncedFields(
     newbaseAmount,
@@ -481,9 +498,8 @@ const BookingForm = () => {
     setFieldValue,
   );
 
-  const taxesTotalSyncedFields = useSyncedFields(newbaseAmount, 'taxes_amount', 'taxes_per', () => {
-    setFieldValue;
-  });
+  const taxesTotalSyncedFields = useSyncedFields(newbaseAmount, 'taxes_amount', 'taxes_per', setFieldValue
+);
 
   useEffect(() => {
     const { basic_rate_area = 0, basic_rate = 0 } = values;
@@ -640,7 +656,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       readOnly={true}
-                      type="text"
+                      type="number"
                       value={unitInfoValues?.super_build_up_area}
                     />
                   </div>
@@ -663,7 +679,7 @@ const BookingForm = () => {
                         className="form-control"
                         name="parking_no"
                         readOnly={true}
-                        type="text"
+                        type="number"
                         value={formik.values.parking_no}
                       />
                     </div>
@@ -735,7 +751,7 @@ const BookingForm = () => {
                             <input
                               className="form-control"
                               name="basic_rate"
-                              type="text"
+                              type="number"
                               value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -766,7 +782,7 @@ const BookingForm = () => {
                               readOnly
                               className="form-control"
                               name="basic_rate_basic_amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_basic_amount}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -796,7 +812,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -807,7 +823,7 @@ const BookingForm = () => {
                               className="form-control mb-2"
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -816,7 +832,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_disc_per"
                               placeholder="%"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -827,7 +843,7 @@ const BookingForm = () => {
                               readOnly
                               className="form-control"
                               name="basic_rate_basic_amount"
-                              type="text"
+                              type="number"
                               value={values.basic_rate_basic_amount}
                               onBlur={handleBlur}
                               onChange={handleChange}
@@ -879,7 +895,7 @@ const BookingForm = () => {
                 <div className="form-row">
                   <div className="form-group col form-col-gap">
                     <label>Sub Total Amount (Basic Amt + Other Charges)</label>
-                    <input readOnly className="form-control" type="text" />
+                    <input readOnly className="form-control" type="number" value={parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge())}/>
                   </div>
                 </div>
 
@@ -913,7 +929,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="gst_per"
-                      type="text"
+                      type="number"
                       value={values.gst_per}
                       onChange={gstSyncedFields.onChangePercent}
                     />
@@ -923,7 +939,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="gst_amt"
-                      type="text"
+                      type="number"
                       value={values.gst_amt}
                       onChange={gstSyncedFields.onChangeAmount}
                     />
@@ -938,7 +954,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="stampduty_per"
-                      type="text"
+                      type="number"
                       value={values.stampduty_per}
                       onChange={stampDutySyncedFields.onChangePercent}
                     />
@@ -948,7 +964,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="stampduty_amount"
-                      type="text"
+                      type="number"
                       value={values.stampduty_amount}
                       onChange={stampDutySyncedFields.onChangeAmount}
                     />
@@ -963,7 +979,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="reg_per"
-                      type="text"
+                      type="number"
                       value={values.reg_per}
                       onChange={registrationSyncedFields.onChangePercent}
                     />
@@ -973,7 +989,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="reg_amount"
-                      type="text"
+                      type="number"
                       value={values.reg_amount}
                       onChange={registrationSyncedFields.onChangeAmount}
                     />
@@ -988,7 +1004,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="taxes_per"
-                      type="text"
+                      type="number"
                       value={values.taxes_per}
                       onChange={taxesTotalSyncedFields.onChangePercent}
                     />
@@ -998,7 +1014,7 @@ const BookingForm = () => {
                     <input
                       className="form-control"
                       name="taxes_amount"
-                      type="text"
+                      type="number"
                       value={values.taxes_amount}
                       onChange={taxesTotalSyncedFields.onChangeAmount}
                     />
