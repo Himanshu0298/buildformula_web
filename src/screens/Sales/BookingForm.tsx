@@ -24,7 +24,7 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation,banksList } = useAppSelector(
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation, banksList } = useAppSelector(
     s => s.sales,
   );
 
@@ -91,13 +91,13 @@ const BookingForm = () => {
 
 
   //BankLists Options
-  const bankListOptions = useMemo(()=>{
-    return banksList?.map(x=>({
-      label:x.title,
-      value:x.id
+  const bankListOptions = useMemo(() => {
+    return banksList?.map(x => ({
+      label: x.title,
+      value: x.id
     }))
-  },[banksList])
-  
+  }, [banksList])
+
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
@@ -1325,164 +1325,174 @@ const BookingForm = () => {
                   </div>
                 </div>
 
-        {isToggle && ( 
-          <>
-          <div className="form-row mt-3">
-            <div className="form-group col form-col-gap">
-              <label>Loan Amount</label>
-              <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+                {isToggle && (
+                  <>
+                    <div className="form-row mt-3">
+                      <div className="form-group col form-col-gap">
+                        <label>Loan Amount</label>
+                        <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+                      </div>
+                      <div className="form-group col">
+                        <label>Bank</label>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={bankListOptions}
+                          name='bank'
+                          placeholder="Banks List"
+                          styles={{
+                            container: base => ({
+                              ...base,
+                              width: '81%',
+                              marginTop: 0,
+                              marginBottom: 17,
+
+                            }),
+                          }}
+                          onChange={(e) => setFieldValue('bank', e.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group col">
+                        <label>Remarks</label>
+                        <textarea className="form-control" cols={20} id="loan_remarks" name="loan_remarks" rows={10} value={values.loan_remarks} onChange={handleChange} ></textarea>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="form-group col">
-              <label>Bank</label>
-              <Select
-                      closeMenuOnSelect={true}
-                      options={bankListOptions}
-                      name='bank'
-                      placeholder="Banks List"
-                      styles={{
-                        container: base => ({
-                          ...base,
-                          width: '81%',
-                          marginTop: 0,
-                          marginBottom: 17,
-                        
-                        }),
-                      }}
-                      onChange={(e)=>setFieldValue('bank',e.value)}
-                    />
-            </div>
+                {/* 10th section  */}
+                <div className="booking-form-box shwan-form mt-4">
+                  <div className="booking-form-col-12">
+                    <h5>PAYMENT SCHEDULE</h5>
 
-            {/* 10th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>PAYMENT SCHEDULE</h5>
+                    <div className="form-row">
+                      <div className="col-4">
+                        <label>Select Payment Installment</label>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={installmentOptions}
+                          placeholder="Select Payment Installment"
+                          styles={{
+                            container: base => ({
+                              ...base,
+                              marginTop: 10,
+                              marginBottom: 20,
+                            }),
+                          }}
+                          onChange={e => setInstallmentId(e.value)}
+                        />
+                      </div>
+                    </div>
 
-                <div className="form-row">
-                  <div className="col-4">
-                    <label>Select Payment Installment</label>
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={installmentOptions}
-                      placeholder="Select Payment Installment"
-                      styles={{
-                        container: base => ({
-                          ...base,
-                          marginTop: 10,
-                          marginBottom: 20,
-                        }),
-                      }}
-                      onChange={e => setInstallmentId(e.value)}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <table className="table">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Installment Name</th>
-                      <th>Due Date</th>
-                      <th>%</th>
-                      <th>Basic Amount</th>
-                      <th>Other Charges Amount</th>
-                      <th>GST</th>
-                      <th className="text-right">Installment Amount</th>
-                    </thead>
-                    <tbody>
-                      {_installmentsList?.payment_scheduled_details_master?.map((e, i) => {
-                        return (
-                          <tr key={`${i}_${e.id}`}>
-                            <td onClick={updateInstallments}>01</td>
-                            <td>{e.title}</td>
-                            <td>
-                              <input className="form-control" type="date" />
+                    <div>
+                      <table className="table">
+                        <thead>
+                          <th>Sr No</th>
+                          <th>Installment Name</th>
+                          <th>Due Date</th>
+                          <th>%</th>
+                          <th>Basic Amount</th>
+                          <th>Other Charges Amount</th>
+                          <th>GST</th>
+                          <th className="text-right">Installment Amount</th>
+                        </thead>
+                        <tbody>
+                          {_installmentsList?.payment_scheduled_details_master?.map((e, i) => {
+                            return (
+                              <tr key={`${i}_${e.id}`}>
+                                <td onClick={updateInstallments}>01</td>
+                                <td>{e.title}</td>
+                                <td>
+                                  <input className="form-control" type="date" />
+                                </td>
+                                <td>
+                                  <input className="form-control" type="text" value={e.percentage} />
+                                </td>
+                                <td>
+                                  <input className="form-control" type="text" />
+                                </td>
+                                <td>
+                                  <input className="form-control" type="text" />
+                                </td>
+                                <td>
+                                  <input className="form-control" type="text" />
+                                </td>
+                                <td>
+                                  <input readOnly className="form-control" type="text" />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {/* total */}
+                          <tr>
+                            <td className="text-right font-weight-bold" colSpan={7}>
+                              Installments Total
                             </td>
-                            <td>
-                              <input className="form-control" type="text" value={e.percentage} />
-                            </td>
-                            <td>
-                              <input className="form-control" type="text" />
-                            </td>
-                            <td>
-                              <input className="form-control" type="text" />
-                            </td>
-                            <td>
-                              <input className="form-control" type="text" />
-                            </td>
-                            <td>
-                              <input readOnly className="form-control" type="text" />
-                            </td>
+                            <td className="text-right">₹ 10000000</td>
                           </tr>
-                        );
-                      })}
-                      {/* total */}
-                      <tr>
-                        <td className="text-right font-weight-bold" colSpan={7}>
-                          Installments Total
-                        </td>
-                        <td className="text-right">₹ 10000000</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* 11th section */}
+                <div className="booking-form-box shwan-form mt-4">
+                  <div className="booking-form-col-12">
+                    <h5>TERMS & CONDITIONS</h5>
+
+                    <div className="form-row mb-4">
+                      <div className="col-4">
+                        <label>Select T&C Template</label>
+                        <Select
+                          closeMenuOnSelect={true}
+                          options={termsOptions}
+                          placeholder="Select Terms & Conditions"
+                          styles={{
+                            container: base => ({
+                              ...base,
+                              marginTop: 10,
+                              marginBottom: 50,
+                            }),
+                          }}
+                          onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
+                        />
+                      </div>
+                      <div className="col-10 px-0">
+                        <textarea
+                          className="form-control"
+                          name="custom_payment_remark"
+                          value={values.custom_payment_remark}
+                          onChange={handleChange}
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="booking-form-col-12">
+                    <div className="form-row mb-4">
+                      <div className="bookingform-footer mt-5">
+                        <button className="Btn btn-lightblue-primary" type="submit">
+                          Save
+                        </button>
+                        <button
+                          className="Btn btn-lightblue-primary lbps-btn"
+                          data-dismiss="modal"
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Form>
             </div>
-
-            {/* 11th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>TERMS & CONDITIONS</h5>
-
-                <div className="form-row mb-4">
-                  <div className="col-4">
-                    <label>Select T&C Template</label>
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={termsOptions}
-                      placeholder="Select Terms & Conditions"
-                      styles={{
-                        container: base => ({
-                          ...base,
-                          marginTop: 10,
-                          marginBottom: 50,
-                        }),
-                      }}
-                      onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
-                    />
-                  </div>
-                  <div className="col-10 px-0">
-                    <textarea
-                      className="form-control"
-                      name="custom_payment_remark"
-                      value={values.custom_payment_remark}
-                      onChange={handleChange}
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <div className="booking-form-col-12">
-                <div className="form-row mb-4">
-                  <div className="bookingform-footer mt-5">
-                    <button className="Btn btn-lightblue-primary" type="submit">
-                      Save
-                    </button>
-                    <button
-                      className="Btn btn-lightblue-primary lbps-btn"
-                      data-dismiss="modal"
-                      type="button"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Form>
-        </div>
-      </section>
-    </>
-  );
+          </section>
+        </>
+        );
 };
 
-export default BookingForm;
+        export default BookingForm;
