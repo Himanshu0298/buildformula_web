@@ -6,8 +6,8 @@ export interface ISalesState {
   otherChargesList: IOtherCharges;
   termsList: ITermsnConditions[];
   installmentsList: IInstallmentOptions;
-  IInstallmentInformation: IInstallmentDetails;
-  banksList: IBanksList
+  installmentsInformation: IInstallmentDetails;
+  banksList: IBanksList[]
 }
 
 export type CommonParams = {
@@ -288,6 +288,7 @@ export interface IInstallmentInfo {
   title: string;
   percentage: string;
   created: string;
+}
 
 export interface IBanksList {
   id: number;
