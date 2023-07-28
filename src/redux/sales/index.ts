@@ -146,20 +146,14 @@ export const getInstallmentDetails = createAsyncThunk<IInstallmentDetails, Insta
   },
 );
 
-      
-export const getBankList = createAsyncThunk(
-  'sales/getBankList',
-  async (params,thunkApi) => {
-    try {
-      const { data: res } = await visitorService.getBankList();
-      return res.data;
-    } catch (err) {
-      const processedError = processError(err);
-      console.log(err);
-      return thunkApi.rejectWithValue({ error: processedError });
-    }
-  },
-);
+export const getBankList = createAsyncThunk('sales/getBankList', async () => {
+  try {
+    const { data: res } = await visitorService.getBankList();
+    return res.data;
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 const initialState: ISalesState = {
   loading: false,

@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, ChangeEventHandler, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -249,13 +249,13 @@ const BookingForm = () => {
               onChangeAmount(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
-            onKeyUp={e => {
+            onKeyUp={(e: ChangeEvent<HTMLInputElement>) =>
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
-                x.extra_charges_base - e.target.value,
-              );
-            }}
+                x.extra_charges_base - parseInt(e.target.value),
+              )
+            }
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -270,7 +270,7 @@ const BookingForm = () => {
               onChangePercent(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
             }}
-            onKeyUp={e => {
+            onKeyUp={() => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
@@ -462,10 +462,10 @@ const BookingForm = () => {
     basic_rate_no: 1,
     basic_rate_description: 'Basic rate of unit',
     basic_rate_area: unitInfoValues?.super_build_up_area || 0,
-    basic_rate: undefined,
+    basic_rate: 0,
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
-    basic_rate_basic_amount: undefined,
+    basic_rate_basic_amount: 0,
     other_charges: oclist.other_charge_unit_rates,
     other_charges_total: handleTotalOtherCharge(),
     other_charges_total_discount: handleTotalOtherDiscountAmt(),
@@ -473,17 +473,17 @@ const BookingForm = () => {
     custom_payment_remark: terms || '',
     extra_charges: extraCharges,
     gst_per: 0,
-    gst_amt: undefined,
-    stampduty_per: undefined,
-    stampduty_amount: undefined,
-    reg_per: undefined,
-    reg_amount: undefined,
-    taxes_per: undefined,
-    taxes_amount: undefined,
+    gst_amt: 0,
+    stampduty_per: 0,
+    stampduty_amount: 0,
+    reg_per: 0,
+    reg_amount: 0,
+    taxes_per: 0,
+    taxes_amount: 0,
     is_loan: isToggle ? 'yes' : 'no',
-    loan_amt: undefined,
+    loan_amt: 0,
     bank: 0,
-    loan_remarks: undefined,
+    loan_remarks: '',
     installments: _installmentsList.payment_scheduled_details_master,
   };
 
@@ -556,11 +556,7 @@ const BookingForm = () => {
   const { values, setFieldValue, handleChange, handleBlur } = formik;
 
   const discountSyncedFields = useSyncedFields(
-    values.calculation_method === 'rate_base'
-      ? baseAmount
-      : values.calculation_method === 'fixed_amount'
-      ? values.basic_rate
-      : 0,
+    baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
     setFieldValue,
@@ -687,16 +683,19 @@ const BookingForm = () => {
   );
 
   useEffect(() => {
-    const { basic_rate_area = 0, basic_rate = 0 } = values;
+    const { basic_rate_area = 0, basic_rate = 0, calculation_method } = values;
 
     const basic_rate_total = basic_rate_area * basic_rate;
-    setBaseAmount(basic_rate_total);
-  }, [values]);
+    setBaseAmount(calculation_method === 'rate_base' ? basic_rate_total : basic_rate);
+  }, [values.basic_rate_area, values.basic_rate, values.calculation_method]);
 
   useEffect(() => {
     const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
-  }, [baseAmount, setFieldValue, values, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
+    setFieldValue(
+      'basic_rate_basic_amount',
+      parseInt((baseAmount - basic_rate_disc_amt).toFixed(2)),
+    );
+  }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
   useEffect(() => {
     formik.setValues({
@@ -1275,9 +1274,9 @@ const BookingForm = () => {
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
-                          Other Charges Total
+                          Extra Charges Total
                         </td>
-                        <td className="text-right">₹ {handleTotalExtraCharge()}</td>
+                        <td className="font-weight-bold">₹ {handleTotalExtraCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1305,27 +1304,64 @@ const BookingForm = () => {
                       <tbody>
                         <tr>
                           <td>Basic Amount</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">
+                              (+) ₹ {values.basic_rate_basic_amount.toFixed(2)}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Other Charges Total</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">(+) ₹ {values.other_charges_total}</span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Total Discount (Sale Deed Amount)</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="red-text">
+                              (-) ₹{' '}
+                              {(
+                                parseFloat(values.other_charges_total_discount) +
+                                parseFloat(values.basic_rate_disc_amt)
+                              ).toFixed(2)}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Government Taxes Total</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">
+                              (+) ₹{' '}
+                              {parseFloat(values.gst_amt) +
+                                parseFloat(values.stampduty_amount) +
+                                parseFloat(values.reg_amount) +
+                                parseFloat(values.taxes_amount)}{' '}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Extra Charges</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">(+) ₹ {handleTotalExtraCharge()}</span>
+                          </td>
                         </tr>
                         <tr>
-                          <td>Property Final Amount</td>
-                          <td>5000000</td>
+                          <td>
+                            <p className="font-weight-bold">Property Final Amount</p>
+                          </td>
+                          <td>
+                            <p className="font-weight-bold green-text">
+                              (=) ₹{' '}
+                              {parseFloat(values.basic_rate_basic_amount) +
+                                parseFloat(values.other_charges_total) +
+                                parseFloat(values.gst_amt) +
+                                parseFloat(values.stampduty_amount) +
+                                parseFloat(values.reg_amount) +
+                                parseFloat(values.taxes_amount) +
+                                parseFloat(handleTotalExtraCharge())}
+                            </p>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
