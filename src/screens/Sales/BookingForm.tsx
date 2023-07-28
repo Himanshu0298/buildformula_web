@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, ChangeEventHandler, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -249,13 +249,13 @@ const BookingForm = () => {
               onChangeAmount(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
-            onKeyUp={e => {
+            onKeyUp={(e: ChangeEvent<HTMLInputElement>) =>
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
-                x.extra_charges_base - e.target.value,
-              );
-            }}
+                x.extra_charges_base - parseInt(e.target.value),
+              )
+            }
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -270,7 +270,7 @@ const BookingForm = () => {
               onChangePercent(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
             }}
-            onKeyUp={e => {
+            onKeyUp={() => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
@@ -280,7 +280,12 @@ const BookingForm = () => {
           />
         </td>
         <td>
-          <input className="form-control mb-2" type="number" value={x.extra_charges_total} />
+          <input
+            readOnly
+            className="form-control mb-2"
+            type="number"
+            value={x.extra_charges_total}
+          />
         </td>
         <td>
           <button
@@ -331,6 +336,12 @@ const BookingForm = () => {
     });
     return total.toFixed(2);
   };
+
+  const handleTotalOtherDiscountAmt = () => {
+    let total = 0;
+    oclist?.other_charge_unit_rates?.forEach(charge => {
+      total += parseFloat(charge?.other_charges_disc_amt) || 0;
+
   const handleTotalPaymentCharge = () => {
     let total = 0;
     _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
@@ -519,26 +530,28 @@ const BookingForm = () => {
     basic_rate_no: 1,
     basic_rate_description: 'Basic rate of unit',
     basic_rate_area: unitInfoValues?.super_build_up_area || 0,
-    basic_rate: undefined,
+    basic_rate: 0,
     basic_rate_disc_amt: 0,
     basic_rate_disc_per: 0,
-    basic_rate_basic_amount: undefined,
+    basic_rate_basic_amount: 0,
     other_charges: oclist.other_charge_unit_rates,
+    other_charges_total: handleTotalOtherCharge(),
+    other_charges_total_discount: handleTotalOtherDiscountAmt(),
     custom_payment_remark_id: 0,
     custom_payment_remark: terms || '',
     extra_charges: extraCharges,
     gst_per: 0,
-    gst_amt: undefined,
-    stampduty_per: undefined,
-    stampduty_amount: undefined,
-    reg_per: undefined,
-    reg_amount: undefined,
-    taxes_per: undefined,
-    taxes_amount: undefined,
+    gst_amt: 0,
+    stampduty_per: 0,
+    stampduty_amount: 0,
+    reg_per: 0,
+    reg_amount: 0,
+    taxes_per: 0,
+    taxes_amount: 0,
     is_loan: isToggle ? 'yes' : 'no',
-    loan_amt: undefined,
+    loan_amt: 0,
     bank: 0,
-    loan_remarks: undefined,
+    loan_remarks: '',
     installments: _installmentsList.payment_scheduled_details_master,
   };
 
@@ -610,8 +623,6 @@ const BookingForm = () => {
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
 
-  const newbaseAmount = 500000;
-
   const discountSyncedFields = useSyncedFields(
     baseAmount,
     'basic_rate_disc_amt',
@@ -668,6 +679,9 @@ const BookingForm = () => {
             />
           </td>
           <td>
+            <span className="muted-text" style={{ fontSize: '12px' }}>
+              Amt.
+            </span>
             <input
               className="form-control mb-2"
               name="other_charges_disc_amt"
@@ -679,7 +693,9 @@ const BookingForm = () => {
                 handleOCListChange(i, 'other_charges_disc_amt', e.target.value);
               }}
             />
-
+            <span className="muted-text" style={{ fontSize: '12px' }}>
+              %
+            </span>
             <input
               className="form-control"
               name="other_charges_disc_per"
@@ -746,40 +762,48 @@ const BookingForm = () => {
       );
     }
   // govt Taxes
-  const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', setFieldValue);
+  const gstSyncedFields = useSyncedFields(
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    'gst_amt',
+    'gst_per',
+    setFieldValue,
+  );
 
   const stampDutySyncedFields = useSyncedFields(
-    newbaseAmount,
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'stampduty_amount',
     'stampduty_per',
     setFieldValue,
   );
 
   const registrationSyncedFields = useSyncedFields(
-    newbaseAmount,
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'reg_amount',
     'reg_per',
     setFieldValue,
   );
 
   const taxesTotalSyncedFields = useSyncedFields(
-    newbaseAmount,
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'taxes_amount',
     'taxes_per',
     setFieldValue,
   );
 
   useEffect(() => {
-    const { basic_rate_area = 0, basic_rate = 0 } = values;
+    const { basic_rate_area = 0, basic_rate = 0, calculation_method } = values;
 
     const basic_rate_total = basic_rate_area * basic_rate;
-    setBaseAmount(basic_rate_total);
-  }, [values]);
+    setBaseAmount(calculation_method === 'rate_base' ? basic_rate_total : basic_rate);
+  }, [values.basic_rate_area, values.basic_rate, values.calculation_method]);
 
   useEffect(() => {
     const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue('basic_rate_basic_amount', (baseAmount - basic_rate_disc_amt).toFixed(2));
-  }, [baseAmount, setFieldValue, values, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
+    setFieldValue(
+      'basic_rate_basic_amount',
+      parseInt((baseAmount - basic_rate_disc_amt).toFixed(2)),
+    );
+  }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
   useEffect(() => {
     formik.setValues({
@@ -789,6 +813,7 @@ const BookingForm = () => {
       basic_rate_disc_per: 0,
       basic_rate_basic_amount: 0,
     });
+    setBaseAmount(0);
   }, [values.calculation_method]);
 
   return (
@@ -1103,7 +1128,7 @@ const BookingForm = () => {
                               type="number"
                               value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
-                              onChange={handleChange}
+                              onChange={discountSyncedFields.onChangeAmount}
                             />
                             <span className="muted-text" style={{ fontSize: '12px' }}>
                               %
@@ -1115,7 +1140,7 @@ const BookingForm = () => {
                               type="number"
                               value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
-                              onChange={handleChange}
+                              onChange={discountSyncedFields.onChangePercent}
                             />
                           </td>
                           <td>
@@ -1159,7 +1184,23 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
+                        <td className="text-right">
+                          ₹{' '}
+                          <input
+                            className="border-0 font-weight-bold"
+                            name="other_charges_total"
+                            type="number"
+                            value={values.other_charges_total}
+                            onChange={handleChange}
+                          />
+                          <input
+                            className="d-none"
+                            name="other_charges_total_discount"
+                            type="number"
+                            value={values.other_charges_total_discount}
+                            onChange={handleChange}
+                          />
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -1174,14 +1215,29 @@ const BookingForm = () => {
 
                 <div className="form-row">
                   <div className="form-group col form-col-gap">
-                    <label>Sub Total Amount (Basic Amt + Other Charges)</label>
+                    <label>
+                      Sub Total Amount{' '}
+                      <span className="muted-text">(Basic Amt + Other Charges)</span>
+                    </label>
                     <input
                       readOnly
                       className="form-control"
                       type="number"
                       value={
                         parseFloat(values.basic_rate_basic_amount) +
-                        parseFloat(handleTotalOtherCharge())
+                        parseFloat(values.other_charges_total)
+                      }
+                    />
+                  </div>
+                  <div className="form-group col">
+                    <label>Total Discount</label>
+                    <input
+                      readOnly
+                      className="form-control"
+                      type="number"
+                      value={
+                        parseFloat(values.other_charges_total_discount) +
+                        parseFloat(values.basic_rate_disc_amt)
                       }
                     />
                   </div>
@@ -1189,15 +1245,8 @@ const BookingForm = () => {
 
                 <div className="form-row">
                   <div className="form-group col">
-                    <label>Total Discount</label>
-                    <input className="form-control" type="text" />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group col">
                     <label>Discount Remark</label>
-                    <textarea className="form-control" rows={3} />
+                    <textarea className="form-control" rows={2} />
                   </div>
                 </div>
               </div>
@@ -1333,9 +1382,9 @@ const BookingForm = () => {
                       {/* total */}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
-                          Other Charges Total
+                          Extra Charges Total
                         </td>
-                        <td className="text-right">₹ {handleTotalExtraCharge()}</td>
+                        <td className="font-weight-bold">₹ {handleTotalExtraCharge()}</td>
                         <td></td>
                       </tr>
                     </tbody>
@@ -1363,27 +1412,64 @@ const BookingForm = () => {
                       <tbody>
                         <tr>
                           <td>Basic Amount</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">
+                              (+) ₹ {values.basic_rate_basic_amount.toFixed(2)}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Other Charges Total</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">(+) ₹ {values.other_charges_total}</span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Total Discount (Sale Deed Amount)</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="red-text">
+                              (-) ₹{' '}
+                              {(
+                                parseFloat(values.other_charges_total_discount) +
+                                parseFloat(values.basic_rate_disc_amt)
+                              ).toFixed(2)}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Government Taxes Total</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">
+                              (+) ₹{' '}
+                              {parseFloat(values.gst_amt) +
+                                parseFloat(values.stampduty_amount) +
+                                parseFloat(values.reg_amount) +
+                                parseFloat(values.taxes_amount)}{' '}
+                            </span>
+                          </td>
                         </tr>
                         <tr>
                           <td>Extra Charges</td>
-                          <td>5000000</td>
+                          <td>
+                            <span className="green-text">(+) ₹ {handleTotalExtraCharge()}</span>
+                          </td>
                         </tr>
                         <tr>
-                          <td>Property Final Amount</td>
-                          <td>5000000</td>
+                          <td>
+                            <p className="font-weight-bold">Property Final Amount</p>
+                          </td>
+                          <td>
+                            <p className="font-weight-bold green-text">
+                              (=) ₹{' '}
+                              {parseFloat(values.basic_rate_basic_amount) +
+                                parseFloat(values.other_charges_total) +
+                                parseFloat(values.gst_amt) +
+                                parseFloat(values.stampduty_amount) +
+                                parseFloat(values.reg_amount) +
+                                parseFloat(values.taxes_amount) +
+                                parseFloat(handleTotalExtraCharge())}
+                            </p>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
