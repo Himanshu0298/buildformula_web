@@ -24,15 +24,9 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
-  const {
-    visitorList,
-    unitInfo,
-    unitParkingInfo,
-    otherChargesList,
-    termsList,
-    installmentsList,
-    installmentsInformation,
-  } = useAppSelector(s => s.sales);
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation,banksList } = useAppSelector(
+    s => s.sales,
+  );
 
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
@@ -95,6 +89,15 @@ const BookingForm = () => {
     }));
   }, [installmentsList]);
 
+
+  //BankLists Options
+  const bankListOptions = useMemo(()=>{
+    return banksList?.map(x=>({
+      label:x.title,
+      value:x.id
+    }))
+  },[banksList])
+  
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
@@ -1322,51 +1325,31 @@ const BookingForm = () => {
                   </div>
                 </div>
 
-                {isToggle && (
-                  <>
-                    <div className="form-row mt-3">
-                      <div className="form-group col form-col-gap">
-                        <label>Loan Amount</label>
-                        <input
-                          className="form-control"
-                          type="number"
-                          value={values.loan_amt}
-                          id="loan_amt"
-                          name="loan_amt"
-                          onChange={handleChange}
-                        />
-                      </div>
-                      <div className="form-group col">
-                        <label>Bank</label>
-                        <select
-                          className="form-control"
-                          id="bank"
-                          name="bank"
-                          onChange={handleChange}
-                        >
-                          <option value={values.bank}>SBI</option>
-                          <option value={values.bank}>HDFC</option>
-                          <option value={values.bank}>Kotak</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="form-row">
-                      <div className="form-group col">
-                        <label>Remarks</label>
-                        <textarea
-                          className="form-control"
-                          cols={20}
-                          id="loan_remarks"
-                          name="loan_remarks"
-                          rows={10}
-                          value={values.loan_remarks}
-                          onChange={handleChange}
-                        ></textarea>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+        {isToggle && ( 
+          <>
+          <div className="form-row mt-3">
+            <div className="form-group col form-col-gap">
+              <label>Loan Amount</label>
+              <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+            </div>
+            <div className="form-group col">
+              <label>Bank</label>
+              <Select
+                      closeMenuOnSelect={true}
+                      options={bankListOptions}
+                      name='bank'
+                      placeholder="Banks List"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          width: '81%',
+                          marginTop: 0,
+                          marginBottom: 17,
+                        
+                        }),
+                      }}
+                      onChange={(e)=>setFieldValue('bank',e.value)}
+                    />
             </div>
 
             {/* 10th section */}
