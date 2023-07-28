@@ -1362,7 +1362,7 @@ const BookingForm = () => {
                 )}
               </div>
             </div>
-                {/* 10th section */}
+                {/* 10th section  */}
                 <div className="booking-form-box shwan-form mt-4">
                   <div className="booking-form-col-12">
                     <h5>PAYMENT SCHEDULE</h5>
