@@ -69,6 +69,7 @@ export const getInstallmentOptions = data => {
 
 export const getInstallmentData = data => {
   return instance.post('/payment_scheduled_details_master', data, params);
+}
 
 export const getBankList = () => {
   return instance.get('/get_banks', params);

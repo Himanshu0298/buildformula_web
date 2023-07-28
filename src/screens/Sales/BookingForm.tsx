@@ -24,7 +24,7 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList } = useAppSelector(
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation } = useAppSelector(
     s => s.sales,
   );
 
@@ -53,17 +53,6 @@ const BookingForm = () => {
   const [installmentId, setInstallmentId] = useState<number>(0);
   const toggleModal = () => setShow(!show);
   const unitId = 28;
-
-  // visitors list
-  const {
-    visitorList,
-    unitInfo,
-    unitParkingInfo,
-    otherChargesList,
-    termsList,
-    installmentsList,
-    IInstallmentInformation,
-  } = useAppSelector(s => s.sales);
 
   // unitInfo
   const unitInfoValues = useMemo(() => {
@@ -134,7 +123,7 @@ const BookingForm = () => {
           // eslint-disable-next-line no-case-declarations
           const equallyDistributedAmount = extra_charges_amt / installments.length;
           updatedInstallments.forEach(installment => {
-            installment.installment_amount += equallyDistributedAmount;
+            // installment.installment_amount += equallyDistributedAmount;
           });
           break;
 
@@ -143,7 +132,7 @@ const BookingForm = () => {
           const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
             if (index !== 0) {
-              installment.installment_amount += proportionatelyDistributedAmount;
+              // installment.installment_amount += proportionatelyDistributedAmount;
             }
           });
           console.log('2', proportionatelyDistributedAmount);
@@ -152,14 +141,14 @@ const BookingForm = () => {
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
           const lastIndex = installments.length - 1;
-          updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
+          // updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
           console.log('3', extra_charges_amt);
           break;
 
         default:
           // For other cases, directly add the amount to the total of all installments
           updatedInstallments.forEach(installment => {
-            installment.installment_amount += extra_charges_amt;
+            // installment.installment_amount += extra_charges_amt;
           });
           console.log('4', extra_charges_amt);
           break;
@@ -429,6 +418,9 @@ const BookingForm = () => {
         project_id: 18,
       }),
     );
+    dispatch(
+      getBankList(),
+    );
   }, []);
   // installments details
   useEffect(() => {
@@ -597,7 +589,6 @@ const BookingForm = () => {
               name="other_charges_disc_amt"
               placeholder="Amount"
               type="number"
-              name='other_charges_disc_amt'
               value={x.other_charges_disc_amt}
               onChange={e => {
                 discountOtherCharges.onChangeAmount(e);
@@ -1359,7 +1350,7 @@ const BookingForm = () => {
                       <th className="text-right">Installment Amount</th>
                     </thead>
                     <tbody>
-                      {IInstallmentInformation?.payment_scheduled_details_master?.map((e, i) => {
+                      {installmentsInformation?.payment_scheduled_details_master?.map((e, i) => {
                         return (
                           <tr key={`${i}_${e.id}`}>
                             <td onClick={updateInstallments}>01</td>
