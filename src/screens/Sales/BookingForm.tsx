@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { ChangeEvent, ChangeEventHandler, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -341,7 +341,9 @@ const BookingForm = () => {
     let total = 0;
     oclist?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.other_charges_disc_amt) || 0;
-
+    });
+    return total.toFixed(2);
+  };
   const handleTotalPaymentCharge = () => {
     let total = 0;
     _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
