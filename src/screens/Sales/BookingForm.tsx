@@ -88,14 +88,12 @@ const BookingForm = () => {
 
 
   //BankLists Options
-
   const bankListOptions = useMemo(()=>{
     return banksList?.map(x=>({
       label:x.title,
       value:x.id
     }))
   },[banksList])
-  // console.log(bankListOptions)
   
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
@@ -134,7 +132,7 @@ const BookingForm = () => {
           // eslint-disable-next-line no-case-declarations
           const equallyDistributedAmount = extra_charges_amt / installments.length;
           updatedInstallments.forEach(installment => {
-            // installment.installment_amount += equallyDistributedAmount;
+            installment.installment_amount += equallyDistributedAmount;
           });
           break;
 
@@ -143,7 +141,7 @@ const BookingForm = () => {
           const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
             if (index !== 0) {
-              // installment.installment_amount += proportionatelyDistributedAmount;
+              installment.installment_amount += proportionatelyDistributedAmount;
             }
           });
           console.log('2', proportionatelyDistributedAmount);
@@ -152,14 +150,14 @@ const BookingForm = () => {
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
           const lastIndex = installments.length - 1;
-          // updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
+          updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
           console.log('3', extra_charges_amt);
           break;
 
         default:
           // For other cases, directly add the amount to the total of all installments
           updatedInstallments.forEach(installment => {
-            // installment.installment_amount += extra_charges_amt;
+            installment.installment_amount += extra_charges_amt;
           });
           console.log('4', extra_charges_amt);
           break;
