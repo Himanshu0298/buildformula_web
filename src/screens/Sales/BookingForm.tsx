@@ -421,7 +421,6 @@ const BookingForm = () => {
       // newUnitRates[index].totalPaymentSchedule = totalInstallmentAmount.toFixed(2)
      
       let discount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
-      console.log(discount)
       let percentage = parseFloat(newUnitRates[index].percentage) || 0;
 
     
@@ -448,7 +447,6 @@ const BookingForm = () => {
      
 
       newUnitRates[index].basic_rate_basic_amount = discount.toFixed(2);
-      console.log(discount)
       newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
       
       
