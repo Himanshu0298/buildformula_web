@@ -24,7 +24,7 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation } = useAppSelector(
+  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation,banksList } = useAppSelector(
     s => s.sales,
   );
 
@@ -86,6 +86,17 @@ const BookingForm = () => {
     }));
   }, [installmentsList]);
 
+
+  //BankLists Options
+
+  const bankListOptions = useMemo(()=>{
+    return banksList?.map(x=>({
+      label:x.title,
+      value:x.id
+    }))
+  },[banksList])
+  // console.log(bankListOptions)
+  
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
@@ -1294,11 +1305,22 @@ const BookingForm = () => {
             </div>
             <div className="form-group col">
               <label>Bank</label>
-              <select className="form-control" id='bank' name='bank' onChange={handleChange}>
-                <option value={values.bank}>SBI</option>
-                <option value={values.bank}>HDFC</option>
-                <option value={values.bank}>Kotak</option>
-              </select>
+              <Select
+                      closeMenuOnSelect={true}
+                      options={bankListOptions}
+                      name='bank'
+                      placeholder="Banks List"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          width: '81%',
+                          marginTop: 0,
+                          marginBottom: 17,
+                        
+                        }),
+                      }}
+                      onChange={(e)=>setFieldValue('bank',e.value)}
+                    />
             </div>
           </div>
           <div className="form-row">
