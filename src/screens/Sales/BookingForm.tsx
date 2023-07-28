@@ -146,14 +146,12 @@ const BookingForm = () => {
               installment.installment_amount += proportionatelyDistributedAmount;
             }
           });
-          console.log('2', proportionatelyDistributedAmount);
           break;
 
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
           const lastIndex = installments.length - 1;
           updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
-          console.log('3', extra_charges_amt);
           break;
 
         default:
@@ -161,7 +159,6 @@ const BookingForm = () => {
           updatedInstallments.forEach(installment => {
             installment.installment_amount += extra_charges_amt;
           });
-          console.log('4', extra_charges_amt);
           break;
       }
     });
@@ -334,6 +331,13 @@ const BookingForm = () => {
     });
     return total.toFixed(2);
   };
+  const handleTotalPaymentCharge = () => {
+    let total = 0;
+    _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
+      total += parseFloat(charge?.totalPaymentSchedule) || 0;
+    });
+    return total.toFixed(2);
+  };
 
   // Other Charges
   useEffect(() => {
@@ -392,6 +396,70 @@ const BookingForm = () => {
       };
     });
   };
+  const handlePaymentSchedule = (index, field, value) => {
+    setInstallmentsList(prevList => {
+      const newUnitRates = [...prevList.payment_scheduled_details_master];
+      newUnitRates[index] = {
+        ...newUnitRates[index],
+        [field]: value,
+      };
+  
+      // let basicAmount = parseFloat(newUnitRates[index].basic_rate_basic_amount);
+      // console.log(basicAmount)
+      // let percentage = parseFloat(newUnitRates[index].percentage);
+      // percentage = percentage>=100 ? 100:percentage
+      // let otherChargesAmt = parseFloat(newUnitRates[index].otherChargesAmt);
+      // let gst_per = parseFloat(newUnitRates[index].gst_per);
+      
+      
+      
+      // const installmentAmount = (basicAmount * percentage) / 100 || 0;
+      // console.log(installmentAmount)
+      // const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100) || 0;
+      // const totalInstallmentAmount = basicAmount + otherChargesAmt + gstAmount || 0;
+
+      // newUnitRates[index].totalPaymentSchedule = totalInstallmentAmount.toFixed(2)
+     
+      let discount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
+      console.log(discount)
+      let percentage = parseFloat(newUnitRates[index].percentage) || 0;
+
+    
+      
+
+      // Adjust percentage and discount if they exceed the limits
+      if (field === 'basic_rate_basic_amount') {
+        // Calculate the new percentage
+        const calculatedPercentage = (discount / 100) * 10;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
+        // Calculate the new discount based on the adjusted percentage
+        const calculatedDiscount = (discount * percentage) / 100;
+        discount = calculatedDiscount > discount ? discount : calculatedDiscount;
+      } else if (field === 'percentage') {
+        // Calculate the new discount
+        const calculatedDiscount = (discount * percentage) / 100;
+        discount = calculatedDiscount > discount ? discount : calculatedDiscount;
+
+        // Calculate the new percentage based on the adjusted discount
+        const calculatedPercentage = (discount / discount) * 100;
+        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
+      }
+
+     
+
+      newUnitRates[index].basic_rate_basic_amount = discount.toFixed(2);
+      console.log(discount)
+      newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
+      
+      
+     
+      return {
+        ...prevList,
+        payment_scheduled_details_master: newUnitRates,
+      };
+    });
+  };
+  
 
   // Api calls
   const handleToggle = () => {
@@ -638,7 +706,47 @@ const BookingForm = () => {
       </>
     );
   };
+    
+    const PaymentSchedule = (i,e) =>{
+      const paymentSchedule = useSyncedFields(
+        baseAmount,
+        'basicAmount',
+        'percentage',
+        (...params) => {
+          handlePaymentSchedule(i, ...params);
+        },
+      );
 
+      return (
+        <tr key={`${i}_${e.id}`}>
+          <td onClick={updateInstallments}>{i+1}</td>
+          <td>{e.title}</td>
+          <td>
+            <input className="form-control" type="date" value={e.date}
+              onChange={(x)=>{ handlePaymentSchedule(i, 'date', x.target.value);}}/>
+          </td>
+          <td>
+            <input className="form-control" type="number" value={e.percentage}  />
+          </td>
+          <td>
+            <input className="form-control" type="number"  value={parseFloat(values.basic_rate_basic_amount)}   />
+          </td>
+          <td>
+            <input className="form-control" type="number"  value={e.otherChargesAmt}   onChange={e => {
+                handlePaymentSchedule(i, 'otherChargesAmt', e.target.value);
+              }}/>
+          </td>
+          <td>
+            <input className="form-control" type="number" value={e.gst_per}   onChange={e => {
+                handlePaymentSchedule(i, 'gst_per', e.target.value);
+              }} />
+          </td>
+          <td>
+            <input readOnly className="form-control" type="number" value={e.totalPaymentSchedule}/>
+          </td>
+        </tr>
+      );
+    }
   // govt Taxes
   const gstSyncedFields = useSyncedFields(newbaseAmount, 'gst_amt', 'gst_per', setFieldValue);
 
@@ -1395,42 +1503,18 @@ const BookingForm = () => {
                           <th>%</th>
                           <th>Basic Amount</th>
                           <th>Other Charges Amount</th>
-                          <th>GST</th>
+                          <th>GST %</th>
                           <th className="text-right">Installment Amount</th>
                         </thead>
                         <tbody>
-                          {_installmentsList?.payment_scheduled_details_master?.map((e, i) => {
-                            return (
-                              <tr key={`${i}_${e.id}`}>
-                                <td onClick={updateInstallments}>01</td>
-                                <td>{e.title}</td>
-                                <td>
-                                  <input className="form-control" type="date" />
-                                </td>
-                                <td>
-                                  <input className="form-control" type="text" value={e.percentage} />
-                                </td>
-                                <td>
-                                  <input className="form-control" type="text" />
-                                </td>
-                                <td>
-                                  <input className="form-control" type="text" />
-                                </td>
-                                <td>
-                                  <input className="form-control" type="text" />
-                                </td>
-                                <td>
-                                  <input readOnly className="form-control" type="text" />
-                                </td>
-                              </tr>
-                            );
-                          })}
+                        {_installmentsList?.payment_scheduled_details_master?.map((e, i) => PaymentSchedule(i, e))}
+                          
                           {/* total */}
                           <tr>
                             <td className="text-right font-weight-bold" colSpan={7}>
                               Installments Total
                             </td>
-                            <td className="text-right">₹ 10000000</td>
+                            <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
                           </tr>
                         </tbody>
                       </table>
