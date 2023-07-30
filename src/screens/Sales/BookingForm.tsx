@@ -155,7 +155,7 @@ const BookingForm = () => {
           const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
             if (index !== 0) {
-              installments.installment_amount += proportionatelyDistributedAmount * installments.;
+              installments.installment_amount += proportionatelyDistributedAmount * installments;
             }
           });
           break;
