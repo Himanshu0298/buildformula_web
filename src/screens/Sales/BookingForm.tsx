@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -22,11 +22,20 @@ import { DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
+const unitId = 28;
+
 const BookingForm = () => {
   const dispatch = useAppDispatch();
-  const { visitorList, unitInfo, unitParkingInfo, otherChargesList, termsList, installmentsList, installmentsInformation, banksList } = useAppSelector(
-    s => s.sales,
-  );
+  const {
+    visitorList,
+    unitInfo,
+    unitParkingInfo,
+    otherChargesList,
+    termsList,
+    installmentsList,
+    installmentsInformation,
+    banksList,
+  } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
@@ -55,16 +64,17 @@ const BookingForm = () => {
   const [terms, setTerms] = useState<string>();
   const [installmentId, setInstallmentId] = useState<number>(0);
   const toggleModal = () => setShow(!show);
-  const unitId = 28;
 
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
+
   // parkingInfo
   const unitParkingInfoValues = useMemo(() => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
   }, [unitParkingInfo?.all_parking_units]);
+
   // customers options
   const customerOptions = useMemo(() => {
     return visitorList?.map(e => ({
@@ -73,6 +83,7 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
+
   // t&c
   const termsOptions = useMemo(() => {
     return termsList?.map(e => ({
@@ -81,6 +92,7 @@ const BookingForm = () => {
       details: e.description,
     }));
   }, [termsList]);
+
   // installment options
   const installmentOptions = useMemo(() => {
     return installmentsList?.payment_scheduled_master?.map(e => ({
@@ -89,14 +101,13 @@ const BookingForm = () => {
     }));
   }, [installmentsList]);
 
-
   //BankLists Options
   const bankListOptions = useMemo(() => {
     return banksList?.map(x => ({
       label: x.title,
-      value: x.id
-    }))
-  }, [banksList])
+      value: x.id,
+    }));
+  }, [banksList]);
 
   // extra charges update & delete
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
@@ -106,6 +117,7 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
+
   const handleDeleteExtraCharge = (index: number) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
@@ -134,7 +146,7 @@ const BookingForm = () => {
           // eslint-disable-next-line no-case-declarations
           const equallyDistributedAmount = extra_charges_amt / installments.length;
           updatedInstallments.forEach(installment => {
-            installment.installment_amount += equallyDistributedAmount;
+            installments.installment_amount += equallyDistributedAmount;
           });
           break;
 
@@ -143,7 +155,7 @@ const BookingForm = () => {
           const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
             if (index !== 0) {
-              installment.installment_amount += proportionatelyDistributedAmount;
+              installments.installment_amount += proportionatelyDistributedAmount * installments;
             }
           });
           break;
@@ -329,21 +341,22 @@ const BookingForm = () => {
     ]);
   };
 
-  const handleTotalOtherCharge = () => {
+  const handleTotalOtherCharge = useCallback(() => {
     let total = 0;
     oclist?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.otherChargesTotal) || 0;
     });
     return total.toFixed(2);
-  };
+  }, [oclist?.other_charge_unit_rates]);
 
-  const handleTotalOtherDiscountAmt = () => {
+  const handleTotalOtherDiscountAmt = useCallback(() => {
     let total = 0;
     oclist?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.other_charges_disc_amt) || 0;
     });
     return total.toFixed(2);
-  };
+  }, [oclist?.other_charge_unit_rates]);
+
   const handleTotalPaymentCharge = () => {
     let total = 0;
     _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
@@ -409,6 +422,7 @@ const BookingForm = () => {
       };
     });
   };
+
   const handlePaymentSchedule = (index, field, value) => {
     setInstallmentsList(prevList => {
       const newUnitRates = [...prevList.payment_scheduled_details_master];
@@ -416,28 +430,23 @@ const BookingForm = () => {
         ...newUnitRates[index],
         [field]: value,
       };
-  
+
       // let basicAmount = parseFloat(newUnitRates[index].basic_rate_basic_amount);
       // console.log(basicAmount)
       // let percentage = parseFloat(newUnitRates[index].percentage);
       // percentage = percentage>=100 ? 100:percentage
       // let otherChargesAmt = parseFloat(newUnitRates[index].otherChargesAmt);
       // let gst_per = parseFloat(newUnitRates[index].gst_per);
-      
-      
-      
+
       // const installmentAmount = (basicAmount * percentage) / 100 || 0;
       // console.log(installmentAmount)
       // const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100) || 0;
       // const totalInstallmentAmount = basicAmount + otherChargesAmt + gstAmount || 0;
 
       // newUnitRates[index].totalPaymentSchedule = totalInstallmentAmount.toFixed(2)
-     
+
       let discount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
       let percentage = parseFloat(newUnitRates[index].percentage) || 0;
-
-    
-      
 
       // Adjust percentage and discount if they exceed the limits
       if (field === 'basic_rate_basic_amount') {
@@ -457,20 +466,15 @@ const BookingForm = () => {
         percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
       }
 
-     
-
       newUnitRates[index].basic_rate_basic_amount = discount.toFixed(2);
       newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
-      
-      
-     
+
       return {
         ...prevList,
         payment_scheduled_details_master: newUnitRates,
       };
     });
   };
-  
 
   // Api calls
   const handleToggle = () => {
@@ -483,17 +487,8 @@ const BookingForm = () => {
         project_id: 18,
       }),
     );
-    dispatch(
-      getUnitInfo({
-        project_id: 18,
-        tower_id: 1,
-      }),
-    );
-    dispatch(
-      getUnitParkingInfo({
-        project_id: 18,
-      }),
-    );
+    dispatch(getUnitInfo({ project_id: 18, tower_id: 1 }));
+    dispatch(getUnitParkingInfo({ project_id: 18 }));
     dispatch(
       getOtherChargesList({
         project_id: 18,
@@ -522,40 +517,51 @@ const BookingForm = () => {
     );
   }, [installmentId]);
 
-  const initialValues = {
-    project_id: 18,
-    unit_id: 28,
-    visitors_id: customerDetails?.id,
-    unit_reserved_date: dayjs().format('YYYY-MM-DD'),
-    parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
-    calculation_method: '',
-    basic_rate_no: 1,
-    basic_rate_description: 'Basic rate of unit',
-    basic_rate_area: unitInfoValues?.super_build_up_area || 0,
-    basic_rate: 0,
-    basic_rate_disc_amt: 0,
-    basic_rate_disc_per: 0,
-    basic_rate_basic_amount: 0,
-    other_charges: oclist.other_charge_unit_rates,
-    other_charges_total: handleTotalOtherCharge(),
-    other_charges_total_discount: handleTotalOtherDiscountAmt(),
-    custom_payment_remark_id: 0,
-    custom_payment_remark: terms || '',
-    extra_charges: extraCharges,
-    gst_per: 0,
-    gst_amt: 0,
-    stampduty_per: 0,
-    stampduty_amount: 0,
-    reg_per: 0,
-    reg_amount: 0,
-    taxes_per: 0,
-    taxes_amount: 0,
-    is_loan: isToggle ? 'yes' : 'no',
-    loan_amt: 0,
-    bank: 0,
-    loan_remarks: '',
-    installments: _installmentsList.payment_scheduled_details_master,
-  };
+  const initialValues = useMemo(() => {
+    return {
+      project_id: 18,
+      unit_id: unitId,
+      visitors_id: customerDetails?.id,
+      unit_reserved_date: dayjs().format('YYYY-MM-DD'),
+      parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
+      calculation_method: '',
+      basic_rate_no: 1,
+      basic_rate_description: 'Basic rate of unit',
+      basic_rate_area: unitInfoValues?.super_build_up_area || 0,
+      basic_rate: 0,
+      basic_rate_disc_amt: 0,
+      basic_rate_disc_per: 0,
+      basic_rate_basic_amount: 0,
+      other_charges: [],
+      other_charges_total: handleTotalOtherCharge(),
+      other_charges_total_discount: handleTotalOtherDiscountAmt(),
+      custom_payment_remark_id: 0,
+      custom_payment_remark: terms || '',
+      extra_charges: [],
+      gst_per: 0,
+      gst_amt: 0,
+      stampduty_per: 0,
+      stampduty_amount: 0,
+      reg_per: 0,
+      reg_amount: 0,
+      taxes_per: 0,
+      taxes_amount: 0,
+      is_loan: isToggle ? 'yes' : 'no',
+      loan_amt: 0,
+      bank: 0,
+      loan_remarks: '',
+      installments: [],
+    };
+  }, [
+    customerDetails?.id,
+    extraCharges,
+    handleTotalOtherCharge,
+    handleTotalOtherDiscountAmt,
+    isToggle,
+    terms,
+    unitInfoValues?.super_build_up_area,
+    unitParkingInfoValues,
+  ]);
 
   const handleSubmit = values => {
     // const {
@@ -722,47 +728,67 @@ const BookingForm = () => {
       </>
     );
   };
-    
-    const PaymentSchedule = (i,e) =>{
-      const paymentSchedule = useSyncedFields(
-        baseAmount,
-        'basicAmount',
-        'percentage',
-        (...params) => {
-          handlePaymentSchedule(i, ...params);
-        },
-      );
 
-      return (
-        <tr key={`${i}_${e.id}`}>
-          <td onClick={updateInstallments}>{i+1}</td>
-          <td>{e.title}</td>
-          <td>
-            <input className="form-control" type="date" value={e.date}
-              onChange={(x)=>{ handlePaymentSchedule(i, 'date', x.target.value);}}/>
-          </td>
-          <td>
-            <input className="form-control" type="number" value={e.percentage}  />
-          </td>
-          <td>
-            <input className="form-control" type="number"  value={parseFloat(values.basic_rate_basic_amount)}   />
-          </td>
-          <td>
-            <input className="form-control" type="number"  value={e.otherChargesAmt}   onChange={e => {
-                handlePaymentSchedule(i, 'otherChargesAmt', e.target.value);
-              }}/>
-          </td>
-          <td>
-            <input className="form-control" type="number" value={e.gst_per}   onChange={e => {
-                handlePaymentSchedule(i, 'gst_per', e.target.value);
-              }} />
-          </td>
-          <td>
-            <input readOnly className="form-control" type="number" value={e.totalPaymentSchedule}/>
-          </td>
-        </tr>
-      );
-    }
+  const PaymentSchedule = (i, e) => {
+    const paymentSchedule = useSyncedFields(
+      baseAmount,
+      'basicAmount',
+      'percentage',
+      (...params) => {
+        handlePaymentSchedule(i, ...params);
+      },
+    );
+
+    return (
+      <tr key={`${i}_${e.id}`}>
+        <td onClick={updateInstallments}>{i + 1}</td>
+        <td>{e.title}</td>
+        <td>
+          <input
+            className="form-control"
+            type="date"
+            value={e.date}
+            onChange={x => {
+              handlePaymentSchedule(i, 'date', x.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input className="form-control" type="number" value={e.percentage} />
+        </td>
+        <td>
+          <input
+            className="form-control"
+            type="number"
+            value={parseFloat(values.basic_rate_basic_amount)}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control"
+            type="number"
+            value={e.otherChargesAmt}
+            onChange={e => {
+              handlePaymentSchedule(i, 'otherChargesAmt', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control"
+            type="number"
+            value={e.gst_per}
+            onChange={e => {
+              handlePaymentSchedule(i, 'gst_per', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input readOnly className="form-control" type="number" value={e.totalPaymentSchedule} />
+        </td>
+      </tr>
+    );
+  };
   // govt Taxes
   const gstSyncedFields = useSyncedFields(
     parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
@@ -1016,7 +1042,8 @@ const BookingForm = () => {
                     </div>
                   </div>
                 </div>
-                {formik.values.calculation_method === 'rate_base' ? (
+
+                {values.calculation_method === 'rate_base' ? (
                   <div>
                     {/* Rate Based */}
                     <table className="table">
@@ -1093,7 +1120,7 @@ const BookingForm = () => {
                       </tbody>
                     </table>
                   </div>
-                ) : formik.values.calculation_method === 'fixed_amount' ? (
+                ) : values.calculation_method === 'fixed_amount' ? (
                   <div>
                     {/* Fixed Amount Based */}
                     <table className="table">
@@ -1163,7 +1190,6 @@ const BookingForm = () => {
                 ) : undefined}
               </div>
             </div>
-
             {/* 4th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
@@ -1394,6 +1420,7 @@ const BookingForm = () => {
                   <div className="row w-100 justify-content-end">
                     <button
                       className="Btn btn-lightblue-primary lbps-btn ml-auto mr-0"
+                      type="button"
                       onClick={handleAddData}
                     >
                       Add More
@@ -1524,14 +1551,21 @@ const BookingForm = () => {
                     <div className="form-row mt-3">
                       <div className="form-group col form-col-gap">
                         <label>Loan Amount</label>
-                        <input className="form-control" type="number" value={values.loan_amt} id='loan_amt' name='loan_amt' onChange={handleChange} />
+                        <input
+                          className="form-control"
+                          id="loan_amt"
+                          name="loan_amt"
+                          type="number"
+                          value={values.loan_amt}
+                          onChange={handleChange}
+                        />
                       </div>
                       <div className="form-group col">
                         <label>Bank</label>
                         <Select
                           closeMenuOnSelect={true}
+                          name="bank"
                           options={bankListOptions}
-                          name='bank'
                           placeholder="Banks List"
                           styles={{
                             container: base => ({
@@ -1539,130 +1573,139 @@ const BookingForm = () => {
                               width: '81%',
                               marginTop: 0,
                               marginBottom: 17,
-
                             }),
                           }}
-                          onChange={(e) => setFieldValue('bank', e.value)}
+                          onChange={e => setFieldValue('bank', e.value)}
                         />
                       </div>
                     </div>
                     <div className="form-row">
                       <div className="form-group col">
                         <label>Remarks</label>
-                        <textarea className="form-control" cols={20} id="loan_remarks" name="loan_remarks" rows={10} value={values.loan_remarks} onChange={handleChange} ></textarea>
+                        <textarea
+                          className="form-control"
+                          cols={20}
+                          id="loan_remarks"
+                          name="loan_remarks"
+                          rows={10}
+                          value={values.loan_remarks}
+                          onChange={handleChange}
+                        ></textarea>
                       </div>
                     </div>
                   </>
                 )}
               </div>
             </div>
-                {/* 10th section  */}
-                <div className="booking-form-box shwan-form mt-4">
-                  <div className="booking-form-col-12">
-                    <h5>PAYMENT SCHEDULE</h5>
+            {/* 10th section  */}
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <h5>PAYMENT SCHEDULE</h5>
 
-                    <div className="form-row">
-                      <div className="col-4">
-                        <label>Select Payment Installment</label>
-                        <Select
-                          closeMenuOnSelect={true}
-                          options={installmentOptions}
-                          placeholder="Select Payment Installment"
-                          styles={{
-                            container: base => ({
-                              ...base,
-                              marginTop: 10,
-                              marginBottom: 20,
-                            }),
-                          }}
-                          onChange={e => setInstallmentId(e.value)}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <table className="table">
-                        <thead>
-                          <th>Sr No</th>
-                          <th>Installment Name</th>
-                          <th>Due Date</th>
-                          <th>%</th>
-                          <th>Basic Amount</th>
-                          <th>Other Charges Amount</th>
-                          <th>GST %</th>
-                          <th className="text-right">Installment Amount</th>
-                        </thead>
-                        <tbody>
-                        {_installmentsList?.payment_scheduled_details_master?.map((e, i) => PaymentSchedule(i, e))}
-                          
-                          {/* total */}
-                          <tr>
-                            <td className="text-right font-weight-bold" colSpan={7}>
-                              Installments Total
-                            </td>
-                            <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                <div className="form-row">
+                  <div className="col-4">
+                    <label>Select Payment Installment</label>
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={installmentOptions}
+                      placeholder="Select Payment Installment"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          marginTop: 10,
+                          marginBottom: 20,
+                        }),
+                      }}
+                      onChange={e => setInstallmentId(e.value)}
+                    />
                   </div>
                 </div>
 
-                {/* 11th section */}
-                <div className="booking-form-box shwan-form mt-4">
-                  <div className="booking-form-col-12">
-                    <h5>TERMS & CONDITIONS</h5>
+                <div>
+                  <table className="table">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Installment Name</th>
+                      <th>Due Date</th>
+                      <th>%</th>
+                      <th>Basic Amount</th>
+                      <th>Other Charges Amount</th>
+                      <th>GST %</th>
+                      <th className="text-right">Installment Amount</th>
+                    </thead>
+                    <tbody>
+                      {_installmentsList?.payment_scheduled_details_master?.map((e, i) =>
+                        PaymentSchedule(i, e),
+                      )}
 
-                    <div className="form-row mb-4">
-                      <div className="col-4">
-                        <label>Select T&C Template</label>
-                        <Select
-                          closeMenuOnSelect={true}
-                          options={termsOptions}
-                          placeholder="Select Terms & Conditions"
-                          styles={{
-                            container: base => ({
-                              ...base,
-                              marginTop: 10,
-                              marginBottom: 50,
-                            }),
-                          }}
-                          onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
-                        />
-                      </div>
-                      <div className="col-10 px-0">
-                        <textarea
-                          className="form-control"
-                          name="custom_payment_remark"
-                          value={values.custom_payment_remark}
-                          onChange={handleChange}
-                        ></textarea>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="booking-form-col-12">
-                    <div className="form-row mb-4">
-                      <div className="bookingform-footer mt-5">
-                        <button className="Btn btn-lightblue-primary" type="submit">
-                          Save
-                        </button>
-                        <button
-                          className="Btn btn-lightblue-primary lbps-btn"
-                          data-dismiss="modal"
-                          type="button"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                      {/* total */}
+                      <tr>
+                        <td className="text-right font-weight-bold" colSpan={7}>
+                          Installments Total
+                        </td>
+                        <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              </Form>
+              </div>
             </div>
-          </section>
-        </>
-        );
+
+            {/* 11th section */}
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <h5>TERMS & CONDITIONS</h5>
+
+                <div className="form-row mb-4">
+                  <div className="col-4">
+                    <label>Select T&C Template</label>
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={termsOptions}
+                      placeholder="Select Terms & Conditions"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          marginTop: 10,
+                          marginBottom: 50,
+                        }),
+                      }}
+                      onChange={e => setTerms(e.details.replace(HTML_REGEX, ''))}
+                    />
+                  </div>
+                  <div className="col-10 px-0">
+                    <textarea
+                      className="form-control"
+                      name="custom_payment_remark"
+                      value={values.custom_payment_remark}
+                      onChange={handleChange}
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="booking-form-col-12">
+                <div className="form-row mb-4">
+                  <div className="bookingform-footer mt-5">
+                    <button className="Btn btn-lightblue-primary" type="submit">
+                      Save
+                    </button>
+                    <button
+                      className="Btn btn-lightblue-primary lbps-btn"
+                      data-dismiss="modal"
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Form>
+        </div>
+      </section>
+    </>
+  );
 };
 
-        export default BookingForm;
+export default BookingForm;
