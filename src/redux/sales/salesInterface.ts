@@ -288,6 +288,9 @@ export interface IInstallmentInfo {
   title: string;
   percentage: string;
   created: string;
+  basic_rate_basic_amount: number,
+  otherChargesAmt: number,
+  gst_per: number,
 }
 
 export interface IBanksList {
