@@ -7,7 +7,7 @@ export interface ISalesState {
   termsList: ITermsnConditions[];
   installmentsList: IInstallmentOptions;
   installmentsInformation: IInstallmentDetails;
-  banksList: IBanksList[]
+  banksList: IBanksList[];
 }
 
 export type CommonParams = {

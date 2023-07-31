@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Select from 'react-select';
@@ -38,8 +38,11 @@ const BookingForm = () => {
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
+
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+
   const [isToggle, setIsToggle] = useState(true);
+
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([
     {
       extra_charges_no: 1,
@@ -54,15 +57,23 @@ const BookingForm = () => {
       extra_charges_base: 0,
     },
   ]);
+
   const [oclist, setOCList] = useState({
     other_charge_unit_rates: [],
   });
+
   const [_installmentsList, setInstallmentsList] = useState({
     payment_scheduled_details_master: [],
   });
+
   const [baseAmount, setBaseAmount] = useState<number>();
+
   const [terms, setTerms] = useState<string>();
+
   const [installmentId, setInstallmentId] = useState<number>(0);
+
+  const [installments, setInstallments] = useState([]);
+
   const toggleModal = () => setShow(!show);
 
   // unitInfo
@@ -109,7 +120,7 @@ const BookingForm = () => {
     }));
   }, [banksList]);
 
-  // extra charges update & delete
+  // extra charges update, delete & update
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
@@ -125,6 +136,7 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
+
   const handleTotalExtraCharge = () => {
     let total = 0;
     extraCharges.forEach(charge => {
@@ -133,44 +145,87 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
 
-  const [installments, setInstallments] = useState([installmentsList?.payment_scheduled_master]);
+  const [installments1, setInstallments1] = useState([
+    {
+      custom_payment_no: 1,
+      installment_amount: parseInt('100'),
+      gst: 4,
+      percent: 12,
+    },
+    {
+      custom_payment_no: 2,
+      installment_amount: parseInt('200'),
+      gst: 4,
+      percent: 12,
+    },
+    {
+      custom_payment_no: 3,
+      installment_amount: parseInt('501'),
+      gst: 4,
+      percent: 12,
+    },
+    {
+      custom_payment_no: 4,
+      installment_amount: parseInt('0'),
+      gst: 4,
+      percent: 12,
+    },
+  ]); // Your installments data
 
   const updateInstallments = () => {
-    const updatedInstallments = [...installments];
+    const updatedInstallments = [...installments1];
 
     extraCharges.forEach(extraCharge => {
-      const { extra_charges_distribution_method, extra_charges_amt } = extraCharge;
+      const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
 
       switch (extra_charges_distribution_method) {
         case 'Equally with all installments':
           // eslint-disable-next-line no-case-declarations
-          const equallyDistributedAmount = extra_charges_amt / installments.length;
-          updatedInstallments.forEach(installment => {
-            installments.installment_amount += equallyDistributedAmount;
+          const equallyDistributedAmount = extra_charges_total / (installments1.length - 1);
+          updatedInstallments.forEach((installment, index) => {
+            const lastIndex = installments1.length - 1;
+            if (index !== lastIndex) {
+              installment.installment_amount += equallyDistributedAmount;
+            }
+          });
+          break;
+
+        case 'Proportionately with all installment':
+          // eslint-disable-next-line no-case-declarations
+          const proportionatelyDistributedWithAll =
+            extra_charges_total / (installments1.length - 1);
+          updatedInstallments.forEach((installment, index) => {
+            const lastIndex = installments1.length - 1;
+            if (index !== lastIndex) {
+              installment.installment_amount +=
+                (proportionatelyDistributedWithAll * installment.percent) / 100;
+            }
           });
           break;
 
         case 'Proportionately with all installment(Except First)':
           // eslint-disable-next-line no-case-declarations
-          const proportionatelyDistributedAmount = extra_charges_amt / (installments.length - 1);
+          const proportionatelyDistributedAmount = extra_charges_total / (installments1.length - 1);
           updatedInstallments.forEach((installment, index) => {
-            if (index !== 0) {
-              installments.installment_amount += proportionatelyDistributedAmount * installments;
+            const lastIndex = installments1.length - 1;
+            if (index !== 0 && index !== lastIndex) {
+              installment.installment_amount +=
+                (proportionatelyDistributedAmount * installment.percent) / 100;
             }
           });
           break;
 
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
-          const lastIndex = installments.length - 1;
-          updatedInstallments[lastIndex].installment_amount += extra_charges_amt;
+          const lastIndex = installments1.length - 2;
+          updatedInstallments[lastIndex].installment_amount += extra_charges_total;
           break;
 
         default:
           // For other cases, directly add the amount to the total of all installments
-          updatedInstallments.forEach(installment => {
-            installment.installment_amount += extra_charges_amt;
-          });
+          // eslint-disable-next-line no-case-declarations
+          const last_index = installments1.length - 1;
+          updatedInstallments[last_index].installment_amount += extra_charges_total;
           break;
       }
     });
@@ -261,7 +316,7 @@ const BookingForm = () => {
               onChangeAmount(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
-            onKeyUp={(e: ChangeEvent<HTMLInputElement>) =>
+            onKeyUp={e =>
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
@@ -369,6 +424,7 @@ const BookingForm = () => {
   useEffect(() => {
     setOCList(otherChargesList);
   }, [otherChargesList]);
+
   // Installments
   useEffect(() => {
     setInstallmentsList(installmentsInformation);
@@ -476,11 +532,11 @@ const BookingForm = () => {
     });
   };
 
-  // Api calls
   const handleToggle = () => {
     setIsToggle(!isToggle);
   };
 
+  // Api calls
   useEffect(() => {
     dispatch(
       getVisitorsList({
@@ -506,7 +562,9 @@ const BookingForm = () => {
       }),
     );
     dispatch(getBankList());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   // installments details
   useEffect(() => {
     dispatch(
@@ -515,6 +573,7 @@ const BookingForm = () => {
         payment_scheduled_master_id: installmentId,
       }),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [installmentId]);
 
   const initialValues = useMemo(() => {
@@ -546,7 +605,7 @@ const BookingForm = () => {
       reg_amount: 0,
       taxes_per: 0,
       taxes_amount: 0,
-      is_loan: isToggle ? 'yes' : 'no',
+      is_loan: 'yes',
       loan_amt: 0,
       bank: 0,
       loan_remarks: '',
@@ -554,10 +613,8 @@ const BookingForm = () => {
     };
   }, [
     customerDetails?.id,
-    extraCharges,
     handleTotalOtherCharge,
     handleTotalOtherDiscountAmt,
-    isToggle,
     terms,
     unitInfoValues?.super_build_up_area,
     unitParkingInfoValues,
@@ -579,7 +636,7 @@ const BookingForm = () => {
     //   basic_rate_disc_per,
     //   basic_rate_basic_amount,
     // } = values;
-    console.log('🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:', values);
+    console.log('🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:', values, installments);
     // dispatch(
     //   addBooking({
     //     project_bookings_temp_id: 0,
@@ -730,15 +787,6 @@ const BookingForm = () => {
   };
 
   const PaymentSchedule = (i, e) => {
-    const paymentSchedule = useSyncedFields(
-      baseAmount,
-      'basicAmount',
-      'percentage',
-      (...params) => {
-        handlePaymentSchedule(i, ...params);
-      },
-    );
-
     return (
       <tr key={`${i}_${e.id}`}>
         <td onClick={updateInstallments}>{i + 1}</td>
@@ -761,6 +809,7 @@ const BookingForm = () => {
             className="form-control"
             type="number"
             value={parseFloat(values.basic_rate_basic_amount)}
+            onChange={updateInstallments}
           />
         </td>
         <td>
@@ -789,6 +838,7 @@ const BookingForm = () => {
       </tr>
     );
   };
+
   // govt Taxes
   const gstSyncedFields = useSyncedFields(
     parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
@@ -823,6 +873,7 @@ const BookingForm = () => {
 
     const basic_rate_total = basic_rate_area * basic_rate;
     setBaseAmount(calculation_method === 'rate_base' ? basic_rate_total : basic_rate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.basic_rate_area, values.basic_rate, values.calculation_method]);
 
   useEffect(() => {
@@ -831,6 +882,7 @@ const BookingForm = () => {
       'basic_rate_basic_amount',
       parseInt((baseAmount - basic_rate_disc_amt).toFixed(2)),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
   useEffect(() => {
@@ -842,10 +894,12 @@ const BookingForm = () => {
       basic_rate_basic_amount: 0,
     });
     setBaseAmount(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.calculation_method]);
 
   return (
     <>
+      {/* top bar */}
       <div className="header-bar">
         <div className="page-header">
           <button className="header-back-btn">
@@ -884,6 +938,7 @@ const BookingForm = () => {
           <Form onSubmit={formik.handleSubmit}>
             {/* 1st section */}
             <AddCustomerModal handleClose={toggleModal} show={show} />
+
             <div className="booking-form-box shwan-form">
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
@@ -1190,6 +1245,7 @@ const BookingForm = () => {
                 ) : undefined}
               </div>
             </div>
+
             {/* 4th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
@@ -1597,6 +1653,7 @@ const BookingForm = () => {
                 )}
               </div>
             </div>
+
             {/* 10th section  */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
