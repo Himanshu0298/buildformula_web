@@ -412,8 +412,8 @@ const BookingForm = () => {
 
   const handleTotalPaymentCharge = () => {
     let total = 0;
-    _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
-      total += parseFloat(charge?.totalPaymentSchedule) || 0;
+    _installmentsList?.forEach(charge => {
+      total += parseFloat(charge?.installment_amount) || 0;
     });
     return total.toFixed(2);
   };
@@ -427,9 +427,10 @@ const BookingForm = () => {
   function handleUpdate () {
     const updatedList = installmentsInformation?.payment_scheduled_details_master?.map(item=>({
       ...item,
-      basic_rate_basic_amount:0,
-      otherChargesAmt:0,
-      gst_per:0,
+      installment_basic_amt:0,
+      installment_otherchages_amt:0,
+      gst:0,
+      installment_amount:0,
     }))
     setInstallmentsList(updatedList);
   }
@@ -492,24 +493,24 @@ const BookingForm = () => {
         ...newUnitRates[index],
         [field]: value,
       };
-      let basicAmount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
-      let otherChargesAmt = parseFloat(newUnitRates[index].otherChargesAmt) || 0;
-      let gst_per = parseFloat(newUnitRates[index].gst_per) || 0;
+      let basicAmount = parseFloat(newUnitRates[index].installment_basic_amt) || 0;
+      let otherChargesAmt = parseFloat(newUnitRates[index].installment_otherchages_amt) || 0;
+      let gst_per = parseFloat(newUnitRates[index].gst) || 0;
   
       // Calculate the totalPaymentSchedule
-      const gstAmount = (basicAmount + otherChargesAmt) + (gst_per / 100);
-      const totalPaymentSchedule = gstAmount;
+      const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100);
+      const totalPaymentSchedule = basicAmount + otherChargesAmt + gstAmount;
   
-      newUnitRates[index].basic_rate_basic_amount = parseFloat(basicAmount.toFixed(2));
+      newUnitRates[index].installment_basic_amt = parseFloat(basicAmount.toFixed(2));
 
-      newUnitRates[index].totalPaymentSchedule = totalPaymentSchedule.toFixed(2);
+      newUnitRates[index].installment_amount = totalPaymentSchedule.toFixed(2);
   
       return newUnitRates
         
     });
   };
   
-  
+  console.log(_installmentsList)
 
   const handleToggle = () => {
     setIsToggle(!isToggle);
@@ -781,7 +782,7 @@ const BookingForm = () => {
             type="date"
             value={e.date}
             onChange={x => {
-              handlePaymentSchedule(i, 'basic_rate_basic_amount', calculatedAmount);
+              handlePaymentSchedule(i, 'installment_basic_amt', calculatedAmount);
               handlePaymentSchedule(i, 'date', x.target.value);
             }}
           />
@@ -793,8 +794,7 @@ const BookingForm = () => {
           <input
             className="form-control"
             type="number"
-            value={e.basic_rate_basic_amount}
-            value={parseFloat(values.basic_rate_basic_amount)}
+            value={e.installment_basic_amt}
             onChange={updateInstallments}
           />
           
@@ -803,9 +803,9 @@ const BookingForm = () => {
           <input
             className="form-control"
             type="number"
-            value={e.otherChargesAmt}
+            value={e.installment_otherchages_amt}
             onChange={e => {
-              handlePaymentSchedule(i, 'otherChargesAmt', e.target.value);
+              handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
             }}
           />
         </td>
@@ -813,14 +813,14 @@ const BookingForm = () => {
           <input
             className="form-control"
             type="number"
-            value={e.gst_per}
+            value={e.gst}
             onChange={e => {
-              handlePaymentSchedule(i, 'gst_per', e.target.value);
+              handlePaymentSchedule(i, 'gst', e.target.value);
             }}
           />
         </td>
         <td>
-          <input readOnly className="form-control" type="number" value={e.totalPaymentSchedule} />
+          <input readOnly className="form-control" type="number" value={e.installment_amount} />
         </td>
       </tr>
     );

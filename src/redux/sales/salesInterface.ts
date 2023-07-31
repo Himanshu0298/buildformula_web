@@ -282,15 +282,16 @@ export interface IInstallmentDetails {
 }
 
 export interface IInstallmentInfo {
-  id: number;
+  custom_payment_no: number;
   project_id: number;
   payment_scheduled_master_id: number;
-  title: string;
-  percentage: string;
-  created: string;
-  basic_rate_basic_amount: number,
-  otherChargesAmt: number,
-  gst_per: number,
+  custom_payment_installment: string;
+  installment_per: string;
+  installment_due_date: string;
+  installment_basic_amt: number,
+  installment_otherchages_amt: number,
+  gst: number,
+  installment_amount:number,
 }
 
 export interface IBanksList {
