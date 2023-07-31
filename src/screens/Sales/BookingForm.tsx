@@ -145,35 +145,8 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
 
-  const [installments1, setInstallments1] = useState([
-    {
-      custom_payment_no: 1,
-      installment_amount: parseInt('100'),
-      gst: 4,
-      percent: 12,
-    },
-    {
-      custom_payment_no: 2,
-      installment_amount: parseInt('200'),
-      gst: 4,
-      percent: 12,
-    },
-    {
-      custom_payment_no: 3,
-      installment_amount: parseInt('501'),
-      gst: 4,
-      percent: 12,
-    },
-    {
-      custom_payment_no: 4,
-      installment_amount: parseInt('0'),
-      gst: 4,
-      percent: 12,
-    },
-  ]); // Your installments data
-
   const updateInstallments = () => {
-    const updatedInstallments = [...installments1];
+    const updatedInstallments = [...installments];
 
     extraCharges.forEach(extraCharge => {
       const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
@@ -181,9 +154,9 @@ const BookingForm = () => {
       switch (extra_charges_distribution_method) {
         case 'Equally with all installments':
           // eslint-disable-next-line no-case-declarations
-          const equallyDistributedAmount = extra_charges_total / (installments1.length - 1);
+          const equallyDistributedAmount = extra_charges_total / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
-            const lastIndex = installments1.length - 1;
+            const lastIndex = installments.length - 1;
             if (index !== lastIndex) {
               installment.installment_amount += equallyDistributedAmount;
             }
@@ -193,9 +166,9 @@ const BookingForm = () => {
         case 'Proportionately with all installment':
           // eslint-disable-next-line no-case-declarations
           const proportionatelyDistributedWithAll =
-            extra_charges_total / (installments1.length - 1);
+            extra_charges_total / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
-            const lastIndex = installments1.length - 1;
+            const lastIndex = installments.length - 1;
             if (index !== lastIndex) {
               installment.installment_amount +=
                 (proportionatelyDistributedWithAll * installment.percent) / 100;
@@ -205,9 +178,9 @@ const BookingForm = () => {
 
         case 'Proportionately with all installment(Except First)':
           // eslint-disable-next-line no-case-declarations
-          const proportionatelyDistributedAmount = extra_charges_total / (installments1.length - 1);
+          const proportionatelyDistributedAmount = extra_charges_total / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
-            const lastIndex = installments1.length - 1;
+            const lastIndex = installments.length - 1;
             if (index !== 0 && index !== lastIndex) {
               installment.installment_amount +=
                 (proportionatelyDistributedAmount * installment.percent) / 100;
@@ -217,14 +190,14 @@ const BookingForm = () => {
 
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
-          const lastIndex = installments1.length - 2;
+          const lastIndex = installments.length - 2;
           updatedInstallments[lastIndex].installment_amount += extra_charges_total;
           break;
 
         default:
           // For other cases, directly add the amount to the total of all installments
           // eslint-disable-next-line no-case-declarations
-          const last_index = installments1.length - 1;
+          const last_index = installments.length - 1;
           updatedInstallments[last_index].installment_amount += extra_charges_total;
           break;
       }
