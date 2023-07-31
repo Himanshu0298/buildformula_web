@@ -62,10 +62,7 @@ const BookingForm = () => {
     other_charge_unit_rates: [],
   });
 
-  const [_installmentsList, setInstallmentsList] = useState({
-    payment_scheduled_details_master: [],
-  });
-
+  const [_installmentsList, setInstallmentsList] = useState([]);
   const [baseAmount, setBaseAmount] = useState<number>();
 
   const [terms, setTerms] = useState<string>();
@@ -165,8 +162,7 @@ const BookingForm = () => {
 
         case 'Proportionately with all installment':
           // eslint-disable-next-line no-case-declarations
-          const proportionatelyDistributedWithAll =
-            extra_charges_total / (installments.length - 1);
+          const proportionatelyDistributedWithAll = extra_charges_total / (installments.length - 1);
           updatedInstallments.forEach((installment, index) => {
             const lastIndex = installments.length - 1;
             if (index !== lastIndex) {
@@ -221,7 +217,7 @@ const BookingForm = () => {
       handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
     };
     return (
-      <tr>
+      <tr key={x.id}>
         <td>{i + 1}</td>
         <td>
           <input
@@ -387,7 +383,7 @@ const BookingForm = () => {
 
   const handleTotalPaymentCharge = () => {
     let total = 0;
-    _installmentsList?.payment_scheduled_details_master?.forEach(charge => {
+    _installmentsList?.forEach(charge => {
       total += parseFloat(charge?.totalPaymentSchedule) || 0;
     });
     return total.toFixed(2);
@@ -399,10 +395,19 @@ const BookingForm = () => {
   }, [otherChargesList]);
 
   // Installments
+  function handleUpdate() {
+    const updatedList = installmentsInformation?.payment_scheduled_details_master?.map(item => ({
+      ...item,
+      basic_rate_basic_amount: 0,
+      otherChargesAmt: 0,
+      gst_per: 0,
+    }));
+    setInstallmentsList(updatedList);
+  }
   useEffect(() => {
-    setInstallmentsList(installmentsInformation);
+    handleUpdate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [installmentsInformation]);
-
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -454,54 +459,24 @@ const BookingForm = () => {
 
   const handlePaymentSchedule = (index, field, value) => {
     setInstallmentsList(prevList => {
-      const newUnitRates = [...prevList.payment_scheduled_details_master];
+      const newUnitRates = [...prevList];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
       };
+      const basicAmount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
+      const otherChargesAmt = parseFloat(newUnitRates[index].otherChargesAmt) || 0;
+      const gst_per = parseFloat(newUnitRates[index].gst_per) || 0;
 
-      // let basicAmount = parseFloat(newUnitRates[index].basic_rate_basic_amount);
-      // console.log(basicAmount)
-      // let percentage = parseFloat(newUnitRates[index].percentage);
-      // percentage = percentage>=100 ? 100:percentage
-      // let otherChargesAmt = parseFloat(newUnitRates[index].otherChargesAmt);
-      // let gst_per = parseFloat(newUnitRates[index].gst_per);
+      // Calculate the totalPaymentSchedule
+      const gstAmount = basicAmount + otherChargesAmt + gst_per / 100;
+      const totalPaymentSchedule = gstAmount;
 
-      // const installmentAmount = (basicAmount * percentage) / 100 || 0;
-      // console.log(installmentAmount)
-      // const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100) || 0;
-      // const totalInstallmentAmount = basicAmount + otherChargesAmt + gstAmount || 0;
+      newUnitRates[index].basic_rate_basic_amount = parseFloat(basicAmount.toFixed(2));
 
-      // newUnitRates[index].totalPaymentSchedule = totalInstallmentAmount.toFixed(2)
+      newUnitRates[index].totalPaymentSchedule = totalPaymentSchedule.toFixed(2);
 
-      let discount = parseFloat(newUnitRates[index].basic_rate_basic_amount) || 0;
-      let percentage = parseFloat(newUnitRates[index].percentage) || 0;
-
-      // Adjust percentage and discount if they exceed the limits
-      if (field === 'basic_rate_basic_amount') {
-        // Calculate the new percentage
-        const calculatedPercentage = (discount / 100) * 10;
-        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
-        // Calculate the new discount based on the adjusted percentage
-        const calculatedDiscount = (discount * percentage) / 100;
-        discount = calculatedDiscount > discount ? discount : calculatedDiscount;
-      } else if (field === 'percentage') {
-        // Calculate the new discount
-        const calculatedDiscount = (discount * percentage) / 100;
-        discount = calculatedDiscount > discount ? discount : calculatedDiscount;
-
-        // Calculate the new percentage based on the adjusted discount
-        const calculatedPercentage = (discount / discount) * 100;
-        percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
-      }
-
-      newUnitRates[index].basic_rate_basic_amount = discount.toFixed(2);
-      newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
-
-      return {
-        ...prevList,
-        payment_scheduled_details_master: newUnitRates,
-      };
+      return newUnitRates;
     });
   };
 
@@ -609,7 +584,7 @@ const BookingForm = () => {
     //   basic_rate_disc_per,
     //   basic_rate_basic_amount,
     // } = values;
-    console.log('🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:', values, installments);
+    console.log('🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:', values);
     // dispatch(
     //   addBooking({
     //     project_bookings_temp_id: 0,
@@ -760,6 +735,7 @@ const BookingForm = () => {
   };
 
   const PaymentSchedule = (i, e) => {
+    const calculatedAmount = (parseFloat(values.basic_rate_basic_amount) * e.percentage) / 100;
     return (
       <tr key={`${i}_${e.id}`}>
         <td onClick={updateInstallments}>{i + 1}</td>
@@ -770,6 +746,7 @@ const BookingForm = () => {
             type="date"
             value={e.date}
             onChange={x => {
+              handlePaymentSchedule(i, 'basic_rate_basic_amount', calculatedAmount);
               handlePaymentSchedule(i, 'date', x.target.value);
             }}
           />
@@ -782,7 +759,6 @@ const BookingForm = () => {
             className="form-control"
             type="number"
             value={parseFloat(values.basic_rate_basic_amount)}
-            onChange={updateInstallments}
           />
         </td>
         <td>
@@ -1664,9 +1640,7 @@ const BookingForm = () => {
                       <th className="text-right">Installment Amount</th>
                     </thead>
                     <tbody>
-                      {_installmentsList?.payment_scheduled_details_master?.map((e, i) =>
-                        PaymentSchedule(i, e),
-                      )}
+                      {_installmentsList?.map((e, i) => PaymentSchedule(i, e))}
 
                       {/* total */}
                       <tr>
