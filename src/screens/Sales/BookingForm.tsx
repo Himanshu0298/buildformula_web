@@ -143,7 +143,7 @@ const BookingForm = () => {
   };
 
   const updateInstallments = () => {
-    const updatedInstallments = [...installments];
+    const updatedInstallments = [..._installmentsList];
 
     extraCharges.forEach(extraCharge => {
       const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
@@ -151,11 +151,14 @@ const BookingForm = () => {
       switch (extra_charges_distribution_method) {
         case 'Equally with all installments':
           // eslint-disable-next-line no-case-declarations
-          const equallyDistributedAmount = extra_charges_total / (installments.length - 1);
+          const equallyDistributedAmount =
+            extra_charges_total / installments.length === 0 ? 1 : installments.length - 1;
+          console.log('first case', equallyDistributedAmount);
           updatedInstallments.forEach((installment, index) => {
             const lastIndex = installments.length - 1;
             if (index !== lastIndex) {
-              installment.installment_amount += equallyDistributedAmount;
+              // installment.installment_basic_amt += equallyDistributedAmount;
+              installment.installment_otherchages_amt += equallyDistributedAmount;
             }
           });
           break;
@@ -166,7 +169,7 @@ const BookingForm = () => {
           updatedInstallments.forEach((installment, index) => {
             const lastIndex = installments.length - 1;
             if (index !== lastIndex) {
-              installment.installment_amount +=
+              installment.installment_basic_amt +=
                 (proportionatelyDistributedWithAll * installment.percent) / 100;
             }
           });
@@ -178,7 +181,7 @@ const BookingForm = () => {
           updatedInstallments.forEach((installment, index) => {
             const lastIndex = installments.length - 1;
             if (index !== 0 && index !== lastIndex) {
-              installment.installment_amount +=
+              installment.installment_basic_amt +=
                 (proportionatelyDistributedAmount * installment.percent) / 100;
             }
           });
@@ -187,20 +190,22 @@ const BookingForm = () => {
         case 'Connect with last installment':
           // eslint-disable-next-line no-case-declarations
           const lastIndex = installments.length - 2;
-          updatedInstallments[lastIndex].installment_amount += extra_charges_total;
+          updatedInstallments[lastIndex].installment_basic_amt += extra_charges_total;
           break;
 
         default:
           // For other cases, directly add the amount to the total of all installments
           // eslint-disable-next-line no-case-declarations
           const last_index = installments.length - 1;
-          updatedInstallments[last_index].installment_amount += extra_charges_total;
+          updatedInstallments[last_index].installment_basic_amt += extra_charges_total;
           break;
       }
     });
 
-    setInstallments(updatedInstallments);
+    setInstallmentsList(updatedInstallments);
   };
+
+  console.log(_installmentsList, 'new data');
 
   const extraChargeRow = (i, x) => {
     const onChangeAmount = e => {
@@ -230,10 +235,14 @@ const BookingForm = () => {
         <td>
           <select
             className="form-control"
-            onChange={e =>
-              handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value)
-            }
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value);
+            }}
+            onKeyDown={() => updateInstallments()}
           >
+            <option disabled selected>
+              Select Distribution Method
+            </option>
             {DISTRIBUTION_METHOD?.map((e, index) => {
               return (
                 <option key={index} value={e}>
@@ -248,7 +257,10 @@ const BookingForm = () => {
             className="form-control mb-2"
             type="number"
             value={x.extra_charges_area}
-            onChange={e => handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value)}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
+              updateInstallments();
+            }}
           />
         </td>
         <td>
@@ -268,6 +280,7 @@ const BookingForm = () => {
                 x.extra_charges_area * e.target.valueAsNumber,
               );
               handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value);
+              updateInstallments();
             }}
           />
         </td>
@@ -285,13 +298,14 @@ const BookingForm = () => {
               onChangeAmount(e);
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
-            onKeyUp={e =>
+            onKeyUp={e => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
                 x.extra_charges_base - parseInt(e.target.value),
-              )
-            }
+              );
+              updateInstallments();
+            }}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -312,6 +326,7 @@ const BookingForm = () => {
                 'extra_charges_total',
                 x.extra_charges_base - x.extra_charges_disc_amt,
               );
+              updateInstallments();
             }}
           />
         </td>
@@ -398,16 +413,19 @@ const BookingForm = () => {
   function handleUpdate() {
     const updatedList = installmentsInformation?.payment_scheduled_details_master?.map(item => ({
       ...item,
-      basic_rate_basic_amount: 0,
-      otherChargesAmt: 0,
-      gst_per: 0,
+      installment_basic_amt: 0,
+      installment_otherchages_amt: 0,
+      gst: 0,
+      installment_amount: 0,
     }));
     setInstallmentsList(updatedList);
   }
+
   useEffect(() => {
     handleUpdate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [installmentsInformation]);
+
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -584,7 +602,13 @@ const BookingForm = () => {
     //   basic_rate_disc_per,
     //   basic_rate_basic_amount,
     // } = values;
-    console.log('🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:', values);
+
+    console.log(
+      '🚀 ~ file: BookingForm.tsx:93 ~ handleSubmit ~ values:',
+      values,
+      _installmentsList,
+    );
+
     // dispatch(
     //   addBooking({
     //     project_bookings_temp_id: 0,
@@ -738,7 +762,7 @@ const BookingForm = () => {
     const calculatedAmount = (parseFloat(values.basic_rate_basic_amount) * e.percentage) / 100;
     return (
       <tr key={`${i}_${e.id}`}>
-        <td onClick={updateInstallments}>{i + 1}</td>
+        <td>{i + 1}</td>
         <td>{e.title}</td>
         <td>
           <input
@@ -748,6 +772,7 @@ const BookingForm = () => {
             onChange={x => {
               handlePaymentSchedule(i, 'basic_rate_basic_amount', calculatedAmount);
               handlePaymentSchedule(i, 'date', x.target.value);
+              updateInstallments();
             }}
           />
         </td>
@@ -758,16 +783,17 @@ const BookingForm = () => {
           <input
             className="form-control"
             type="number"
-            value={parseFloat(values.basic_rate_basic_amount)}
+            value={e.basic_rate_basic_amount}
+            onChange={updateInstallments}
           />
         </td>
         <td>
           <input
             className="form-control"
             type="number"
-            value={e.otherChargesAmt}
+            value={e.installment_otherchages_amt}
             onChange={e => {
-              handlePaymentSchedule(i, 'otherChargesAmt', e.target.value);
+              handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
             }}
           />
         </td>
