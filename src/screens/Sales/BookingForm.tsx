@@ -64,7 +64,9 @@ const BookingForm = () => {
     other_charge_unit_rates: [],
   });
 
-  const [_installmentsList, setInstallmentsList] = useState([]);
+  const [_installmentsList, setInstallmentsList] = useState([{
+    
+  }]);
 
   const [baseAmount, setBaseAmount] = useState<number>();
 
@@ -145,6 +147,7 @@ const BookingForm = () => {
 
   useEffect(() => {
     if (installmentsInformation) {
+
       let updatedList =
         installmentsInformation?.payment_scheduled_details_master?.map(item => ({
           ...item,
@@ -153,18 +156,24 @@ const BookingForm = () => {
           gst: 0,
           installment_amount: 0,
         })) || [];
-
+        updatedList.push({
+          installment_otherchages_amt: 0,
+          installment_amount: 0,
+          custom_payment_no: 0,
+          title: "hjhh",
+          installment_due_date: "",
+          lastRow: 'true',
+        } as any);
       extraCharges.forEach(extraCharge => {
         const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
         const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
-
+        
         switch (extra_charges_distribution_method) {
           case 'Equally with all installments': {
             const equallyDistributedAmount = extra_charges_total / installmentLen;
-
             updatedList = updatedList.map((installment, index) => {
               if (index !== installmentLen) {
-                installment.installment_otherchages_amt += equallyDistributedAmount;
+                installment.installment_otherchages_amt +=  parseFloat(equallyDistributedAmount.toFixed(2));
                 return installment;
               }
               return installment;
@@ -748,8 +757,9 @@ const BookingForm = () => {
   };
 
   const PaymentSchedule = (i, e) => {
+    
     const calculatedAmount = (parseFloat(values.basic_rate_basic_amount) * e.percentage) / 100;
-
+   
     return (
       <tr key={`${i}_${e.id}`}>
         <td>{i + 1}</td>
@@ -766,10 +776,14 @@ const BookingForm = () => {
           />
         </td>
         <td>
+          {!e.lastRow && 
           <input className="form-control" type="number" value={e.percentage} />
+          }
         </td>
         <td>
+          { !e.lastRow && 
           <input className="form-control" type="number" value={e.installment_basic_amt} />
+          }
         </td>
         <td>
           <input
@@ -782,6 +796,7 @@ const BookingForm = () => {
           />
         </td>
         <td>
+        {!e.lastRow && 
           <input
             className="form-control"
             type="number"
@@ -790,6 +805,7 @@ const BookingForm = () => {
               handlePaymentSchedule(i, 'gst', e.target.value);
             }}
           />
+  }
         </td>
         <td>
           <input readOnly className="form-control" type="number" value={e.installment_amount} />
@@ -1638,7 +1654,7 @@ const BookingForm = () => {
                           Installments Total
                         </td>
                         <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
-                      </tr>
+                        </tr>
                     </tbody>
                   </table>
                 </div>
