@@ -161,6 +161,7 @@ const BookingForm = () => {
         installment_due_date: '',
         lastRow: 'true',
       } as any);
+
       extraCharges.forEach(extraCharge => {
         const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
         const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
@@ -196,7 +197,7 @@ const BookingForm = () => {
             const proportionatelyDistributedAmount = extra_charges_total / installmentLen;
             updatedList = updatedList.map((installment, index) => {
               if (index !== 0 && index !== installmentLen) {
-                installment.installment_basic_amt +=
+                installment.installment_otherchages_amt +=
                   (proportionatelyDistributedAmount * installment.percentage) / 100;
               }
               return installment;
@@ -205,12 +206,17 @@ const BookingForm = () => {
           }
 
           case 'Connect with last installment': {
-            updatedList[installmentLen - 1].installment_basic_amt += extra_charges_total;
+            updatedList = updatedList.map((installment, index) => {
+              if (index === installmentLen - 1 && !installment?.lastRow) {
+                installment.installment_otherchages_amt += extra_charges_total;
+              }
+              return installment;
+            });
             break;
           }
 
           case 'Dont connect with installment': {
-            updatedList[installmentLen].installment_basic_amt += extra_charges_total;
+            updatedList[installmentLen - 1].installment_otherchages_amt += extra_charges_total;
             break;
           }
 
@@ -314,7 +320,7 @@ const BookingForm = () => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
-                x.extra_charges_base - parseInt(e.target.value),
+                x.extra_charges_base - parseInt((e.target as any) .value),
               );
             }}
           />
