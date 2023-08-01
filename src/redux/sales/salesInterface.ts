@@ -293,6 +293,7 @@ export interface IInstallmentInfo {
   gst?: number;
   installment_amount: number;
   percentage: number;
+  lastRow?: string;
 }
 
 export interface IBanksList {

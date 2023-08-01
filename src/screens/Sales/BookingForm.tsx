@@ -320,7 +320,7 @@ const BookingForm = () => {
               handleUpdateExtraCharge(
                 i,
                 'extra_charges_total',
-                x.extra_charges_base - parseInt(e.target.value),
+                x.extra_charges_base - parseInt((e.target as any) .value),
               );
             }}
           />
