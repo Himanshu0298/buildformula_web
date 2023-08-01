@@ -1102,7 +1102,7 @@ const BookingForm = () => {
                         className="form-control"
                         name="parking_no"
                         readOnly={true}
-                        type="number"
+                        type="text"
                         value={formik.values.parking_no}
                       />
                     </div>

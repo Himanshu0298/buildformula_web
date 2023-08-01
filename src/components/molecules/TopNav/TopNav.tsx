@@ -7,7 +7,7 @@ const TopNav = () => {
       <div className="site-logo mr-5">
         <img className="img-responsive" src={logo} />
       </div>
-      <div className="input-group sm-search">
+      {/* <div className="input-group sm-search">
         <div className="input-group-prepend">
           <span className="input-group-text" id="addon-wrapping">
             <svg
@@ -26,7 +26,7 @@ const TopNav = () => {
           </span>
         </div>
         <input className="form-control" type="text" />
-      </div>
+      </div> */}
       <div className="navbar">
         <button
           className="nav-btn menu-btn allsites-btn"
