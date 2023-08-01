@@ -81,7 +81,7 @@ export const addBooking = createAsyncThunk(
   async (params: IBookingFormParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addBooking(params);
-      return res.data;
+      return res;
     } catch (err) {
       const processedError = processError(err);
       console.log(err);
@@ -156,6 +156,7 @@ export const getBankList = createAsyncThunk('sales/getBankList', async () => {
 });
 
 const initialState: ISalesState = {
+  msg: '',
   loading: false,
   visitorList: [],
   unitInfo: {} as IUnitInfo,
@@ -210,9 +211,10 @@ const salesSlice = createSlice({
     // Booking Form
     builder.addCase(addBooking.rejected, handleReject);
     builder.addCase(addBooking.pending, handleLoading);
-    builder.addCase(addBooking.fulfilled, state => {
+    builder.addCase(addBooking.fulfilled, (state, action) => {
       return {
         ...state,
+        msg: action.payload.msg
       };
     });
     // get other charges

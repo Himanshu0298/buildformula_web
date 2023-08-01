@@ -1,4 +1,5 @@
 export interface ISalesState {
+  msg: string,
   loading: boolean;
   visitorList: IVisitor[];
   unitInfo: IUnitInfo;

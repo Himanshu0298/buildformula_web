@@ -36,6 +36,7 @@ const BookingForm = () => {
     installmentsList,
     installmentsInformation,
     banksList,
+    msg
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
@@ -1548,10 +1549,8 @@ const BookingForm = () => {
                           <td>
                             <span className="red-text">
                               (-) ₹{' '}
-                              {(
-                                parseFloat(values.other_charges_total_discount) +
-                                parseFloat(values.basic_rate_disc_amt)
-                              ).toFixed(2)}
+                              {parseFloat(handleTotalOtherDiscountAmt()) +
+                        parseFloat(values.basic_rate_disc_amt)}
                             </span>
                           </td>
                         </tr>
@@ -1791,6 +1790,12 @@ const BookingForm = () => {
                     </button>
                   </div>
                 </div>
+                {
+                  msg && <div className="alert alert-success" role="alert">
+                            {msg}
+                        </div> 
+                }
+                
               </div>
             </div>
           </Form>
