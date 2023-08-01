@@ -286,12 +286,13 @@ export interface IInstallmentInfo {
   project_id: number;
   payment_scheduled_master_id: number;
   custom_payment_installment: string;
-  installment_per: string;
+  installment_per: number;
   installment_due_date: string;
-  installment_basic_amt: number,
-  installment_otherchages_amt: number,
-  gst: number,
-  installment_amount:number,
+  installment_basic_amt: number;
+  installment_otherchages_amt: number;
+  gst: number;
+  installment_amount: number;
+  percentage: number;
 }
 
 export interface IBanksList {
