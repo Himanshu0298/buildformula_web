@@ -36,6 +36,7 @@ const BookingForm = () => {
     installmentsList,
     installmentsInformation,
     banksList,
+    msg
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
@@ -153,6 +154,7 @@ const BookingForm = () => {
           gst: 0,
           installment_amount: 0,
         })) || [];
+
       updatedList.push({
         installment_otherchages_amt: 0,
         installment_amount: 0,
@@ -170,7 +172,7 @@ const BookingForm = () => {
           case 'Equally with all installments': {
             const equallyDistributedAmount = extra_charges_total / installmentLen;
             updatedList = updatedList.map((installment, index) => {
-              if (index !== installmentLen) {
+              if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(
                   equallyDistributedAmount.toFixed(2),
                 );
@@ -184,7 +186,7 @@ const BookingForm = () => {
           case 'Proportionately with all installment': {
             const proportionatelyDistributedWithAll = extra_charges_total / installmentLen;
             updatedList = updatedList.map((installment, index) => {
-              if (index !== installmentLen) {
+              if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedWithAll * installment.percentage) / 100;
               }
@@ -196,7 +198,7 @@ const BookingForm = () => {
           case 'Proportionately with all installment(Except First)': {
             const proportionatelyDistributedAmount = extra_charges_total / installmentLen;
             updatedList = updatedList.map((installment, index) => {
-              if (index !== 0 && index !== installmentLen) {
+              if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedAmount * installment.percentage) / 100;
               }
@@ -216,7 +218,79 @@ const BookingForm = () => {
           }
 
           case 'Dont connect with installment': {
-            updatedList[installmentLen - 1].installment_otherchages_amt += extra_charges_total;
+            updatedList = updatedList.map( installment => {
+              if (installment?.lastRow) {
+                installment.installment_otherchages_amt += extra_charges_total;
+              }
+              return installment;
+            });
+            break;
+          }
+
+          default:
+        }
+      });
+
+      oclist?.other_charge_unit_rates?.forEach(oclist => {
+        const { other_charges_distribution_method, otherChargesTotal } = oclist;
+        const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
+
+        switch (other_charges_distribution_method) {
+          case 'Equally with all installments': {
+            const equallyDistributedAmount = otherChargesTotal / installmentLen;
+            updatedList = updatedList.map((installment, index) => {
+              if (index !== installmentLen && !installment?.lastRow) {
+                installment.installment_otherchages_amt += parseFloat(
+                  equallyDistributedAmount.toFixed(2),
+                );
+                return installment;
+              }
+              return installment;
+            });
+            break;
+          }
+
+          case 'Proportionately with all installment': {
+            const proportionatelyDistributedWithAll = otherChargesTotal / installmentLen;
+            updatedList = updatedList.map((installment, index) => {
+              if (index !== installmentLen && !installment?.lastRow) {
+                installment.installment_otherchages_amt +=
+                  (proportionatelyDistributedWithAll * installment.percentage) / 100;
+              }
+              return installment;
+            });
+            break;
+          }
+
+          case 'Proportionately with all installment(Except First)': {
+            const proportionatelyDistributedAmount = otherChargesTotal / installmentLen;
+            updatedList = updatedList.map((installment, index) => {
+              if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
+                installment.installment_otherchages_amt +=
+                  (proportionatelyDistributedAmount * installment.percentage) / 100;
+              }
+              return installment;
+            });
+            break;
+          }
+
+          case 'Connect with last installment': {
+            updatedList = updatedList.map((installment, index) => {
+              if (index === installmentLen - 1 && !installment?.lastRow) {
+                installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+              }
+              return installment;
+            });
+            break;
+          }
+
+          case 'Dont connect with installment': {
+            updatedList = updatedList.map( installment => {
+              if (installment?.lastRow) {
+                installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+              }
+              return installment;
+            });
             break;
           }
 
@@ -226,7 +300,7 @@ const BookingForm = () => {
 
       return setInstallmentsList(updatedList);
     }
-  }, [extraCharges, installmentsInformation]);
+  }, [oclist, extraCharges, installmentsInformation]);
 
   const extraChargeRow = (i, x) => {
     const onChangeAmount = e => {
@@ -693,6 +767,9 @@ const BookingForm = () => {
                 handleOCListChange(i, 'other_charges_distribution_method', e.target.value)
               }
             >
+              <option disabled selected>
+              Select Distribution Method
+            </option>
               {DISTRIBUTION_METHOD?.map((e, index) => {
                 return (
                   <option key={index} value={e}>
@@ -803,6 +880,7 @@ const BookingForm = () => {
               className="form-control"
               type="number"
               value={e.gst}
+              max={100}
               onChange={e => {
                 handlePaymentSchedule(i, 'gst', e.target.value);
               }}
@@ -1025,7 +1103,7 @@ const BookingForm = () => {
                         className="form-control"
                         name="parking_no"
                         readOnly={true}
-                        type="number"
+                        type="text"
                         value={formik.values.parking_no}
                       />
                     </div>
@@ -1471,10 +1549,8 @@ const BookingForm = () => {
                           <td>
                             <span className="red-text">
                               (-) ₹{' '}
-                              {(
-                                parseFloat(values.other_charges_total_discount) +
-                                parseFloat(values.basic_rate_disc_amt)
-                              ).toFixed(2)}
+                              {parseFloat(handleTotalOtherDiscountAmt()) +
+                        parseFloat(values.basic_rate_disc_amt)}
                             </span>
                           </td>
                         </tr>
@@ -1714,6 +1790,12 @@ const BookingForm = () => {
                     </button>
                   </div>
                 </div>
+                {
+                  msg && <div className="alert alert-success" role="alert">
+                            {msg}
+                        </div> 
+                }
+                
               </div>
             </div>
           </Form>

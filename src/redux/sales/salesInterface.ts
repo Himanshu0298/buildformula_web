@@ -1,4 +1,5 @@
 export interface ISalesState {
+  msg: string,
   loading: boolean;
   visitorList: IVisitor[];
   unitInfo: IUnitInfo;
@@ -289,7 +290,7 @@ export interface IInstallmentInfo {
   installment_per?: number;
   installment_due_date: string;
   installment_basic_amt?: number;
-  installment_otherchages_amt: number;
+  installment_otherchages_amt : number;
   gst?: number;
   installment_amount: number;
   percentage: number;
