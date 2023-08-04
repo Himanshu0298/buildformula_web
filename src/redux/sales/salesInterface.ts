@@ -9,6 +9,7 @@ export interface ISalesState {
   installmentsList: IInstallmentOptions;
   installmentsInformation: IInstallmentDetails;
   banksList: IBanksList[];
+  unitAreaInfo: IUnitAreaInfo;
 }
 
 export type CommonParams = {
@@ -250,6 +251,27 @@ export interface IOtherChargesInfo {
 export interface IOtherChargesParam {
   project_id: number;
   unit_id: number;
+}
+
+export interface IUnitAreaInfoParam {
+  project_id: number;
+  project_main_types: number;
+  unit_id: number;
+}
+
+export interface IUnitAreaInfo {
+  id: number
+  tower_id: number
+  project_id: number
+  project_main_units_id: number
+  super_build_up_area: number
+  build_up_area: number
+  carpet: number
+  area_unit: number
+  rate_base_amt: number
+  fixed_amount: any
+  last_updated: string
+  user_id: number
 }
 
 export interface ITermsnConditions {

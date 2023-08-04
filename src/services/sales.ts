@@ -14,6 +14,10 @@ export const getUnitInfo = data => {
   return instance.post('/areaSheet/booking_unitSheet_tower_list', data, params);
 };
 
+export const getAreaInfo = data => {
+  return instance.post('/getUnitAreasheetInfo', data, params);
+};
+
 export const getUnitParkingInfo = data => {
   return instance.post('/parking/list_parking_design', data, params);
 };

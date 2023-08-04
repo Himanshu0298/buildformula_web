@@ -14,6 +14,8 @@ import {
   IOtherChargesParam,
   ISalesState,
   ITermsnConditions,
+  IUnitAreaInfo,
+  IUnitAreaInfoParam,
   IUnitInfo,
   IUnitParkingInfo,
   IVisitor,
@@ -53,6 +55,20 @@ export const getUnitInfo = createAsyncThunk<IUnitInfo, UnitInfoParams>(
   async (params, thunkApi) => {
     try {
       const { data: res } = await visitorService.getUnitInfo(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const getAreaInfo = createAsyncThunk<IUnitAreaInfo, IUnitAreaInfoParam>(
+  'sales/unitAreaInfo',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getAreaInfo(params);
       return res.data;
     } catch (err) {
       const processedError = processError(err);
@@ -166,6 +182,7 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
+  unitAreaInfo: {} as IUnitAreaInfo
 };
 
 const salesSlice = createSlice({
@@ -197,6 +214,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         unitInfo: action?.payload,
+      };
+    });
+    // Unit Area info
+    builder.addCase(getAreaInfo.rejected, handleReject);
+    builder.addCase(getAreaInfo.pending, handleLoading);
+    builder.addCase(getAreaInfo.fulfilled, (state, action) => {
+      return {
+        ...state,
+        unitAreaInfo: action?.payload,
       };
     });
     // Unit Parking info
