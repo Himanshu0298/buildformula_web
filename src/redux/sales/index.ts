@@ -270,7 +270,7 @@ const salesSlice = createSlice({
       return {
         ...state,
         timer: false,
-        msg: action.payload.msg
+        msg: action.payload.msg,
       };
     });
     // get other charges

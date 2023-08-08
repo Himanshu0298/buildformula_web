@@ -12,6 +12,7 @@ export interface ISalesState {
   timer: boolean;
   unitAreaInfo: IUnitAreaInfo;
   extraChargesList:IExtraCharges;
+  timer: boolean;
 }
 
 export type CommonParams = {
