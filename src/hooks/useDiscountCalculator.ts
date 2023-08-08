@@ -18,7 +18,7 @@ export function useSyncedFields(
     if (isNaN(fixAmount) || parseInt(percent) >= 100) {
       set(percentKey, 100);
     } else {
-      set(percentKey, parseInt(percent));
+      set(percentKey, parseFloat(percent));
     }
   };
 
