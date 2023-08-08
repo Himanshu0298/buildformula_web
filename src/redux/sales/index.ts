@@ -7,6 +7,7 @@ import {
   CommonParams,
   CreateCustomerParams,
   IBookingFormParams,
+  IExtraCharges,
   IInstallmentDetails,
   IInstallmentOptions,
   InstallmentParams,
@@ -118,6 +119,20 @@ export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherCharges
       return thunkApi.rejectWithValue({ error: processedError });
     }
   },
+); 
+
+export const getOtherExtraCharges = createAsyncThunk<IExtraCharges, IOtherChargesParam>(
+  'sales/getOtherExtraCharges',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getOtherExtraCharges(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
 );
 
 export const getTermsnConditions = createAsyncThunk<ITermsnConditions[], CommonParams>(
@@ -182,7 +197,8 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
-  unitAreaInfo: {} as IUnitAreaInfo
+  unitAreaInfo: {} as IUnitAreaInfo,
+  extraChargesList:{} as IExtraCharges,
 };
 
 const salesSlice = createSlice({
@@ -250,6 +266,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         otherChargesList: action?.payload,
+      };
+    });
+    // get Extra charges
+    builder.addCase(getOtherExtraCharges.rejected, handleReject);
+    builder.addCase(getOtherExtraCharges.pending, handleLoading);
+    builder.addCase(getOtherExtraCharges.fulfilled, (state, action) => {
+      return {
+        ...state,
+        extraChargesList: action?.payload,
       };
     });
     // get terms and conditions
