@@ -208,8 +208,7 @@ const initialState: ISalesState = {
   banksList: [],
   timer: false,
   unitAreaInfo: {} as IUnitAreaInfo,
-  extraChargesList:{} as IExtraCharges,
-
+  extraChargesList: {} as IExtraCharges,
 };
 
 const salesSlice = createSlice({
@@ -333,7 +332,7 @@ const salesSlice = createSlice({
     builder.addCase(triggerTimer.fulfilled, state => {
       return {
         ...state,
-        timer: true,
+        timer: !state.timer,
       };
     });
   },
