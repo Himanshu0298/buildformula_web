@@ -1,4 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
+import 'react-toastify/dist/ReactToastify.css';
+
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
@@ -7,6 +9,7 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
 import Select from 'react-select';
+import { ToastContainer } from 'react-toastify';
 import {
   addBooking,
   getBankList,
@@ -883,6 +886,7 @@ const BookingForm = () => {
 
   return (
     <>
+      <ToastContainer autoClose={2000} />
       {/* top bar */}
       <div className="header-bar">
         <div className="page-header">
@@ -933,7 +937,11 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
                   <h5>CUSTOMER DETAILS</h5>
-                  <button className="Btn btn-lightblue-primary lbps-btn mr-0" onClick={toggleModal}>
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn mr-0"
+                    onClick={toggleModal}
+                    type="button"
+                  >
                     Add Customer
                   </button>
                 </div>

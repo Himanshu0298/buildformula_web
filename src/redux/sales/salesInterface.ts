@@ -8,6 +8,7 @@ export interface ISalesState {
   installmentsList: IInstallmentOptions;
   installmentsInformation: IInstallmentDetails;
   banksList: IBanksList[];
+  timer: boolean;
 }
 
 export type CommonParams = {
