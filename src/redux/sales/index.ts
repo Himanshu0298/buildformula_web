@@ -7,6 +7,7 @@ import {
   CommonParams,
   CreateCustomerParams,
   IBookingFormParams,
+  IExtraCharges,
   IInstallmentDetails,
   IInstallmentOptions,
   InstallmentParams,
@@ -14,6 +15,8 @@ import {
   IOtherChargesParam,
   ISalesState,
   ITermsnConditions,
+  IUnitAreaInfo,
+  IUnitAreaInfoParam,
   IUnitInfo,
   IUnitParkingInfo,
   IVisitor,
@@ -62,6 +65,20 @@ export const getUnitInfo = createAsyncThunk<IUnitInfo, UnitInfoParams>(
   },
 );
 
+export const getAreaInfo = createAsyncThunk<IUnitAreaInfo, IUnitAreaInfoParam>(
+  'sales/unitAreaInfo',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getAreaInfo(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const getUnitParkingInfo = createAsyncThunk<IUnitParkingInfo, CommonParams>(
   'sales/unitParkingInfo',
   async (params, thunkApi) => {
@@ -95,6 +112,20 @@ export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherCharges
   async (params, thunkApi) => {
     try {
       const { data: res } = await visitorService.getOtherCharges(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+); 
+
+export const getOtherExtraCharges = createAsyncThunk<IExtraCharges, IOtherChargesParam>(
+  'sales/getOtherExtraCharges',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getOtherExtraCharges(params);
       return res.data;
     } catch (err) {
       const processedError = processError(err);
@@ -166,6 +197,8 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
+  unitAreaInfo: {} as IUnitAreaInfo,
+  extraChargesList:{} as IExtraCharges,
 };
 
 const salesSlice = createSlice({
@@ -199,6 +232,15 @@ const salesSlice = createSlice({
         unitInfo: action?.payload,
       };
     });
+    // Unit Area info
+    builder.addCase(getAreaInfo.rejected, handleReject);
+    builder.addCase(getAreaInfo.pending, handleLoading);
+    builder.addCase(getAreaInfo.fulfilled, (state, action) => {
+      return {
+        ...state,
+        unitAreaInfo: action?.payload,
+      };
+    });
     // Unit Parking info
     builder.addCase(getUnitParkingInfo.rejected, handleReject);
     builder.addCase(getUnitParkingInfo.pending, handleLoading);
@@ -224,6 +266,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         otherChargesList: action?.payload,
+      };
+    });
+    // get Extra charges
+    builder.addCase(getOtherExtraCharges.rejected, handleReject);
+    builder.addCase(getOtherExtraCharges.pending, handleLoading);
+    builder.addCase(getOtherExtraCharges.fulfilled, (state, action) => {
+      return {
+        ...state,
+        extraChargesList: action?.payload,
       };
     });
     // get terms and conditions
