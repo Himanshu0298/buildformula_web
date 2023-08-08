@@ -5,6 +5,7 @@ import { useSyncedFields } from 'hooks/useDiscountCalculator';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
+import Countdown from 'react-countdown';
 import Select from 'react-select';
 import './SalesStyle.css'
 import {
@@ -19,6 +20,7 @@ import {
   getAreaInfo,
   getUnitParkingInfo,
   getVisitorsList,
+  triggerTimer,
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -578,7 +580,7 @@ const BookingForm = () => {
     dispatch(getTermsnConditions({ project_id: 18 }));
     dispatch(getInstallmentOptions({ project_id: 18 }));
     dispatch(getBankList());
-
+    dispatch(triggerTimer());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1030,6 +1032,18 @@ const BookingForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.calculation_method]);
 
+
+  const Timer = ({ minutes, seconds }) => (
+    <div className="booking-timer">
+      <p>
+        Time Left:{' '}
+        <span id="minutesshow">
+          {minutes} : {seconds}
+        </span>
+      </p>
+    </div>
+  );
+
   function handleInstallments() {
     setShowInstall(true)
     _installmentsList?.map((x, index) => {
@@ -1125,13 +1139,19 @@ const BookingForm = () => {
           </button>
           <h2 className="mx-4">Booking Form</h2>
         </div>
-        {/* <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
-          <div className="booking-timer">
-            <p>
-              Time Left: <span>27 : 29</span>
-            </p>
-          </div>
-        </div> */}
+        <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
+          <Countdown
+            date={Date.now() + 1800000}
+            renderer={props => <Timer {...props} />}
+            onComplete={() => {
+              // window.location.replace('https://google.com');
+              // url to be redirect or use navigate to navigate back after submission or after timeout
+            }}
+            onStart={() =>
+              localStorage.setItem('bookingTimer', JSON.stringify(dayjs().format('hh:mm:ss')))
+            }
+          />
+        </div>
       </div>
 
       <hr />

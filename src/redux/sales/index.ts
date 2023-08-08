@@ -186,6 +186,14 @@ export const getBankList = createAsyncThunk('sales/getBankList', async () => {
   }
 });
 
+export const triggerTimer = createAsyncThunk('sales/triggerTimer', async () => {
+  try {
+    return;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 const initialState: ISalesState = {
   msg: '',
   loading: false,
@@ -256,6 +264,7 @@ const salesSlice = createSlice({
     builder.addCase(addBooking.fulfilled, (state, action) => {
       return {
         ...state,
+        timer: false,
         msg: action.payload.msg
       };
     });
@@ -311,6 +320,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         banksList: action?.payload,
+      };
+    });
+    // trigger timer
+    builder.addCase(triggerTimer.rejected, handleReject);
+    builder.addCase(triggerTimer.pending, handleLoading);
+    builder.addCase(triggerTimer.fulfilled, state => {
+      return {
+        ...state,
+        timer: true,
       };
     });
   },
