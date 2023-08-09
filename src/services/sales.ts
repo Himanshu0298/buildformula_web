@@ -14,6 +14,10 @@ export const getUnitInfo = data => {
   return instance.post('/areaSheet/booking_unitSheet_tower_list', data, params);
 };
 
+export const getAreaInfo = data => {
+  return instance.post('/getUnitAreasheetInfo', data, params);
+};
+
 export const getUnitParkingInfo = data => {
   return instance.post('/parking/list_parking_design', data, params);
 };
@@ -24,6 +28,9 @@ export const addBooking = data => {
 
 export const getOtherCharges = data => {
   return instance.post('/unit_bookingform_other_charges', data, params);
+};
+export const getOtherExtraCharges = data => {
+  return instance.post('/unit_bookingform_extra_other_charges', data, params);
 };
 
 export const getTermsnContions = data => {

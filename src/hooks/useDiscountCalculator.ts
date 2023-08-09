@@ -19,7 +19,7 @@ export function useSyncedFields(
       toast.warning('Discount Amount cannot be more than Basic Amount');
       set(percentKey, 100);
     } else {
-      set(percentKey, parseInt(percent));
+      set(percentKey, parseFloat(percent));
     }
   };
 
