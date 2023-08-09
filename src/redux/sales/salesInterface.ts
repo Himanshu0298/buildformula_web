@@ -9,6 +9,7 @@ export interface ISalesState {
   installmentsList: IInstallmentOptions;
   installmentsInformation: IInstallmentDetails;
   banksList: IBanksList[];
+  timer: boolean;
   unitAreaInfo: IUnitAreaInfo;
   extraChargesList:IExtraCharges;
 }

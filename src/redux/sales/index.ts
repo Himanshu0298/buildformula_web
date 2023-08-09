@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { toast } from 'react-toastify';
 import * as visitorService from 'services/sales';
 import { processError } from 'utils/constant';
 import { handleLoading, handleReject } from 'utils/reduxUtils';
@@ -42,7 +43,7 @@ export const addCustomer = createAsyncThunk(
   async (params: CreateCustomerParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addCustomer(params);
-      return res.data;
+      return res;
     } catch (err) {
       const processedError = processError(err);
       console.log(err);
@@ -205,8 +206,10 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
+  timer: false,
   unitAreaInfo: {} as IUnitAreaInfo,
   extraChargesList:{} as IExtraCharges,
+
 };
 
 const salesSlice = createSlice({
@@ -226,7 +229,8 @@ const salesSlice = createSlice({
     // add visitor
     builder.addCase(addCustomer.rejected, handleReject);
     builder.addCase(addCustomer.pending, handleLoading);
-    builder.addCase(addCustomer.fulfilled, state => {
+    builder.addCase(addCustomer.fulfilled, (state, action) => {
+      toast.success(action.payload.msg);
       return {
         ...state,
       };
@@ -262,6 +266,7 @@ const salesSlice = createSlice({
     builder.addCase(addBooking.rejected, handleReject);
     builder.addCase(addBooking.pending, handleLoading);
     builder.addCase(addBooking.fulfilled, (state, action) => {
+      toast.success(action.payload.msg);
       return {
         ...state,
         timer: false,
