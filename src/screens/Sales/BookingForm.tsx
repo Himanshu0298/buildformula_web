@@ -11,6 +11,7 @@ import Countdown from 'react-countdown';
 import Select from 'react-select';
 import { ToastContainer } from 'react-toastify';
 import './SalesStyle.css'
+
 import {
   addBooking,
   getBankList,
@@ -45,7 +46,8 @@ const BookingForm = () => {
     installmentsInformation,
     banksList,
     unitAreaInfo,
-    extraChargesList
+    extraChargesList,
+    timer
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
@@ -99,6 +101,16 @@ const BookingForm = () => {
 
   const toggleModal = () => setShow(!show);
 
+  // const localtimerData = JSON.parse(localStorage.getItem('bookingTimer'))
+  
+  // const currentTime = dayjs()
+  
+
+  //  const updatedTime = currentTime.diff(localtimerData)
+  //  console.log(updatedTime)
+  
+  
+
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
@@ -142,19 +154,24 @@ const BookingForm = () => {
       value: x.id,
     }));
   }, [banksList]);
+
   // extra charges update, delete & update
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
       if (values.calculation_method === 'rate_base') {
-        let calulatedAmt = unitAreaInfo?.super_build_up_area * updatedExtraCharges[index].ratebase_amounts
+        updatedExtraCharges[index].extra_charges_amt = updatedExtraCharges[index].extra_charges_base
+        updatedExtraCharges[index].extra_charges_rate =  updatedExtraCharges[index].ratebase_amounts
+        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area
+        let calulatedAmt = updatedExtraCharges[index].extra_charges_area * updatedExtraCharges[index].extra_charges_rate
         let discountAmt = updatedExtraCharges[index].extra_charges_disc_amt
         let totalAmount = calulatedAmt - discountAmt
         updatedExtraCharges[index].extra_charges_total = totalAmount
       }
       else if (values.calculation_method === 'fixed_amount') {
-        let calulatedAmt = updatedExtraCharges[index].fixed_amounts
+        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts
+        let calulatedAmt = updatedExtraCharges[index].extra_charges_rate
         let discountAmt = updatedExtraCharges[index].extra_charges_disc_amt
         let totalAmount = calulatedAmt - discountAmt
         updatedExtraCharges[index].extra_charges_total = totalAmount
@@ -162,6 +179,7 @@ const BookingForm = () => {
       return updatedExtraCharges;
     });
   };
+
   const handleDeleteExtraCharge = (index: number) => {
     setExtraCharges(prevExtraCharges => {
       const updatedExtraCharges = [...prevExtraCharges];
@@ -170,7 +188,6 @@ const BookingForm = () => {
     });
   };
 
-
   const handleTotalExtraCharge = () => {
     let total = 0;
     extraCharges?.forEach(charge => {
@@ -178,10 +195,8 @@ const BookingForm = () => {
     });
     return total.toFixed(2);
   };
-  
 
   // installment calculations
-
   useEffect(() => {
     if (installmentsInformation) {
       let updatedList =
@@ -344,21 +359,26 @@ const BookingForm = () => {
   const extraChargeRow = (i, x) => {
 
     const extraBase = x.extra_charges_base === 0 ? 1 : x.extra_charges_base
-
+    
     const onChangeAmount = e => {
       const { valueAsNumber: amount } = e.target;
-      
-      const percent = ((amount / extraBase) * 100).toFixed(2) || 0;
-      handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent);
+     
+      let percent: unknown = ((amount / extraBase) * 100).toFixed(2) || 0;
+      handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent >= '100' ? 100 : percent);
+      let limitAmt  = amount > extraBase ? extraBase : amount
+      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', limitAmt);
     };
 
     const onChangePercent = e => {
       const { valueAsNumber: percent } = e.target;
+     
+      let amount = ((extraBase * percent) / 100).toFixed(2) || 0;
 
-      const amount = ((extraBase * percent) / 100).toFixed(2) || 0;
-      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
+      handleUpdateExtraCharge(i, 'extra_charges_disc_amt',  amount > extraBase ? extraBase : amount);
+      let limitPer = percent > 100 ? 100 : percent;
+      handleUpdateExtraCharge(i, 'extra_charges_disc_per', limitPer);
     };
-
+   
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
@@ -391,10 +411,13 @@ const BookingForm = () => {
         </td>
         <td>
           {values.calculation_method === 'rate_base' && (
-            <input readOnly 
+            <input  
               className="form-control mb-2"
               type="number"
               value={unitAreaInfo?.super_build_up_area}
+              onChange={e => {
+                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
+              }}
             />  
     
             )
@@ -409,7 +432,7 @@ const BookingForm = () => {
                   ? (parseFloat(x.ratebase_amounts) ).toFixed(2)|| 0
                   :  parseFloat(x.fixed_amounts) || 0
               }
-            onChange={(e)=>handleUpdateExtraCharge(i,'ratebase_amounts',e.target.value)}
+            onChange={(e)=>handleUpdateExtraCharge(i,'extra_charges_rate',e.target.value)}
             />
         </td>
         <td>
@@ -421,7 +444,7 @@ const BookingForm = () => {
             name="extra_charges_disc_amt"
             placeholder="Amount"
             type="number"
-            value={x.extra_charges_disc_amt}
+            value={parseFloat(x.extra_charges_disc_amt)}
             onChange={e => {
               handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
             }}
@@ -443,10 +466,9 @@ const BookingForm = () => {
             name="extra_charges_disc_per"
             placeholder="%"
             type="number"
-            value={x.extra_charges_disc_per}
+            value={parseFloat(x.extra_charges_disc_per)}
             onChange={e => {
-              onChangePercent(e);
-              handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
+              onChangePercent(e); 
               handleUpdateExtraCharge(i, 'extra_charges_base', (values.calculation_method ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts : x.fixed_amounts ));
             }}
             onKeyUp={() => {
@@ -702,10 +724,10 @@ const BookingForm = () => {
           parseFloat(values.reg_amount) +
           parseFloat(values.taxes_amount) +
           parseFloat(handleTotalExtraCharge()),
-        is_loan: isToggle ? 'yes' : 'no',
+        is_loan: isToggle ? 'no' : 'yes',
         loan_amt,
         bank,
-        loan_remarks: '',
+        loan_remarks:values.loan_remarks,
         installments: _installmentsList,
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
@@ -729,65 +751,6 @@ const BookingForm = () => {
     setFieldValue,
   );
 
-  // const handleOCListChange = (index, field, value,) => {
-  //   setOCList(prevList => {
-  //     const newUnitRates = [...prevList.other_charge_unit_rates];
-  //     newUnitRates[index] = {
-  //       ...newUnitRates[index],
-  //       [field]: value,
-  //     };
-
-  //     // Calculate the new amount for the current row Other Charges
-  //     // const totalAmount = parseFloat(newUnitRates[index]?.oc_Base) || 0;
-  //     // let discount = parseFloat(newUnitRates[index].other_charges_disc_amt) || 0;
-  //     // let percentage = parseFloat(newUnitRates[index].other_charges_disc_per) || 0;
-
-  //     // If the field being changed is 'area' or 'rate', recalculate the discount amount
-  //     // if (field === 'area' || field === 'rate') {
-  //     //   // Adjust percentage and discount if they exceed the limits
-  //     //   if (field === 'area') {
-  //     //     newUnitRates[index].area = value;
-  //     //   } else {
-  //     //     newUnitRates[index].rate = value;
-  //     //   }
-
-  //     //   // Calculate the new discount
-  //     //   const calculatedDiscount = (totalAmount * percentage) / 100;
-  //     //   discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
-
-  //     //   // Calculate the new percentage based on the adjusted discount
-  //     //   const calculatedPercentage = (discount / totalAmount) * 100;
-  //     //   percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
-  //     // } else if (field === 'other_charges_disc_amt') {
-  //     //   // Calculate the new percentage
-  //     //   const calculatedPercentage = (discount / totalAmount) * 100;
-  //     //   percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
-  //     //   // Calculate the new discount based on the adjusted percentage
-  //     //   const calculatedDiscount = (totalAmount * percentage) / 100;
-  //     //   discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
-  //     // } else if (field === 'other_charges_disc_per') {
-  //     //   // Calculate the new discount
-  //     //   const calculatedDiscount = (totalAmount * percentage) / 100;
-  //     //   discount = calculatedDiscount > totalAmount ? totalAmount : calculatedDiscount;
-
-  //       // Calculate the new percentage based on the adjusted discount
-  //       // const calculatedPercentage = (discount / totalAmount) * 100;
-  //       // percentage = calculatedPercentage > 100 ? 100 : calculatedPercentage;
-  //     // }
-
-  //     // Calculate the new discounted amount Other Charges
-  //     // const discountedAmount = totalAmount - discount;
-
-  //     // newUnitRates[index].other_charges_disc_amt = discount.toFixed(2);
-  //     // newUnitRates[index].other_charges_disc_per = percentage.toFixed(2);
-  //     // newUnitRates[index].otherChargesTotal = discountedAmount.toFixed(2);
-
-  //     return {
-  //       ...prevList,
-  //       other_charge_unit_rates: newUnitRates,
-  //     };
-  //   });
-  // };
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
       const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -813,9 +776,6 @@ const BookingForm = () => {
       };
     });
   };
-
-
-
 
   const OtherCharges = (i, x) => {
     const oc_Base = values.calculation_method === 'rate_base' ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts : values.calculation_method === 'fixed_amount' ? x.fixed_amounts : 0;
@@ -869,7 +829,7 @@ const BookingForm = () => {
                     type="number"
                     value={unitAreaInfo?.super_build_up_area}
                     onChange={e =>
-                      handleOCListChange(i, 'area', e.target.value)
+                      handleOCListChange(i, 'other_charges_area', e.target.value)
                     }
                   />
               )
@@ -882,7 +842,7 @@ const BookingForm = () => {
               type="number"
               value={values.calculation_method === 'rate_base' ? (x.ratebase_amounts).toFixed(2) : (x.fixed_amounts).toFixed(2)}
               onChange={e => {
-                handleOCListChange(i, 'rate', e.target.value)
+                handleOCListChange(i, 'other_charges_rate', e.target.value)
               }}
             />
           </td>
@@ -928,8 +888,6 @@ const BookingForm = () => {
   };
 
   const PaymentSchedule = (i, e) => {
-    // const calculatedAmount = (parseFloat(values.basic_rate_basic_amount) * e.percentage) / 100;
-
     return (
       <tr key={`${i}_${e.id}`}>
         <td>{i + 1}</td>
@@ -940,7 +898,6 @@ const BookingForm = () => {
             type="date"
             value={e.date}
             onChange={x => {
-              // handlePaymentSchedule(i, 'installment_basic_amt', calculatedAmount);
               handlePaymentSchedule(i, 'date', x.target.value);
             }}
           />
@@ -1035,7 +992,6 @@ const BookingForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.calculation_method]);
 
-
   const Timer = ({ minutes, seconds }) => (
     <div className="booking-timer">
       <p>
@@ -1096,6 +1052,7 @@ const BookingForm = () => {
     });
 
   }
+
   //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount 
   function handleExtraBaseAmount() {
     setExtraCharges((prevList) =>
@@ -1152,6 +1109,7 @@ const BookingForm = () => {
               // url to be redirect or use navigate to navigate back after submission or after timeout
             }}
             onStart={() =>
+              timer &&
               localStorage.setItem('bookingTimer', JSON.stringify(dayjs().format('hh:mm:ss')))
             }
           />
