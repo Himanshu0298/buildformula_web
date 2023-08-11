@@ -262,18 +262,19 @@ export interface IUnitAreaInfoParam {
 }
 
 export interface IUnitAreaInfo {
-  id: number
-  tower_id: number
-  project_id: number
-  project_main_units_id: number
-  super_build_up_area: number
-  build_up_area: number
-  carpet: number
-  area_unit: number
-  rate_base_amt: number
-  fixed_amount: any
-  last_updated: string
-  user_id: number
+  id: number;
+  tower_id: number;
+  project_id: number;
+  project_main_units_id: number;
+  super_build_up_area: number;
+  build_up_area: number;
+  carpet: number;
+  area_unit: number;
+  rate_base_amt: number;
+  fixed_amount: any;
+  last_updated: string;
+  user_id: number;
+  terracearea: number;
 }
 
 export interface ITermsnConditions {
