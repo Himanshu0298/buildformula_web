@@ -198,7 +198,7 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
-  timer: undefined,
+  timer: false,
   unitAreaInfo: {} as IUnitAreaInfo,
   extraChargesList: {} as IExtraCharges,
 };
