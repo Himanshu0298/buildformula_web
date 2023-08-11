@@ -87,7 +87,6 @@ const BookingForm = () => {
   });
 
   const [_installmentsList, setInstallmentsList] = useState([]);
-  console.log("🚀 ~ file: BookingForm.tsx:90 ~ BookingForm ~ _installmentsList:", _installmentsList)
 
   const [baseAmount, setBaseAmount] = useState<number>();
 
