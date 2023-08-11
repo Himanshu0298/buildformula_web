@@ -10,7 +10,7 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
 import Select from 'react-select';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import {
   addBooking,
   getAreaInfo,
@@ -46,7 +46,7 @@ const BookingForm = () => {
     banksList,
     unitAreaInfo,
     extraChargesList,
-    timer,
+    // timer,
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
@@ -361,7 +361,12 @@ const BookingForm = () => {
       const { valueAsNumber: amount } = e.target;
 
       const percent: unknown = ((amount / extraBase) * 100).toFixed(2) || 0;
-      handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent >= '100' ? 100 : percent);
+      if (percent >= '100') {
+        toast.warning('Discount Amount cannot be more than Basic Amount');
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
+      } else {
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent);
+      }
       const limitAmt = amount > extraBase ? extraBase : amount;
       handleUpdateExtraCharge(i, 'extra_charges_disc_amt', limitAmt);
     };
@@ -370,8 +375,12 @@ const BookingForm = () => {
       const { valueAsNumber: percent } = e.target;
 
       const amount = ((extraBase * percent) / 100).toFixed(2) || 0;
-
-      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount > extraBase ? extraBase : amount);
+      toast.warning('Discount percentage should not be more than 100%');
+      if (amount >= extraBase) {
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', extraBase);
+      } else {
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
+      }
       const limitPer = percent > 100 ? 100 : percent;
       handleUpdateExtraCharge(i, 'extra_charges_disc_per', limitPer);
     };
@@ -942,11 +951,16 @@ const BookingForm = () => {
           {!e.lastRow && (
             <input
               className="form-control"
-              max={100}
+              maxLength={100}
               type="number"
               value={e.gst}
               onChange={e => {
-                handlePaymentSchedule(i, 'gst', e.target.value);
+                if (parseFloat(e.target.value) > 100) {
+                  handlePaymentSchedule(i, 'gst', 100);
+                  toast.warning('GST% cannot be more than 100%');
+                } else {
+                  handlePaymentSchedule(i, 'gst', e.target.value);
+                }
               }}
             />
           )}
@@ -1086,6 +1100,12 @@ const BookingForm = () => {
   const loggedTime = JSON.parse(localStorage.getItem('bookingTimer'));
   const updatedTime = dayjs().diff(loggedTime, 'milliseconds');
 
+  useEffect(() => {
+    if (loggedTime > 1800000 || loggedTime === null) {
+      localStorage.setItem('bookingTimer', JSON.stringify(dayjs()));
+    }
+  }, [loggedTime]);
+
   const remainingTime = Number.isNaN(updatedTime) ? 0 : updatedTime;
   const currentTime = Date.now() + 1800000 - remainingTime;
 
@@ -1118,10 +1138,7 @@ const BookingForm = () => {
             onComplete={() => {
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
-              dispatch(triggerTimer(false));
-            }}
-            onMount={() => {
-              timer && localStorage.setItem('bookingTimer', JSON.stringify(dayjs()));
+              // dispatch(triggerTimer(false));
             }}
           />
         </div>
