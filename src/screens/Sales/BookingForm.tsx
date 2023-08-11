@@ -87,6 +87,7 @@ const BookingForm = () => {
   });
 
   const [_installmentsList, setInstallmentsList] = useState([]);
+  console.log("🚀 ~ file: BookingForm.tsx:90 ~ BookingForm ~ _installmentsList:", _installmentsList)
 
   const [baseAmount, setBaseAmount] = useState<number>();
 
@@ -202,24 +203,18 @@ const BookingForm = () => {
         title: 'Other Charges (Separately)',
         installment_due_date: '',
         lastRow: 'true',
-        percentage: 0,
       } as any);
 
-      _installmentsList?.map((x, index) => {
-        if (!x.lastRow) {
+      updatedList?.map(installment => {
+        if (!installment.lastRow) {
           const calculatedAmount = (
-            (parseFloat(values.basic_rate_basic_amount) * x.percentage) /
+            (parseFloat(values.basic_rate_basic_amount) * installment.percentage) /
             100
           ).toFixed(2);
-          setInstallmentsList(prevList => {
-            const newUnitRates = [...prevList];
-            newUnitRates[index] = {
-              ...newUnitRates[index],
-              installment_basic_amt: calculatedAmount,
-            };
-            return newUnitRates;
-          });
+          installment.installment_basic_amt = parseFloat(calculatedAmount);
+          return installment;
         }
+        return installment;
       });
 
       extraCharges?.forEach(extraCharge => {
@@ -614,7 +609,7 @@ const BookingForm = () => {
     dispatch(getTermsnConditions({ project_id: 18 }));
     dispatch(getInstallmentOptions({ project_id: 18 }));
     dispatch(getBankList());
-    dispatch(triggerTimer());
+    dispatch(triggerTimer(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1029,7 +1024,7 @@ const BookingForm = () => {
     </div>
   );
 
-  function handleInstallments() {
+  function toggleInstallments() {
     setShowInstall(true);
   }
 
@@ -1090,8 +1085,10 @@ const BookingForm = () => {
 
   // timer calculations
   const loggedTime = JSON.parse(localStorage.getItem('bookingTimer'));
-  const currentTime = dayjs();
-  const updatedTime = currentTime.diff(loggedTime, 'milliseconds');
+  const updatedTime = dayjs().diff(loggedTime, 'milliseconds');
+
+  const remainingTime = Number.isNaN(updatedTime) ? 0 : updatedTime;
+  const currentTime = Date.now() + 1800000 - remainingTime;
 
   return (
     <>
@@ -1117,13 +1114,16 @@ const BookingForm = () => {
         </div>
         <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
           <Countdown
-            date={Date.now() + 1800000 - updatedTime}
+            date={currentTime}
             renderer={props => <Timer {...props} />}
             onComplete={() => {
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
+              dispatch(triggerTimer(false));
             }}
-            onStart={() => timer && localStorage.setItem('bookingTimer', JSON.stringify(dayjs()))}
+            onMount={() => {
+              timer && localStorage.setItem('bookingTimer', JSON.stringify(dayjs()));
+            }}
           />
         </div>
       </div>
@@ -1921,7 +1921,7 @@ const BookingForm = () => {
                         className="Btn btn-lightblue-primary lbps-btn py-2"
                         id="butng"
                         type="button"
-                        onClick={handleInstallments}
+                        onClick={toggleInstallments}
                       >
                         Apply
                       </button>
