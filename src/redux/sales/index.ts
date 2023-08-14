@@ -187,14 +187,6 @@ export const getBankList = createAsyncThunk('sales/getBankList', async () => {
   }
 });
 
-export const triggerTimer = createAsyncThunk('sales/triggerTimer', async () => {
-  try {
-    return;
-  } catch (err) {
-    console.log(err);
-  }
-});
-
 const initialState: ISalesState = {
   msg: '',
   loading: false,
@@ -208,14 +200,17 @@ const initialState: ISalesState = {
   banksList: [],
   timer: false,
   unitAreaInfo: {} as IUnitAreaInfo,
-  extraChargesList:{} as IExtraCharges,
-
+  extraChargesList: {} as IExtraCharges,
 };
 
 const salesSlice = createSlice({
   name: 'sales',
   initialState,
-  reducers: {},
+  reducers: {
+    triggerTimer: (state, action) => {
+      state.timer = action.payload;
+    },
+  },
   extraReducers: builder => {
     // visitors list
     builder.addCase(getVisitorsList.rejected, handleReject);
@@ -270,7 +265,7 @@ const salesSlice = createSlice({
       return {
         ...state,
         timer: false,
-        msg: action.payload.msg
+        msg: action.payload.msg,
       };
     });
     // get other charges
@@ -327,16 +322,7 @@ const salesSlice = createSlice({
         banksList: action?.payload,
       };
     });
-    // trigger timer
-    builder.addCase(triggerTimer.rejected, handleReject);
-    builder.addCase(triggerTimer.pending, handleLoading);
-    builder.addCase(triggerTimer.fulfilled, state => {
-      return {
-        ...state,
-        timer: true,
-      };
-    });
   },
 });
-
+export const { triggerTimer } = salesSlice.actions;
 export default salesSlice.reducer;
