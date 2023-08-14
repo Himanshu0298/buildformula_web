@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
-
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
@@ -215,11 +214,10 @@ const BookingForm = () => {
         }
         return installment;
       });
-
+    
       extraCharges?.forEach(extraCharge => {
         const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
         const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
-
         switch (extra_charges_distribution_method) {
           case 'Equally with all installments': {
             const equallyDistributedAmount = extra_charges_total / installmentLen;
@@ -295,6 +293,7 @@ const BookingForm = () => {
                 installment.installment_otherchages_amt += parseFloat(
                   equallyDistributedAmount.toFixed(2),
                 );
+                installment.installment_amount = installment.installment_otherchages_amt+installment.installment_basic_amt
                 return installment;
               }
               return installment;
@@ -308,6 +307,7 @@ const BookingForm = () => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedWithAll * installment.percentage) / 100;
+                  installment.installment_amount = installment.installment_otherchages_amt+installment.installment_basic_amt
               }
               return installment;
             });
@@ -319,7 +319,7 @@ const BookingForm = () => {
             updatedList = updatedList.map((installment, index) => {
               if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
-                  (proportionatelyDistributedAmount * installment.percentage) / 100;
+                 (proportionatelyDistributedAmount * installment.percentage) / 100;
               }
               return installment;
             });
@@ -330,6 +330,8 @@ const BookingForm = () => {
             updatedList = updatedList.map((installment, index) => {
               if (index === installmentLen - 1 && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+                installment.installment_amount = installment.installment_otherchages_amt+installment.installment_basic_amt
+
               }
               return installment;
             });
@@ -340,6 +342,7 @@ const BookingForm = () => {
             updatedList = updatedList.map(installment => {
               if (installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+    
               }
               return installment;
             });
@@ -494,7 +497,7 @@ const BookingForm = () => {
             readOnly
             className="form-control mb-2"
             type="number"
-            value={x.extra_charges_total}
+            value={parseFloat(x.extra_charges_total)}
           />
         </td>
         <td>
@@ -937,7 +940,7 @@ const BookingForm = () => {
           <input
             className="form-control"
             type="number"
-            value={e.installment_otherchages_amt}
+            value={parseFloat(e.installment_otherchages_amt)}
             onChange={e => {
               handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
             }}
@@ -962,7 +965,7 @@ const BookingForm = () => {
           )}
         </td>
         <td>
-          <input readOnly className="form-control" type="number" value={e.installment_amount} />
+          <input readOnly className="form-control" type="number" value={parseFloat(e.installment_amount)} />
         </td>
       </tr>
     );
@@ -1095,7 +1098,7 @@ const BookingForm = () => {
   function handlePaymentUpdate() {
     setInstallmentsList((prevList) =>
       prevList.map((x) => {
-        const calculatedAmount = ((parseFloat(values.basic_rate_basic_amount) * x.percentage) / 100).toFixed(2);
+        const calculatedAmount = ((parseFloat(values.basic_rate_basic_amount) * x.percentage) / 100 + parseFloat(x.installment_otherchages_amt)).toFixed(2);
         return {
           ...x,
           installment_amount: calculatedAmount,
@@ -1937,7 +1940,7 @@ const BookingForm = () => {
                         }}
                       />
                       <button className="Btn btn-lightblue-primary lbps-btn py-2" id='butng' type='button' onClick={() => {
-                        handleInstallments()
+                        toggleInstallments()
                         handlePaymentUpdate()
                       }}>
                         Apply
