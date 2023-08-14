@@ -448,7 +448,7 @@ const BookingForm = () => {
                 ? (parseFloat(x.ratebase_amounts)).toFixed(2) || 0
                 : parseFloat(x.fixed_amounts) || 0
             }
-            onChange={(e) => handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value)}
+            onChange={values.calculation_method === 'rate_base'?(e) => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value):(e) =>handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)}
           />
         </td>
         <td>
@@ -1721,7 +1721,7 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: "2rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span>{values.basic_rate_basic_amount.toFixed(2)}</span>
+                              <span style={{textAlign:'right'}}>{values.basic_rate_basic_amount.toFixed(2)}</span>
                             </span>
                           </td>
                         </tr>
@@ -1731,7 +1731,7 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: "2rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span> {handleTotalOtherCharge()} </span>
+                              <span style={{textAlign:'right'}}> {handleTotalOtherCharge()} </span>
                             </span>
                           </td>
                         </tr>
@@ -1741,7 +1741,7 @@ const BookingForm = () => {
                             <span className="red-text" style={{ display: 'flex', gap: "2rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span>{(
+                              <span style={{textAlign:'right'}}>{(
                                 parseFloat(handleTotalOtherDiscountAmt()) +
                                 parseFloat(values.basic_rate_disc_amt)
                               ).toFixed(2)}</span>
@@ -1754,7 +1754,7 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: "2rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span>{(
+                              <span style={{textAlign:'right'}}>{(
                                 parseFloat(values.gst_amt) +
                                 parseFloat(values.stampduty_amount) +
                                 parseFloat(values.reg_amount) +
@@ -1770,7 +1770,7 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: "2rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span> {handleTotalExtraCharge()} </span>
+                              <span style={{textAlign:'right'}}> {handleTotalExtraCharge()} </span>
                             </span>
                           </td>
                         </tr>
@@ -1782,7 +1782,7 @@ const BookingForm = () => {
                             <p className="font-weight-bold green-text" style={{ display: 'flex', gap: "1.9rem" }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span>   {(
+                              <span style={{textAlign:'right'}}>   {(
                                 parseFloat(values.basic_rate_basic_amount) +
                                 parseFloat(handleTotalOtherCharge()) +
                                 parseFloat(values.gst_amt) +
