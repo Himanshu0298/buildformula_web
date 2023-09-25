@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
+
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
@@ -9,7 +10,7 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
 import Select from 'react-select';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import {
   addBooking,
   getAreaInfo,
@@ -57,7 +58,6 @@ const BookingForm = () => {
   const [extraCharges, setExtraCharges] = useState([]);
 
   function handleUpdateExtraCharges() {
-
     const updatedData = extraChargesList?.other_charge_unit_rates?.map(x => ({
       amount_type: x?.amount_type,
       fixed_amounts: x.fixed_amounts || 0,
@@ -99,7 +99,6 @@ const BookingForm = () => {
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
-
   // parkingInfo
   const unitParkingInfoValues = useMemo(() => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
@@ -144,21 +143,22 @@ const BookingForm = () => {
       const updatedExtraCharges = [...prevExtraCharges];
       updatedExtraCharges[index][field] = value;
       if (values.calculation_method === 'rate_base') {
-        updatedExtraCharges[index].extra_charges_amt = updatedExtraCharges[index].extra_charges_base
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts
-        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area
-        let calulatedAmt = updatedExtraCharges[index].extra_charges_area * updatedExtraCharges[index].extra_charges_rate
-        let discountAmt = updatedExtraCharges[index].extra_charges_disc_amt
-        let totalAmount = calulatedAmt - discountAmt
-        updatedExtraCharges[index].extra_charges_total = totalAmount
-      }
-      else if (values.calculation_method === 'fixed_amount') {
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts
-        let calulatedAmt = updatedExtraCharges[index].extra_charges_rate
-        let discountAmt = updatedExtraCharges[index].extra_charges_disc_amt
-        let totalAmount = calulatedAmt - discountAmt
-        updatedExtraCharges[index].extra_charges_total = totalAmount
-
+        updatedExtraCharges[index].extra_charges_amt =
+          updatedExtraCharges[index].extra_charges_base;
+        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
+        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
+        const calulatedAmt =
+          updatedExtraCharges[index].extra_charges_area *
+          updatedExtraCharges[index].extra_charges_rate;
+        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
+        const totalAmount = calulatedAmt - discountAmt;
+        updatedExtraCharges[index].extra_charges_total = totalAmount;
+      } else if (values.calculation_method === 'fixed_amount') {
+        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
+        const calulatedAmt = updatedExtraCharges[index].extra_charges_rate;
+        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
+        const totalAmount = calulatedAmt - discountAmt;
+        updatedExtraCharges[index].extra_charges_total = totalAmount;
       }
       return updatedExtraCharges;
     });
@@ -291,7 +291,8 @@ const BookingForm = () => {
                 installment.installment_otherchages_amt += parseFloat(
                   equallyDistributedAmount.toFixed(2),
                 );
-                installment.installment_amount = installment.installment_otherchages_amt + installment.installment_basic_amt
+                installment.installment_amount =
+                  installment.installment_otherchages_amt + installment.installment_basic_amt;
                 return installment;
               }
               return installment;
@@ -305,7 +306,8 @@ const BookingForm = () => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedWithAll * installment.percentage) / 100;
-                installment.installment_amount = installment.installment_otherchages_amt + installment.installment_basic_amt
+                installment.installment_amount =
+                  installment.installment_otherchages_amt + installment.installment_basic_amt;
               }
               return installment;
             });
@@ -328,8 +330,8 @@ const BookingForm = () => {
             updatedList = updatedList.map((installment, index) => {
               if (index === installmentLen - 1 && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
-                installment.installment_amount = installment.installment_otherchages_amt + installment.installment_basic_amt
-
+                installment.installment_amount =
+                  installment.installment_otherchages_amt + installment.installment_basic_amt;
               }
               return installment;
             });
@@ -340,7 +342,6 @@ const BookingForm = () => {
             updatedList = updatedList.map(installment => {
               if (installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
-
               }
               return installment;
             });
@@ -356,8 +357,6 @@ const BookingForm = () => {
   }, [oclist, extraCharges, installmentsInformation]);
 
   const extraChargeRow = (i, x) => {
-
-
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
@@ -402,14 +401,19 @@ const BookingForm = () => {
         </td>
         <td>
           <input
+            readOnly
             className="form-control mb-2"
             type="number"
             value={
               values.calculation_method === 'rate_base'
-                ? (parseFloat(x.ratebase_amounts)).toFixed(2) || 0
+                ? parseFloat(x.ratebase_amounts).toFixed(2) || 0
                 : parseFloat(x.fixed_amounts) || 0
             }
-            onChange={values.calculation_method === 'rate_base' ? (e) => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value) : (e) => handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)}
+            onChange={
+              values.calculation_method === 'rate_base'
+                ? e => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
+                : e => handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
+            }
           />
         </td>
         <td>
@@ -421,18 +425,52 @@ const BookingForm = () => {
             name="extra_charges_disc_amt"
             placeholder="Amount"
             type="number"
-            value={parseFloat(x.extra_charges_disc_amt) > unitAreaInfo?.super_build_up_area * x.ratebase_amounts || x.fixed_amounts ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts || x.fixed_amounts : x?.extra_charges_disc_amt}
-            onChange={e => {
-              const discountAmount = parseFloat(e.target.value) || 0;
-              if (discountAmount > (x.extra_charges_area * x.extra_charges_rate)) {
-                toast.warning('Discount Amount cannot be more than Extra Basic Amount');
-                e.target.value = (x.extra_charges_area * x.extra_charges_rate).toFixed(2);
-              }
-              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', e.target.value);
-              const discountPercent = ((discountAmount / (x.extra_charges_area * x.extra_charges_rate)) * 100).toFixed(2);
-              handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
-            }}
-
+            value={
+              values.calculation_method === 'rate_base'
+                ? parseFloat(x.extra_charges_disc_amt) >
+                  unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
+                  ? unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
+                  : x?.extra_charges_disc_amt
+                : parseFloat(x?.extra_charges_disc_amt) > x?.fixed_amounts
+                ? x?.fixed_amounts
+                : x?.extra_charges_disc_amt
+            }
+            onChange={
+              values.calculation_method === 'rate_base'
+                ? e => {
+                    let discountAmount = parseFloat(e.target.value) || 0;
+                    if (discountAmount < 0) {
+                      discountAmount = 0; // Ensure it doesn't go below zero
+                    }
+                    if (discountAmount > x.extra_charges_area * x.extra_charges_rate) {
+                      toast.warning('Discount Amount cannot be more than Extra Basic Amount');
+                      discountAmount = parseFloat(
+                        (x.extra_charges_area * x.extra_charges_rate).toFixed(2),
+                      );
+                    }
+                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                    const discountPercent = (
+                      (discountAmount / (x.extra_charges_area * x.extra_charges_rate)) *
+                      100
+                    ).toFixed(2);
+                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                  }
+                : e => {
+                    let discountAmount = parseFloat(e.target.value) || 0;
+                    if (discountAmount < 0) {
+                      discountAmount = 0; // Ensure it doesn't go below zero
+                    }
+                    if (discountAmount > x.extra_charges_rate) {
+                      toast.warning('Discount Amount cannot be more than Extra Basic Amount');
+                      discountAmount = parseFloat(x.extra_charges_rate.toFixed(2));
+                    }
+                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                    const discountPercent = ((discountAmount / x.extra_charges_rate) * 100).toFixed(
+                      2,
+                    );
+                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                  }
+            }
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -442,30 +480,69 @@ const BookingForm = () => {
             name="extra_charges_disc_per"
             placeholder="%"
             type="number"
-            value={parseFloat(x.extra_charges_disc_per)}
-            onChange={e => {
-              const discountPercent = parseFloat(e.target.value) || 0;
-              if (discountPercent > 100) {
-                toast.warning('Discount percentage should not be more than 100%');
-                e.target.value = '100';
-              }
-              handleUpdateExtraCharge(i, 'extra_charges_disc_per', e.target.value);
-              const discountAmount = ((discountPercent / 100) * (x.extra_charges_area * x.extra_charges_rate)).toFixed(2);
-              handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
-            }}
-
+            value={parseFloat(x.extra_charges_disc_per).toFixed(2)}
+            onChange={
+              values.calculation_method === 'rate_base'
+                ? e => {
+                    let discountPercent = parseFloat(e.target.value) || 0;
+                    if (discountPercent < 0) {
+                      discountPercent = 0;
+                    }
+                    if (discountPercent > 100) {
+                      toast.warning('Discount percentage should not be more than 100%');
+                      discountPercent = 100;
+                    }
+                    handleUpdateExtraCharge(
+                      i,
+                      'extra_charges_disc_per',
+                      discountPercent.toString(),
+                    );
+                    const discountAmount = (
+                      (discountPercent / 100) *
+                      (x.extra_charges_area * x.extra_charges_rate)
+                    ).toFixed(2);
+                    handleUpdateExtraCharge(
+                      i,
+                      'extra_charges_disc_amt',
+                      parseFloat(discountAmount),
+                    );
+                  }
+                : e => {
+                    let discountPercent = parseFloat(e.target.value) || 0;
+                    if (discountPercent < 0) {
+                      discountPercent = 0;
+                    }
+                    if (discountPercent > 100) {
+                      toast.warning('Discount percentage should not be more than 100%');
+                      discountPercent = 100;
+                    }
+                    handleUpdateExtraCharge(
+                      i,
+                      'extra_charges_disc_per',
+                      discountPercent.toString(),
+                    );
+                    const discountAmount = ((discountPercent / 100) * x.extra_charges_rate).toFixed(
+                      2,
+                    );
+                    handleUpdateExtraCharge(
+                      i,
+                      'extra_charges_disc_amt',
+                      parseFloat(discountAmount),
+                    );
+                  }
+            }
           />
         </td>
+
         <td>
           <input
             readOnly
             className="form-control mb-2"
             type="number"
-            value={parseFloat(x.extra_charges_total <= 0 ? 0 : x.extra_charges_total)}
+            value={parseFloat(x.extra_charges_total <= 0 ? 0 : x.extra_charges_total).toFixed(2)}
           />
         </td>
-        <td>
-        </td>
+        <td></td>
         <td>
           <button
             className="add-comp-btn m-0 acount-act-btn red-common"
@@ -505,7 +582,7 @@ const BookingForm = () => {
         extra_charges_base: 0,
         extra_charges_total: 0,
         ratebase_amounts: 0,
-        fixed_amounts: 0
+        fixed_amounts: 0,
       },
     ]);
   };
@@ -629,7 +706,7 @@ const BookingForm = () => {
       bank: 0,
       loan_remarks: '',
       installments: [],
-      extra_charges_total:0
+      extra_charges_total: 0,
     };
   }, [
     customerDetails?.id,
@@ -684,7 +761,8 @@ const BookingForm = () => {
         other_charges: oclist.other_charge_unit_rates,
         other_charges_total: parseInt(handleTotalOtherCharge()),
         sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
-        total_disc: parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
+        total_disc:
+          parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
         disc_remarks: disc_remarks,
         gst_per,
         gst_amt,
@@ -722,7 +800,7 @@ const BookingForm = () => {
   });
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
-  
+
   const discountSyncedFields = useSyncedFields(
     baseAmount,
     'basic_rate_disc_amt',
@@ -761,8 +839,8 @@ const BookingForm = () => {
       values.calculation_method === 'rate_base'
         ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
         : values.calculation_method === 'fixed_amount'
-          ? x.fixed_amounts
-          : 0;
+        ? x.fixed_amounts
+        : 0;
 
     const discountOtherCharges = useSyncedFields(
       oc_Base,
@@ -784,13 +862,13 @@ const BookingForm = () => {
               onChange={
                 values.calculation_method === 'rate_base'
                   ? e => {
-                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                    handleBaseAmount();
-                  }
+                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                      handleBaseAmount();
+                    }
                   : e => {
-                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                    handleFixedAmount();
-                  }
+                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                      handleFixedAmount();
+                    }
               }
             >
               <option disabled selected>
@@ -929,7 +1007,12 @@ const BookingForm = () => {
           )}
         </td>
         <td>
-          <input readOnly className="form-control" type="number" value={parseFloat(e.installment_amount)} />
+          <input
+            readOnly
+            className="form-control"
+            type="number"
+            value={parseFloat(e.installment_amount)}
+          />
         </td>
       </tr>
     );
@@ -1060,14 +1143,17 @@ const BookingForm = () => {
   }
 
   function handlePaymentUpdate() {
-    setInstallmentsList((prevList) =>
-      prevList.map((x) => {
-        const calculatedAmount = ((parseFloat(values.basic_rate_basic_amount) * x.percentage) / 100 + parseFloat(x.installment_otherchages_amt)).toFixed(2);
+    setInstallmentsList(prevList =>
+      prevList.map(x => {
+        const calculatedAmount = (
+          (parseFloat(values.basic_rate_basic_amount) * x.percentage) / 100 +
+          parseFloat(x.installment_otherchages_amt)
+        ).toFixed(2);
         return {
           ...x,
           installment_amount: calculatedAmount,
         };
-      })
+      }),
     );
   }
 
@@ -1107,7 +1193,6 @@ const BookingForm = () => {
           <h2 className="mx-4">Booking Form</h2>
         </div>
         <div className="booking-form-header new-booking-header ml-auto px-2 py-3">
-
           <Countdown
             date={currentTime}
             renderer={props => <Timer {...props} />}
@@ -1395,13 +1480,13 @@ const BookingForm = () => {
                           <td>Basic rate of unit</td>
                           <td>
                             <input
-                              readOnly
                               className="form-control"
                               name="basic_rate"
                               placeholder="Amount"
                               type="number"
-                              value={values.basic_rate}
+                              value={values.basic_rate < 0 ? 0 : values.basic_rate}
                               onBlur={handleBlur}
+                              onChange={handleChange}
                             />
                           </td>
                           <td>
@@ -1436,7 +1521,11 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate_basic_amount"
                               type="number"
-                              value={values.basic_rate_basic_amount}
+                              value={
+                                values.basic_rate_basic_amount < 0
+                                  ? 0
+                                  : values.basic_rate_basic_amount
+                              }
                               onBlur={handleBlur}
                               onChange={handleChange}
                             />
@@ -1473,9 +1562,7 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Other Charges Total
                         </td>
-                        <td className="text-right">
-                          ₹ {handleTotalOtherCharge()}
-                        </td>
+                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1656,13 +1743,18 @@ const BookingForm = () => {
                         <td className="text-right font-weight-bold" colSpan={6}>
                           Extra Charges Total
                         </td>
-                        <td className="font-weight-bold">₹ {handleTotalExtraCharge()}</td>
+                        <td className="font-weight-bold">
+                          ₹{' '}
+                          {parseFloat(handleTotalExtraCharge()) < 0
+                            ? 0
+                            : parseFloat(handleTotalExtraCharge())}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
-                  <div className="row w-100 justify-content-end">
+                  <div className="row w-100">
                     <button
-                      className="Btn btn-lightblue-primary lbps-btn ml-auto mr-0"
+                      className="Btn btn-lightblue-primary lbps-btn"
                       type="button"
                       onClick={handleAddData}
                     >
@@ -1688,7 +1780,9 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>{values.basic_rate_basic_amount.toFixed(2)}</span>
+                              <span style={{ textAlign: 'right' }}>
+                                {values.basic_rate_basic_amount.toFixed(2)}
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -1698,7 +1792,10 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}> {handleTotalOtherCharge()} </span>
+                              <span style={{ textAlign: 'right' }}>
+                                {' '}
+                                {handleTotalOtherCharge()}{' '}
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -1706,12 +1803,14 @@ const BookingForm = () => {
                           <td>Total Discount (Sale Deed Amount)</td>
                           <td>
                             <span className="red-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (+)</span>
+                              <span> (-)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>{(
-                                parseFloat(handleTotalOtherDiscountAmt()) +
-                                parseFloat(values.basic_rate_disc_amt)
-                              ).toFixed(2)}</span>
+                              <span style={{ textAlign: 'right' }}>
+                                {(
+                                  parseFloat(handleTotalOtherDiscountAmt()) +
+                                  parseFloat(values.basic_rate_disc_amt)
+                                ).toFixed(2)}
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -1721,12 +1820,13 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>{(
-                                parseFloat(values.gst_amt) +
-                                parseFloat(values.stampduty_amount) +
-                                parseFloat(values.reg_amount) +
-                                parseFloat(values.taxes_amount)
-                              ).toFixed(2)}
+                              <span style={{ textAlign: 'right' }}>
+                                {(
+                                  parseFloat(values.gst_amt) +
+                                  parseFloat(values.stampduty_amount) +
+                                  parseFloat(values.reg_amount) +
+                                  parseFloat(values.taxes_amount)
+                                ).toFixed(2)}
                               </span>
                             </span>
                           </td>
@@ -1737,7 +1837,10 @@ const BookingForm = () => {
                             <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}> {handleTotalExtraCharge()} </span>
+                              <span style={{ textAlign: 'right' }}>
+                                {' '}
+                                {handleTotalExtraCharge()}{' '}
+                              </span>
                             </span>
                           </td>
                         </tr>
@@ -1752,15 +1855,17 @@ const BookingForm = () => {
                             >
                               <span> (+)</span>
                               <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>   {(
-                                parseFloat(values.basic_rate_basic_amount) +
-                                parseFloat(handleTotalOtherCharge()) +
-                                parseFloat(values.gst_amt) +
-                                parseFloat(values.stampduty_amount) +
-                                parseFloat(values.reg_amount) +
-                                parseFloat(values.taxes_amount) +
-                                parseFloat(handleTotalExtraCharge())
-                              ).toFixed(2)}
+                              <span style={{ textAlign: 'right' }}>
+                                {' '}
+                                {(
+                                  parseFloat(values.basic_rate_basic_amount) +
+                                  parseFloat(handleTotalOtherCharge()) +
+                                  parseFloat(values.gst_amt) +
+                                  parseFloat(values.stampduty_amount) +
+                                  parseFloat(values.reg_amount) +
+                                  parseFloat(values.taxes_amount) +
+                                  parseFloat(handleTotalExtraCharge())
+                                ).toFixed(2)}
                               </span>
                             </p>
                           </td>
@@ -1896,10 +2001,15 @@ const BookingForm = () => {
                           setShowInstall(false);
                         }}
                       />
-                      <button className="Btn btn-lightblue-primary lbps-btn py-2" id='butng' type='button' onClick={() => {
-                        toggleInstallments()
-                        handlePaymentUpdate()
-                      }}>
+                      <button
+                        className="Btn btn-lightblue-primary lbps-btn py-2"
+                        id="butng"
+                        type="button"
+                        onClick={() => {
+                          toggleInstallments();
+                          handlePaymentUpdate();
+                        }}
+                      >
                         Apply
                       </button>
                     </div>
