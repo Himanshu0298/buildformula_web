@@ -3104,8 +3104,6 @@
   "version" "6.2.1"
 
 "ansi-styles@^6.1.0":
-  "integrity" "sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug=="
-  "resolved" "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz"
   "version" "6.2.1"
 
 "any-promise@^1.0.0":
@@ -5811,8 +5809,6 @@
     "universalify" "^2.0.0"
 
 "fs-minipass@^2.0.0":
-  "integrity" "sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg=="
-  "resolved" "https://registry.npmjs.org/fs-minipass/-/fs-minipass-2.1.0.tgz"
   "version" "2.1.0"
   dependencies:
     "minipass" "^3.0.0"
@@ -8095,8 +8091,6 @@
     "minipass" "^3.0.0"
 
 "minipass@^3.0.0":
-  "integrity" "sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw=="
-  "resolved" "https://registry.npmjs.org/minipass/-/minipass-3.3.6.tgz"
   "version" "3.3.6"
   dependencies:
     "yallist" "^4.0.0"
@@ -8251,8 +8245,6 @@
   "version" "2.0.13"
 
 "nopt@^6.0.0":
-  "integrity" "sha512-ZwLpbTgdhuZUnZzjd7nb1ZV+4DoiC6/sfiVKok72ym/4Tlf+DFdlHYmT2JPmcNNWV6Pi3SDf1kT+A4r9RTuT9g=="
-  "resolved" "https://registry.npmjs.org/nopt/-/nopt-6.0.0.tgz"
   "version" "6.0.0"
   dependencies:
     "abbrev" "^1.0.0"
@@ -8453,8 +8445,6 @@
     "write-file-atomic" "^5.0.1"
 
 "npmlog@^6.0.0":
-  "integrity" "sha512-/vBvz5Jfr9dT/aFWd0FIRf+T/Q2WBsLENygUaFUqstqsycmZAP/t5BvFJTK0viFmSUxiUKTUplWy5vt+rvKIxg=="
-  "resolved" "https://registry.npmjs.org/npmlog/-/npmlog-6.0.2.tgz"
   "version" "6.0.2"
   dependencies:
     "are-we-there-yet" "^3.0.0"
@@ -10824,8 +10814,6 @@
     "strip-ansi" "^7.0.1"
 
 "string-width@^5.0.1":
-  "integrity" "sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA=="
-  "resolved" "https://registry.npmjs.org/string-width/-/string-width-5.1.2.tgz"
   "version" "5.1.2"
   dependencies:
     "eastasianwidth" "^0.2.0"
@@ -10833,8 +10821,6 @@
     "strip-ansi" "^7.0.1"
 
 "string-width@^5.1.2":
-  "integrity" "sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA=="
-  "resolved" "https://registry.npmjs.org/string-width/-/string-width-5.1.2.tgz"
   "version" "5.1.2"
   dependencies:
     "eastasianwidth" "^0.2.0"
