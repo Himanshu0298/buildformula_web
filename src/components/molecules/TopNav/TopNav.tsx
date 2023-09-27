@@ -1,3 +1,5 @@
+import './TopNav.css';
+
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -17,7 +19,7 @@ import logo from 'assets/images/nav-logo.png';
 import userImage from 'assets/images/user-profile.png';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
-import '../../../App.css'
+
 import newproject from '../../../../src/assets/images/create-new-project.png';
 import developerimg from '../../../../src/assets/images/developer.png';
 import home from '../../../../src/assets/images/Home_Icon_01.png';
@@ -766,13 +768,6 @@ const TopNav = () => {
     console.log(event);
   };
 
-  const tabStyles = {
-    selected: {
-      borderBottom: '4px solid #4872F4',
-      borderRadius: '2px',
-      color: '#4872F4',
-    },
-  };
 
   return (
     <div className="main-navbar">
@@ -839,7 +834,6 @@ const TopNav = () => {
                       height: '40px',
                       paddingLeft: '18px',
                     }}
-                    TabIndicatorProps={{ style: tabStyles.selected }}
                     value={value}
                     onChange={handleChange}
                   >
@@ -893,58 +887,43 @@ const TopNav = () => {
                               className="single-board"
                               style={{ height: '180px', background: '#4872F4', width: '230px' }}
                             >
-                              <div className="board-img " style={{ height: '113px' }}>
+                              <div className="board-img" style={{ height: '113px' }}>
                                 <img className="img-fluid img-center" src={home} width="100%" />
                               </div>
                               <h6 style={{ color: 'white', paddingTop: '10px' }}>
                                 General Dashboard
                               </h6>
                             </div>
-                            <div
-                              className="single-board hoverEffect "
-                              style={{ height: '180px', width: '230px' }}
-                            >
-                              <div className="board-img" style={{ height: '113px' }}>
+                            <div className="single-board hoverEffect ">
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={developerimg} />
                               </div>
                               <h6 style={{ paddingTop: '10px' }}>Drp Builds</h6>
                               <p>A-101</p>
                             </div>
-                            <div
-                              className="single-board hoverEffect "
-                              style={{ height: '180px', width: '230px' }}
-                            >
-                              <div className="board-img" style={{ height: '113px' }}>
+                            <div className="single-board hoverEffect ">
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={developerimg} />
                               </div>
                               <h6 style={{ paddingTop: '10px' }}>Dream Project</h6>
                               <p>A-101</p>
                             </div>
-                            <div
-                              className="single-board hoverEffect "
-                              style={{ height: '180px', width: '230px' }}
-                            >
-                              <div className="board-img" style={{ height: '113px' }}>
+                            <div className="single-board hoverEffect ">
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={developerimg} />
                               </div>
                               <h6 style={{ paddingTop: '10px' }}>Mihir Project</h6>
                               <p>A-101</p>
                             </div>
-                            <div
-                              className="single-board hoverEffect "
-                              style={{ height: '180px', width: '230px' }}
-                            >
-                              <div className="board-img" style={{ height: '113px' }}>
+                            <div className="single-board hoverEffect ">
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={developerimg} />
                               </div>
                               <h6 style={{ paddingTop: '10px' }}>Sandip Test</h6>
                               <p>A-101</p>
                             </div>
-                            <div
-                              className="single-board hoverEffect "
-                              style={{ height: '180px', width: '230px' }}
-                            >
-                              <div className="board-img" style={{ height: '113px' }}>
+                            <div className="single-board hoverEffect ">
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={developerimg} />
                               </div>
                               <h6 style={{ paddingTop: '10px' }}>Siya Ram</h6>
@@ -973,7 +952,7 @@ const TopNav = () => {
                               className="single-board hoverEffect "
                               style={{ height: '180px', background: '#4872F4', width: '230px' }}
                             >
-                              <div className="board-img" style={{ height: '113px' }}>
+                              <div className="board-img">
                                 <img className="img-fluid img-center" src={home} width="100%" />
                               </div>
                               <h6 style={{ color: 'white', paddingTop: '10px' }}>
