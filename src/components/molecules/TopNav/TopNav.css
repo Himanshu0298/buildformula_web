@@ -1,0 +1,11 @@
+.hoverEffect:hover{
+    background-color: #4872F4;
+    color:white;
+  }
+  .board-img{
+    height: 113px;
+  }
+  .single-board{
+    height: 180px;
+    width: 230px;
+  }
