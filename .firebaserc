@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "vshwan"
-  }
+  },
+  "targets": {
+    "vshwan": {
+      "hosting": {
+        "live": [
+          "vshwan"
+        ],
+        "staging": [
+          "vshwan-webapp-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
