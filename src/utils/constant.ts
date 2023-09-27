@@ -1,6 +1,4 @@
 import { isString } from 'lodash';
-import React from 'react';
-import { useLocation } from 'react-router-dom';
 
 export const SITE_URL = 'http://192.168.20.131/';
 // export const SITE_URL = 'https://3e1c-1-22-140-88.ngrok-free.app';

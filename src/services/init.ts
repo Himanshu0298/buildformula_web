@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { store } from 'redux/store';
 import { BASE_API_URL } from 'utils/constant';
 
 export const instance = axios.create({ baseURL: BASE_API_URL });
 
 export const config = ({ multipart = true } = {}) => {
-  const {token} = store.getState().sales
-  console.log("🚀 ~ file: init.ts:9 ~ config ~ token:", token)
+  const searchParams = new URLSearchParams(document.location.search);
+  const token = searchParams.get('token');
+
   const headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json',

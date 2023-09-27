@@ -1,5 +1,5 @@
 export interface ISalesState {
-  msg: string,
+  msg: string;
   loading: boolean;
   visitorList: IVisitor[];
   unitInfo: IUnitInfo;
@@ -11,8 +11,7 @@ export interface ISalesState {
   banksList: IBanksList[];
   timer: boolean;
   unitAreaInfo: IUnitAreaInfo;
-  extraChargesList:IExtraCharges;
-  token: string;
+  extraChargesList: IExtraCharges;
 }
 
 export type CommonParams = {
@@ -316,7 +315,7 @@ export interface IInstallmentInfo {
   installment_per?: number;
   installment_due_date: string;
   installment_basic_amt?: number;
-  installment_otherchages_amt : number;
+  installment_otherchages_amt: number;
   gst?: number;
   installment_amount: number;
   percentage: number;
@@ -329,19 +328,19 @@ export interface IBanksList {
 }
 
 export interface IExtraCharges {
-  other_charge_unit_rates: IExtraChargesData[]
+  other_charge_unit_rates: IExtraChargesData[];
 }
 
 export interface IExtraChargesData {
-  id: number
-  project_id: number
-  unit_id: number
-  amount_type: string
-  other_charge_field_id: number
-  ratebase_amounts: number
-  fixed_amounts: number
-  type: string
-  created_at: string
-  updated_at: any
-  title: string
+  id: number;
+  project_id: number;
+  unit_id: number;
+  amount_type: string;
+  other_charge_field_id: number;
+  ratebase_amounts: number;
+  fixed_amounts: number;
+  type: string;
+  created_at: string;
+  updated_at: any;
+  title: string;
 }
