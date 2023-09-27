@@ -4,7 +4,7 @@ import { addCustomer, getVisitorsList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
 
-const AddCustomerModal = ({ show, handleClose }) => {
+const AddCustomerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
@@ -24,7 +24,7 @@ const AddCustomerModal = ({ show, handleClose }) => {
       const { firstName, lastName, email, phone } = values;
       dispatch(
         addCustomer({
-          project_id: 18,
+          project_id,
           first_name: firstName,
           last_name: lastName,
           email,
@@ -40,7 +40,7 @@ const AddCustomerModal = ({ show, handleClose }) => {
 
       await dispatch(
         getVisitorsList({
-          project_id: 18,
+          project_id,
         }),
       );
 
