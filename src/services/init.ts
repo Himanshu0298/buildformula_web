@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { store } from 'redux/store';
 import { BASE_API_URL } from 'utils/constant';
 
 export const instance = axios.create({ baseURL: BASE_API_URL });
 
 export const config = ({ multipart = true } = {}) => {
-  const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8xOTIuMTY4LjIwLjEzMVwvdXNlcmxvZ2luIiwiaWF0IjoxNjg5OTE2NjMyLCJleHAiOjE2OTAwODk0MzIsIm5iZiI6MTY4OTkxNjYzMiwianRpIjoicVNyWEt5SVNGTFdyalBqaCIsInN1YiI6NDUsInBydiI6Ijg3ZTBhZjFlZjlmZDE1ODEyZmRlYzk3MTUzYTE0ZTBiMDQ3NTQ2YWEifQ.ps4l2I6Vb2C2apgVt0unrveZmcitxhGgcC14nh2UWCM' || {};
-
+  const {token} = store.getState().sales
+  console.log("🚀 ~ file: init.ts:9 ~ config ~ token:", token)
   const headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json',

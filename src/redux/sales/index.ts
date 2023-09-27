@@ -120,7 +120,7 @@ export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherCharges
       return thunkApi.rejectWithValue({ error: processedError });
     }
   },
-); 
+);
 
 export const getOtherExtraCharges = createAsyncThunk<IExtraCharges, IOtherChargesParam>(
   'sales/getOtherExtraCharges',
@@ -199,6 +199,7 @@ const initialState: ISalesState = {
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
   timer: false,
+  token: '',
   unitAreaInfo: {} as IUnitAreaInfo,
   extraChargesList: {} as IExtraCharges,
 };
@@ -209,6 +210,9 @@ const salesSlice = createSlice({
   reducers: {
     triggerTimer: (state, action) => {
       state.timer = action.payload;
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
     },
   },
   extraReducers: builder => {
@@ -324,5 +328,5 @@ const salesSlice = createSlice({
     });
   },
 });
-export const { triggerTimer } = salesSlice.actions;
+export const { triggerTimer, setToken } = salesSlice.actions;
 export default salesSlice.reducer;

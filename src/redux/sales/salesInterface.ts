@@ -12,15 +12,16 @@ export interface ISalesState {
   timer: boolean;
   unitAreaInfo: IUnitAreaInfo;
   extraChargesList:IExtraCharges;
+  token: string;
 }
 
 export type CommonParams = {
-  project_id: number;
+  project_id: string;
 };
 
 export interface IVisitor {
   id: number;
-  project_id: number;
+  project_id: string;
   user_id: number;
   first_name: string;
   last_name: string;
@@ -119,8 +120,8 @@ export interface CreateCustomerParams {
 }
 
 export interface UnitInfoParams {
-  project_id: number;
-  tower_id: number;
+  project_id: string;
+  tower_id: string;
 }
 export interface IUnitTowerInfo {
   project_tower: number;
@@ -251,14 +252,14 @@ export interface IOtherChargesInfo {
 }
 
 export interface IOtherChargesParam {
-  project_id: number;
-  unit_id: number;
+  project_id: string;
+  unit_id: string;
 }
 
 export interface IUnitAreaInfoParam {
-  project_id: number;
+  project_id: string;
   project_main_types: number;
-  unit_id: number;
+  unit_id: string;
 }
 
 export interface IUnitAreaInfo {
