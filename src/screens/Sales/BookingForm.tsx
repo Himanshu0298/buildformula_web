@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
+import { useSearchParams } from 'react-router-dom';
 import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import {
@@ -35,6 +36,17 @@ const unitId = 28;
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
+
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token'); 
+  const id = searchParams.get('id');
+  const project_id = searchParams.get('project_id');
+  const unit_id = searchParams.get('unit_id');
+  const tower_id = searchParams.get('tower_id');
+  const project_main_types = searchParams.get('project_main_types');
+
+  console.log("🚀 ~ token:", token, "id", id, "project_id", project_id, "unit_id", unit_id, "tower_id", tower_id, project_main_types, "project_main_types")
+
   const {
     visitorList,
     unitInfo,
@@ -99,10 +111,12 @@ const BookingForm = () => {
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
   }, [unitInfo?.booking_unit_sheet_towers_data]);
+
   // parkingInfo
   const unitParkingInfoValues = useMemo(() => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
   }, [unitParkingInfo?.all_parking_units]);
+
   // customers options
   const customerOptions = useMemo(() => {
     return visitorList?.map(e => ({

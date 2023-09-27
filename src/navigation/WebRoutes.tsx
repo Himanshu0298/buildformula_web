@@ -1,4 +1,4 @@
-import { Routes,Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 // components
 import BookingForm from '../screens/Sales/BookingForm';
@@ -6,9 +6,9 @@ import BookingForm from '../screens/Sales/BookingForm';
 const WebRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<BookingForm/>} />
+      <Route element={<BookingForm />} path="/bookingChart" />
     </Routes>
   );
-}
+};
 
-export default WebRoutes
+export default WebRoutes;
