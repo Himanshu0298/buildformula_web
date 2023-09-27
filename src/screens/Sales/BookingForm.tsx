@@ -24,6 +24,7 @@ import {
   getUnitInfo,
   getUnitParkingInfo,
   getVisitorsList,
+  setToken,
   triggerTimer,
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
@@ -32,20 +33,15 @@ import { DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
-const unitId = 28;
-
 const BookingForm = () => {
   const dispatch = useAppDispatch();
 
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token'); 
-  const id = searchParams.get('id');
+  const TOKEN = searchParams.get('token');
   const project_id = searchParams.get('project_id');
   const unit_id = searchParams.get('unit_id');
   const tower_id = searchParams.get('tower_id');
-  const project_main_types = searchParams.get('project_main_types');
-
-  console.log("🚀 ~ token:", token, "id", id, "project_id", project_id, "unit_id", unit_id, "tower_id", tower_id, project_main_types, "project_main_types")
+  // const project_main_types = searchParams.get('project_main_types'); not provided by backend
 
   const {
     visitorList,
@@ -59,7 +55,13 @@ const BookingForm = () => {
     unitAreaInfo,
     extraChargesList,
     // timer,
+    token,
   } = useAppSelector(s => s.sales);
+
+  useEffect(() => {
+    dispatch(setToken(token))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [TOKEN]);
 
   const [show, setShow] = useState(false);
 
@@ -109,13 +111,15 @@ const BookingForm = () => {
   const toggleModal = () => setShow(!show);
   // unitInfo
   const unitInfoValues = useMemo(() => {
-    return unitInfo?.booking_unit_sheet_towers_data?.find(e => e.project_main_units_id === unitId);
-  }, [unitInfo?.booking_unit_sheet_towers_data]);
+    return unitInfo?.booking_unit_sheet_towers_data?.find(
+      e => e.project_main_units_id === Number(unit_id),
+    );
+  }, [unitInfo?.booking_unit_sheet_towers_data, unit_id]);
 
   // parkingInfo
   const unitParkingInfoValues = useMemo(() => {
-    return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unitId.toString());
-  }, [unitParkingInfo?.all_parking_units]);
+    return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unit_id);
+  }, [unitParkingInfo?.all_parking_units, unit_id]);
 
   // customers options
   const customerOptions = useMemo(() => {
@@ -446,44 +450,44 @@ const BookingForm = () => {
                   ? unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
                   : x?.extra_charges_disc_amt
                 : parseFloat(x?.extra_charges_disc_amt) > x?.fixed_amounts
-                ? x?.fixed_amounts
-                : x?.extra_charges_disc_amt
+                  ? x?.fixed_amounts
+                  : x?.extra_charges_disc_amt
             }
             onChange={
               values.calculation_method === 'rate_base'
                 ? e => {
-                    let discountAmount = parseFloat(e.target.value) || 0;
-                    if (discountAmount < 0) {
-                      discountAmount = 0; // Ensure it doesn't go below zero
-                    }
-                    if (discountAmount > x.extra_charges_area * x.extra_charges_rate) {
-                      toast.warning('Discount Amount cannot be more than Extra Basic Amount');
-                      discountAmount = parseFloat(
-                        (x.extra_charges_area * x.extra_charges_rate).toFixed(2),
-                      );
-                    }
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
-                    const discountPercent = (
-                      (discountAmount / (x.extra_charges_area * x.extra_charges_rate)) *
-                      100
-                    ).toFixed(2);
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                  let discountAmount = parseFloat(e.target.value) || 0;
+                  if (discountAmount < 0) {
+                    discountAmount = 0; // Ensure it doesn't go below zero
                   }
-                : e => {
-                    let discountAmount = parseFloat(e.target.value) || 0;
-                    if (discountAmount < 0) {
-                      discountAmount = 0; // Ensure it doesn't go below zero
-                    }
-                    if (discountAmount > x.extra_charges_rate) {
-                      toast.warning('Discount Amount cannot be more than Extra Basic Amount');
-                      discountAmount = parseFloat(x.extra_charges_rate.toFixed(2));
-                    }
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
-                    const discountPercent = ((discountAmount / x.extra_charges_rate) * 100).toFixed(
-                      2,
+                  if (discountAmount > x.extra_charges_area * x.extra_charges_rate) {
+                    toast.warning('Discount Amount cannot be more than Extra Basic Amount');
+                    discountAmount = parseFloat(
+                      (x.extra_charges_area * x.extra_charges_rate).toFixed(2),
                     );
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
                   }
+                  handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                  const discountPercent = (
+                    (discountAmount / (x.extra_charges_area * x.extra_charges_rate)) *
+                    100
+                  ).toFixed(2);
+                  handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                }
+                : e => {
+                  let discountAmount = parseFloat(e.target.value) || 0;
+                  if (discountAmount < 0) {
+                    discountAmount = 0; // Ensure it doesn't go below zero
+                  }
+                  if (discountAmount > x.extra_charges_rate) {
+                    toast.warning('Discount Amount cannot be more than Extra Basic Amount');
+                    discountAmount = parseFloat(x.extra_charges_rate.toFixed(2));
+                  }
+                  handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                  const discountPercent = ((discountAmount / x.extra_charges_rate) * 100).toFixed(
+                    2,
+                  );
+                  handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                }
             }
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
@@ -498,52 +502,52 @@ const BookingForm = () => {
             onChange={
               values.calculation_method === 'rate_base'
                 ? e => {
-                    let discountPercent = parseFloat(e.target.value) || 0;
-                    if (discountPercent < 0) {
-                      discountPercent = 0;
-                    }
-                    if (discountPercent > 100) {
-                      toast.warning('Discount percentage should not be more than 100%');
-                      discountPercent = 100;
-                    }
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_per',
-                      discountPercent.toString(),
-                    );
-                    const discountAmount = (
-                      (discountPercent / 100) *
-                      (x.extra_charges_area * x.extra_charges_rate)
-                    ).toFixed(2);
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_amt',
-                      parseFloat(discountAmount),
-                    );
+                  let discountPercent = parseFloat(e.target.value) || 0;
+                  if (discountPercent < 0) {
+                    discountPercent = 0;
                   }
+                  if (discountPercent > 100) {
+                    toast.warning('Discount percentage should not be more than 100%');
+                    discountPercent = 100;
+                  }
+                  handleUpdateExtraCharge(
+                    i,
+                    'extra_charges_disc_per',
+                    discountPercent.toString(),
+                  );
+                  const discountAmount = (
+                    (discountPercent / 100) *
+                    (x.extra_charges_area * x.extra_charges_rate)
+                  ).toFixed(2);
+                  handleUpdateExtraCharge(
+                    i,
+                    'extra_charges_disc_amt',
+                    parseFloat(discountAmount),
+                  );
+                }
                 : e => {
-                    let discountPercent = parseFloat(e.target.value) || 0;
-                    if (discountPercent < 0) {
-                      discountPercent = 0;
-                    }
-                    if (discountPercent > 100) {
-                      toast.warning('Discount percentage should not be more than 100%');
-                      discountPercent = 100;
-                    }
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_per',
-                      discountPercent.toString(),
-                    );
-                    const discountAmount = ((discountPercent / 100) * x.extra_charges_rate).toFixed(
-                      2,
-                    );
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_amt',
-                      parseFloat(discountAmount),
-                    );
+                  let discountPercent = parseFloat(e.target.value) || 0;
+                  if (discountPercent < 0) {
+                    discountPercent = 0;
                   }
+                  if (discountPercent > 100) {
+                    toast.warning('Discount percentage should not be more than 100%');
+                    discountPercent = 100;
+                  }
+                  handleUpdateExtraCharge(
+                    i,
+                    'extra_charges_disc_per',
+                    discountPercent.toString(),
+                  );
+                  const discountAmount = ((discountPercent / 100) * x.extra_charges_rate).toFixed(
+                    2,
+                  );
+                  handleUpdateExtraCharge(
+                    i,
+                    'extra_charges_disc_amt',
+                    parseFloat(discountAmount),
+                  );
+                }
             }
           />
         </td>
@@ -662,14 +666,14 @@ const BookingForm = () => {
 
   // Api calls
   useEffect(() => {
-    dispatch(getVisitorsList({ project_id: 18 }));
-    dispatch(getUnitInfo({ project_id: 18, tower_id: 1 }));
-    dispatch(getUnitParkingInfo({ project_id: 18 }));
-    dispatch(getOtherChargesList({ project_id: 18, unit_id: unitId }));
-    dispatch(getOtherExtraCharges({ project_id: 18, unit_id: unitId }));
-    dispatch(getAreaInfo({ project_id: 18, project_main_types: 6, unit_id: unitId }));
-    dispatch(getTermsnConditions({ project_id: 18 }));
-    dispatch(getInstallmentOptions({ project_id: 18 }));
+    dispatch(getVisitorsList({ project_id }));
+    dispatch(getUnitInfo({ project_id, tower_id }));
+    dispatch(getUnitParkingInfo({ project_id }));
+    dispatch(getOtherChargesList({ project_id, unit_id }));
+    dispatch(getOtherExtraCharges({ project_id, unit_id }));
+    dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
+    dispatch(getTermsnConditions({ project_id }));
+    dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(triggerTimer(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -688,8 +692,8 @@ const BookingForm = () => {
 
   const initialValues = useMemo(() => {
     return {
-      project_id: 18,
-      unit_id: unitId,
+      project_id,
+      unit_id: unit_id,
       visitors_id: customerDetails?.id,
       unit_reserved_date: dayjs().format('YYYY-MM-DD'),
       parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
@@ -724,9 +728,11 @@ const BookingForm = () => {
     };
   }, [
     customerDetails?.id,
+    project_id,
     unitAreaInfo?.rate_base_amt,
     unitAreaInfo?.super_build_up_area,
     unitParkingInfoValues,
+    unit_id,
   ]);
 
   const handleSubmit = async values => {
@@ -853,8 +859,8 @@ const BookingForm = () => {
       values.calculation_method === 'rate_base'
         ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
         : values.calculation_method === 'fixed_amount'
-        ? x.fixed_amounts
-        : 0;
+          ? x.fixed_amounts
+          : 0;
 
     const discountOtherCharges = useSyncedFields(
       oc_Base,
@@ -876,13 +882,13 @@ const BookingForm = () => {
               onChange={
                 values.calculation_method === 'rate_base'
                   ? e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handleBaseAmount();
-                    }
+                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                    handleBaseAmount();
+                  }
                   : e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handleFixedAmount();
-                    }
+                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                    handleFixedAmount();
+                  }
               }
             >
               <option disabled selected>

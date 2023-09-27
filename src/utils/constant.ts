@@ -141,13 +141,6 @@ export function processError(error: any) {
     : 'An error occurred. Please try again.';
 }
 
-export function useQuery() {
-  const { search } = useLocation();
-  return React.useMemo(() => new URLSearchParams(search), [search]);
-}
-// let query = useQuery();
-// const id = query.get('id');
-
 export const MONTHS = [
   'Jan',
   'Feb',
