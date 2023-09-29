@@ -1,6 +1,6 @@
 import { isString } from 'lodash';
 
-export const SITE_URL = 'https://vshwandrx.in';
+export const SITE_URL = 'https://webapp.vshwandrx.in/';
 // export const SITE_URL = 'https://3e1c-1-22-140-88.ngrok-free.app';
 // export const SITE_URL = 'http://110.227.208.185/';
 // export const SITE_URL = 'https://portal.buildformula.com';
