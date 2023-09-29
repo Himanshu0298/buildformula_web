@@ -16,7 +16,6 @@ import {
   addBooking,
   getAreaInfo,
   getBankList,
-  // getInstallmentDetails,
   getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
