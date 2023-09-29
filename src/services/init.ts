@@ -11,6 +11,7 @@ export const config = ({ multipart = true } = {}) => {
     'Content-Type': 'application/json',
     Accept: 'application/json',
     Authorization: `Bearer ${token}`,
+    'Access-Control-Allow-Origin': true,
   };
 
   if (multipart) {
