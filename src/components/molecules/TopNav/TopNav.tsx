@@ -1,733 +1,169 @@
 import './TopNav.css';
 
-import CloseIcon from '@mui/icons-material/Close';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
-import { Divider } from '@mui/material';
+// import CloseIcon from '@mui/icons-material/Close';
+// import FilterListIcon from '@mui/icons-material/FilterList';
+// import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+// import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+// import NotificationsOffIcon from '@mui/icons-material/NotificationsOff';
+// import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Modal from '@mui/material/Modal';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
+// import Drawer from '@mui/material/Drawer';
+// import List from '@mui/material/List';
+// import Menu from '@mui/material/Menu';
+// import MenuItem from '@mui/material/MenuItem';
+// import Modal from '@mui/material/Modal';
+// import Tab from '@mui/material/Tab';
+// import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 import logo from 'assets/images/nav-logo.png';
-import userImage from 'assets/images/user-profile.png';
+// import userImage from 'assets/images/user-profile.png';
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+// import { useState } from 'react';
 
-import newproject from '../../../../src/assets/images/create-new-project.png';
-import developerimg from '../../../../src/assets/images/developer.png';
-import home from '../../../../src/assets/images/Home_Icon_01.png';
+// import newproject from '../../../../src/assets/images/create-new-project.png';
+// import developerimg from '../../../../src/assets/images/developer.png';
+// import home from '../../../../src/assets/images/Home_Icon_01.png';
 const TopNav = () => {
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const [value, setValue] = useState(0);
-  const [state, setState] = useState({
-    right: false,
-  });
-  const [element, setElement] = useState(null);
-  const isOpen = Boolean(element);
-  const handleToggle = event => {
-    setElement(event.currentTarget);
-  };
-  const closeToggle = () => {
-    setElement(null);
-  };
-  const toggleDrawer = (anchor, open) => event => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setState({ ...state, [anchor]: open });
-  };
+  // const [open, setOpen] = useState(false);
+  // const handleOpen = () => setOpen(true);
+  // const handleClose = () => setOpen(false);
+  // const [value, setValue] = useState(0);
+  // const [state, setState] = useState({
+  //   right: false,
+  // });
+  // const [element, setElement] = useState(null);
+  // const isOpen = Boolean(element);
+  // const handleToggle = event => {
+  //   setElement(event.currentTarget);
+  // };
+  // const closeToggle = () => {
+  //   setElement(null);
+  // };
+  // const toggleDrawer = (anchor, open) => event => {
+  //   if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+  //     return;
+  //   }
+  //   setState({ ...state, [anchor]: open });
+  // };
 
-  const list = anchor => (
-    <Box role="presentation" onKeyDown={toggleDrawer(anchor, false)}>
-      <List
-        sx={{
-          display: 'flex',
-          gap: '1rem',
-          paddingLeft: '14px',
-          alignItems: 'center',
-          paddingTop: '1rem',
-        }}
-      >
-        <h5 style={{ paddingRight: '9rem' }}>Notifications</h5>
-        <button
-          style={{
-            backgroundColor: 'rgba(72, 114, 244, 0.1)',
-            border: '1px solid transparent',
-            color: ' #4872f4',
-            borderRadius: '12px',
-          }}
-        >
-          Clear All
-        </button>
-        <FilterListIcon
-          aria-controls={isOpen ? 'basic-menu' : undefined}
-          aria-expanded={isOpen ? 'true' : undefined}
-          aria-haspopup="true"
-          id="basic-button"
-          sx={{ cursor: 'pointer' }}
-          onClick={handleToggle}
-        />
-        <Menu
-          anchorEl={element}
-          id="basic-menu"
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
-          open={isOpen}
-          onClose={closeToggle}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', padding: '6px' }}>
-            <NotificationsActiveIcon />
-            <MenuItem>Read </MenuItem>
-          </div>
-          <Divider />
-          <div style={{ display: 'flex', gap: '1px', alignItems: 'center', padding: '6px' }}>
-            <NotificationsOffIcon />
-            <MenuItem>Unread </MenuItem>
-          </div>
-        </Menu>
-        <CloseIcon
-          sx={{ marginRight: '15px', cursor: 'pointer' }}
-          onClick={toggleDrawer('right', false)}
-        />
-      </List>
-      <List>
-        <ul className="notification-list p-0">
-          <li className="notification-list-itm new-notification">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li className="notification-list-itm">
-            <div className="noti-itm">
-              <div className="media">
-                <div className="notific-icon align-self-center">
-                  <svg
-                    fill="none"
-                    height="26"
-                    viewBox="0 0 24 26"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
-                      stroke="#041D36"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeOpacity="0.6"
-                      strokeWidth="1.5"
-                    />
-                    /{'>'}
-                    <path
-                      d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
-                      fill="#041D36"
-                      fillOpacity="0.6"
-                    />
-                  </svg>
-                </div>
-                <div className="media-body new-noti-body">
-                  <h5>
-                    <strong>Nilesh joshi</strong> just updated booking status for
-                    <strong> Mohit pala</strong>
-                    <HighlightOffIcon sx={{ marginLeft: '15px' }} />
-                  </h5>
-                  <p>21 May 2020, 08:00 PM</p>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </List>
-    </Box>
-  );
+  // const list = anchor => (
+  //   <Box role="presentation" onKeyDown={toggleDrawer(anchor, false)}>
+  //     <List
+  //       sx={{
+  //         display: 'flex',
+  //         gap: '1rem',
+  //         paddingLeft: '14px',
+  //         alignItems: 'center',
+  //         paddingTop: '1rem',
+  //       }}
+  //     >
+  //       <h5 style={{ paddingRight: '9rem' }}>Notifications</h5>
+  //       <button
+  //         style={{
+  //           backgroundColor: 'rgba(72, 114, 244, 0.1)',
+  //           border: '1px solid transparent',
+  //           color: ' #4872f4',
+  //           borderRadius: '12px',
+  //         }}
+  //       >
+  //         Clear All
+  //       </button>
+  //       <FilterListIcon
+  //         aria-controls={isOpen ? 'basic-menu' : undefined}
+  //         aria-expanded={isOpen ? 'true' : undefined}
+  //         aria-haspopup="true"
+  //         id="basic-button"
+  //         sx={{ cursor: 'pointer' }}
+  //         onClick={handleToggle}
+  //       />
+  //       <Menu
+  //         anchorEl={element}
+  //         id="basic-menu"
+  //         MenuListProps={{
+  //           'aria-labelledby': 'basic-button',
+  //         }}
+  //         open={isOpen}
+  //         onClose={closeToggle}
+  //       >
+  //         <div style={{ display: 'flex', alignItems: 'center', padding: '6px' }}>
+  //           <NotificationsActiveIcon />
+  //           <MenuItem>Read </MenuItem>
+  //         </div>
+  //         <Divider />
+  //         <div style={{ display: 'flex', gap: '1px', alignItems: 'center', padding: '6px' }}>
+  //           <NotificationsOffIcon />
+  //           <MenuItem>Unread </MenuItem>
+  //         </div>
+  //       </Menu>
+  //       <CloseIcon
+  //         sx={{ marginRight: '15px', cursor: 'pointer' }}
+  //         onClick={toggleDrawer('right', false)}
+  //       />
+  //     </List>
+  //     <List>
+  //       <ul className="notification-list p-0">
+  //         <li className="notification-list-itm new-notification">
+  //           <div className="noti-itm">
+  //             <div className="media">
+  //               <div className="notific-icon align-self-center">
+  //                 <svg
+  //                   fill="none"
+  //                   height="26"
+  //                   viewBox="0 0 24 26"
+  //                   width="24"
+  //                   xmlns="http://www.w3.org/2000/svg"
+  //                 >
+  //                   <path
+  //                     d="M17 24.6572V22.6572C17 21.5964 16.5786 20.5789 15.8284 19.8288C15.0783 19.0787 14.0609 18.6572 13 18.6572H5C3.93913 18.6572 2.92172 19.0787 2.17157 19.8288C1.42143 20.5789 1 21.5964 1 22.6572V24.6572"
+  //                     stroke="#041D36"
+  //                     strokeLinecap="round"
+  //                     strokeLinejoin="round"
+  //                     strokeOpacity="0.6"
+  //                     strokeWidth="1.5"
+  //                   />
+  //                   /{'>'}
+  //                   <path
+  //                     d="M9 14.6572C11.2091 14.6572 13 12.8664 13 10.6572C13 8.44809 11.2091 6.65723 9 6.65723C6.79086 6.65723 5 8.44809 5 10.6572C5 12.8664 6.79086 14.6572 9 14.6572Z"
+  //                     stroke="#041D36"
+  //                     strokeLinecap="round"
+  //                     strokeLinejoin="round"
+  //                     strokeOpacity="0.6"
+  //                     strokeWidth="1.5"
+  //                   />
+  //                   /{'>'}
+  //                   <path
+  //                     d="M18.7598 11.7969C18.7702 11.1771 18.8405 10.6875 18.9707 10.3281C19.1009 9.96875 19.3665 9.57031 19.7676 9.13281L20.791 8.07812C21.2285 7.58333 21.4473 7.05208 21.4473 6.48438C21.4473 5.9375 21.304 5.51042 21.0176 5.20312C20.7311 4.89062 20.3145 4.73438 19.7676 4.73438C19.2363 4.73438 18.8092 4.875 18.4863 5.15625C18.1634 5.4375 18.002 5.8151 18.002 6.28906H16.5566C16.5671 5.44531 16.8665 4.76562 17.4551 4.25C18.0488 3.72917 18.8197 3.46875 19.7676 3.46875C20.752 3.46875 21.5176 3.73438 22.0645 4.26562C22.6165 4.79167 22.8926 5.51562 22.8926 6.4375C22.8926 7.34896 22.4707 8.2474 21.627 9.13281L20.7754 9.97656C20.3952 10.3984 20.2051 11.0052 20.2051 11.7969H18.7598ZM18.6973 14.2734C18.6973 14.0391 18.7676 13.8438 18.9082 13.6875C19.054 13.526 19.2676 13.4453 19.5488 13.4453C19.8301 13.4453 20.0436 13.526 20.1895 13.6875C20.3353 13.8438 20.4082 14.0391 20.4082 14.2734C20.4082 14.5078 20.3353 14.7031 20.1895 14.8594C20.0436 15.0104 19.8301 15.0859 19.5488 15.0859C19.2676 15.0859 19.054 15.0104 18.9082 14.8594C18.7676 14.7031 18.6973 14.5078 18.6973 14.2734Z"
+  //                     fill="#041D36"
+  //                     fillOpacity="0.6"
+  //                   />
+  //                 </svg>
+  //               </div>
+  //               <div className="media-body new-noti-body">
+  //                 <h5>
+  //                   <strong>Nilesh joshi</strong> just updated booking status for
+  //                   <strong> Mohit pala</strong>
+  //                   <HighlightOffIcon sx={{ marginLeft: '15px' }} />
+  //                 </h5>
+  //                 <p>21 May 2020, 08:00 PM</p>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </li>
+  //       </ul>
+  //     </List>
+  //   </Box>
+  // );
 
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '82%',
-    bgcolor: 'background.paper',
-    p: 0,
-    borderRadius: '6px',
-  };
+  // const style = {
+  //   position: 'absolute',
+  //   top: '50%',
+  //   left: '50%',
+  //   transform: 'translate(-50%, -50%)',
+  //   width: '82%',
+  //   bgcolor: 'background.paper',
+  //   p: 0,
+  //   borderRadius: '6px',
+  // };
 
   function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -756,18 +192,17 @@ const TopNav = () => {
     value: PropTypes.number.isRequired,
   };
 
-  function a11yProps(index) {
-    return {
-      id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
-    };
-  }
+  // function a11yProps(index) {
+  //   return {
+  //     id: `simple-tab-${index}`,
+  //     'aria-controls': `simple-tabpanel-${index}`,
+  //   };
+  // }
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-    console.log(event);
-  };
-
+  // const handleChange = (event, newValue) => {
+  //   setValue(newValue);
+  //   console.log(event);
+  // };
 
   return (
     <div className="main-navbar">
@@ -794,7 +229,7 @@ const TopNav = () => {
         </div>
         <input className="form-control" type="text" />
       </div> */}
-      <div className="navbar">
+      {/* <div className="navbar">
         <button
           className="nav-btn menu-btn allsites-btn"
           data-target="#exampleModal"
@@ -1063,7 +498,7 @@ const TopNav = () => {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
