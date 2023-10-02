@@ -13,12 +13,17 @@ export function useSyncedFields(
     // Fixing the amount
     const fixAmount = amount > base ? base : amount;
     // Set to zero if less than zero
-    const newAmount = fixAmount < 0 ? 0 : fixAmount;
+    const newAmount = isNaN(fixAmount) || fixAmount < 0 ? 0 : fixAmount;
     set(amountKey, newAmount);
 
+    // if (isNaN(fixAmount)) {
+    //   set(amountKey, 0);
+    // }
     // Calculate the percentage based on the new amount and update the formik value for the percentage field
     const percent = ((newAmount / base) * 100).toFixed(2);
-    if (isNaN(newAmount) || parseInt(percent) >= 100) {
+    if (newAmount === 0) {
+      set(amountKey, 0);
+    } else if (parseInt(percent) >= 100) {
       toast.warning('Discount Amount cannot be more than Basic Amount');
       set(percentKey, 100);
     } else {
@@ -31,12 +36,14 @@ export function useSyncedFields(
     // Fixing the percent
     const fixPercent = percent > 100 ? 100 : percent;
     // Set to zero if less than zero
-    const newPercent = fixPercent < 0 ? 0 : fixPercent;
+    const newPercent = isNaN(fixPercent) || fixPercent < 0 ? 0 : fixPercent;
     set(percentKey, newPercent);
 
     // Calculate the amount based on the new percentage and update the formik value for the amount field
     const amount = ((base * newPercent) / 100).toFixed(2);
-    if (isNaN(newPercent) || parseInt(amount) > base || newPercent >= 100) {
+    if (newPercent === 0) {
+      set(amountKey, 0);
+    } else if (parseInt(amount) > base || newPercent > 100) {
       toast.warning('Discount percentage should not be more than 100%');
       set(amountKey, base);
     } else {

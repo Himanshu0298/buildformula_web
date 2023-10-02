@@ -18,6 +18,13 @@ export type CommonParams = {
   project_id: string;
 };
 
+export type VisitorParams = {
+  project_id: string;
+  filter_mode: string;
+  role: string;
+  page: string;
+};
+
 export interface IVisitor {
   id: number;
   project_id: string;

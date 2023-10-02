@@ -657,7 +657,14 @@ const BookingForm = () => {
 
   // Api calls
   useEffect(() => {
-    dispatch(getVisitorsList({ project_id }));
+    dispatch(
+      getVisitorsList({
+        project_id: project_id,
+        filter_mode: 'name',
+        role: 'admin',
+        page: 'all',
+      }),
+    );
     dispatch(getUnitInfo({ project_id, tower_id }));
     dispatch(getUnitParkingInfo({ project_id }));
     dispatch(getOtherChargesList({ project_id, unit_id }));
