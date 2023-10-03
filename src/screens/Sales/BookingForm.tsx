@@ -765,7 +765,7 @@ const BookingForm = () => {
       loan_amt,
     } = values;
 
-    dispatch(
+    await dispatch(
       addBooking({
         project_bookings_temp_id: 0,
         project_id,
@@ -814,6 +814,7 @@ const BookingForm = () => {
         custom_payment_remark,
       }),
     );
+    await navigate(-2);
   };
 
   const formik = useFormik({
