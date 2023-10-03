@@ -27,7 +27,7 @@ import {
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
@@ -64,28 +64,26 @@ const BookingForm = () => {
   const [extraCharges, setExtraCharges] = useState([]);
 
   function handleUpdateExtraCharges() {
-    const updatedData = extraChargesList?.other_charge_unit_rates?.map(x => ({
-      amount_type: x?.amount_type,
-      fixed_amounts: x.fixed_amounts || 0,
-      ratebase_amounts: x.ratebase_amounts || 0,
-      title: x.title,
-      extra_charges_no: 1,
-      extra_charges_title: '',
-      extra_charges_distribution_method: '',
-      extra_charges_area: 0,
-      extra_charges_rate: 0,
-      extra_charges_disc_amt: 0,
-      extra_charges_disc_per: 0,
-      extra_charges_amt: 0,
-      extra_charges_total: 0,
-      extra_charges_base: 0,
-    }));
+    const updatedData = extraChargesList?.other_charge_unit_rates
+      ?.filter(item => item.amount_type === CALCULATION_FLAG)
+      ?.map(x => ({
+        amount_type: x?.amount_type,
+        fixed_amounts: x.fixed_amounts || 0,
+        ratebase_amounts: x.ratebase_amounts || 0,
+        title: x.title,
+        extra_charges_no: 1,
+        extra_charges_title: x.title,
+        extra_charges_distribution_method: '',
+        extra_charges_area: 0,
+        extra_charges_rate: 0,
+        extra_charges_disc_amt: 0,
+        extra_charges_disc_per: 0,
+        extra_charges_amt: 0,
+        extra_charges_total: 0,
+        extra_charges_base: 0,
+      }));
     setExtraCharges(updatedData);
   }
-
-  useEffect(() => {
-    handleUpdateExtraCharges();
-  }, [extraChargesList]);
 
   const [termsId, setTermsId] = useState(0);
   const [oclist, setOCList] = useState({
@@ -372,6 +370,7 @@ const BookingForm = () => {
         <td>{i + 1}</td>
         <td>
           <input
+            title={x?.extra_charges_title}
             className="form-control mb-2"
             type="text"
             value={x?.extra_charges_title}
@@ -380,7 +379,7 @@ const BookingForm = () => {
         </td>
         <td>
           <select
-            className="form-control"
+            className="form-control mb-2"
             onChange={e => {
               handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value);
             }}
@@ -416,7 +415,7 @@ const BookingForm = () => {
             type="number"
             value={
               values.calculation_method === 'rate_base'
-                ? parseFloat(x.ratebase_amounts).toFixed(2) || 0
+                ? parseFloat(x.ratebase_amounts) || 0
                 : parseFloat(x.fixed_amounts) || 0
             }
             onChange={
@@ -452,18 +451,20 @@ const BookingForm = () => {
                     if (discountAmount < 0) {
                       discountAmount = 0; // Ensure it doesn't go below zero
                     }
-                    if (discountAmount > x.extra_charges_area * x.extra_charges_rate) {
-                      toast.warning('Discount Amount cannot be more than Extra Basic Amount');
-                      discountAmount = parseFloat(
-                        (x.extra_charges_area * x.extra_charges_rate).toFixed(2),
-                      );
+                    if (DECIMAL_REGEX.test(e.target.value)) {
+                      if (discountAmount > x.extra_charges_area * x.extra_charges_rate) {
+                        toast.warning('Discount Amount cannot be more than Extra Basic Amount');
+                        discountAmount = parseFloat(
+                          (x.extra_charges_area * x.extra_charges_rate).toFixed(2),
+                        );
+                      }
+                      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                      const discountPercent = (
+                        (discountAmount / (x.extra_charges_area * x.extra_charges_rate)) *
+                        100
+                      ).toFixed(2);
+                      handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
                     }
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
-                    const discountPercent = (
-                      (discountAmount / (x.extra_charges_area * x.extra_charges_rate)) *
-                      100
-                    ).toFixed(2);
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
                   }
                 : e => {
                     let discountAmount = parseFloat(e.target.value) || 0;
@@ -474,11 +475,14 @@ const BookingForm = () => {
                       toast.warning('Discount Amount cannot be more than Extra Basic Amount');
                       discountAmount = parseFloat(x.extra_charges_rate.toFixed(2));
                     }
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
-                    const discountPercent = ((discountAmount / x.extra_charges_rate) * 100).toFixed(
-                      2,
-                    );
-                    handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                    if (DECIMAL_REGEX.test(e.target.value)) {
+                      handleUpdateExtraCharge(i, 'extra_charges_disc_amt', discountAmount);
+                      const discountPercent = (
+                        (discountAmount / x.extra_charges_rate) *
+                        100
+                      ).toFixed(2);
+                      handleUpdateExtraCharge(i, 'extra_charges_disc_per', discountPercent);
+                    }
                   }
             }
           />
@@ -502,20 +506,22 @@ const BookingForm = () => {
                       toast.warning('Discount percentage should not be more than 100%');
                       discountPercent = 100;
                     }
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_per',
-                      discountPercent.toString(),
-                    );
-                    const discountAmount = (
-                      (discountPercent / 100) *
-                      (x.extra_charges_area * x.extra_charges_rate)
-                    ).toFixed(2);
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_amt',
-                      parseFloat(discountAmount),
-                    );
+                    if (DECIMAL_REGEX.test(e.target.value)) {
+                      handleUpdateExtraCharge(
+                        i,
+                        'extra_charges_disc_per',
+                        discountPercent.toString(),
+                      );
+                      const discountAmount = (
+                        (discountPercent / 100) *
+                        (x.extra_charges_area * x.extra_charges_rate)
+                      ).toFixed(2);
+                      handleUpdateExtraCharge(
+                        i,
+                        'extra_charges_disc_amt',
+                        parseFloat(discountAmount),
+                      );
+                    }
                   }
                 : e => {
                     let discountPercent = parseFloat(e.target.value) || 0;
@@ -526,19 +532,22 @@ const BookingForm = () => {
                       toast.warning('Discount percentage should not be more than 100%');
                       discountPercent = 100;
                     }
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_per',
-                      discountPercent.toString(),
-                    );
-                    const discountAmount = ((discountPercent / 100) * x.extra_charges_rate).toFixed(
-                      2,
-                    );
-                    handleUpdateExtraCharge(
-                      i,
-                      'extra_charges_disc_amt',
-                      parseFloat(discountAmount),
-                    );
+                    if (DECIMAL_REGEX.test(e.target.value)) {
+                      handleUpdateExtraCharge(
+                        i,
+                        'extra_charges_disc_per',
+                        discountPercent.toString(),
+                      );
+                      const discountAmount = (
+                        (discountPercent / 100) *
+                        x.extra_charges_rate
+                      ).toFixed(2);
+                      handleUpdateExtraCharge(
+                        i,
+                        'extra_charges_disc_amt',
+                        parseFloat(discountAmount),
+                      );
+                    }
                   }
             }
           />
@@ -826,6 +835,10 @@ const BookingForm = () => {
     };
     setOCList(ocData);
   }, [otherChargesList, CALCULATION_FLAG]);
+
+  useEffect(() => {
+    handleUpdateExtraCharges();
+  }, [extraChargesList, CALCULATION_FLAG]);
 
   const discountSyncedFields = useSyncedFields(
     baseAmount,
@@ -1226,13 +1239,13 @@ const BookingForm = () => {
           />
         </div>
       </div>
-      <hr />
+      <hr style={{ marginTop: 0 }} />
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          <div className="booking-form-row-header">
+          {/* <div className="booking-form-row-header">
             <h4>Customer Details</h4>
-          </div>
+          </div> */}
 
           <Form onSubmit={formik.handleSubmit}>
             {/* 1st section */}

@@ -16,19 +16,20 @@ export function useSyncedFields(
     // Set to zero if less than zero
     const newAmount = isNaN(fixAmount) || fixAmount < 0 ? 0 : fixAmount;
     // matches for two decimals
-    if (DECIMAL_REGEX.test(String(amount))) {
+    if (DECIMAL_REGEX.test(String(newAmount))) {
       set(amountKey, newAmount);
-    }
-    // Calculate the percentage based on the new amount and update the formik value for the percentage field
-    const percent = parseFloat(((newAmount / base) * 100).toFixed(2));
 
-    if (newAmount === 0) {
-      set(amountKey, null);
-    } else if (percent >= 100 || fixAmount > base) {
-      toast.warning('Discount Amount cannot be more than Basic Amount');
-      set(percentKey, 100);
-    } else {
-      set(percentKey, percent);
+      // Calculate the percentage based on the new amount and update the formik value for the percentage field
+      const percent = parseFloat(((newAmount / base) * 100).toFixed(2));
+
+      if (newAmount === 0) {
+        set(amountKey, null);
+      } else if (percent >= 100 || fixAmount > base) {
+        toast.warning('Discount Amount cannot be more than Basic Amount');
+        set(percentKey, 100);
+      } else {
+        set(percentKey, percent);
+      }
     }
   };
 
@@ -41,17 +42,18 @@ export function useSyncedFields(
     // matches for two decimals
     if (DECIMAL_REGEX.test(String(percent))) {
       set(percentKey, newPercent);
-    }
-    // Calculate the amount based on the new percentage and update the formik value for the amount field
-    const amount = parseFloat(((base * newPercent) / 100).toFixed(2));
 
-    if (newPercent === 0) {
-      set(percentKey, null);
-    } else if (amount > base || newPercent >= 100) {
-      toast.warning('Discount percentage should not be more than 100%');
-      set(amountKey, base);
-    } else {
-      set(amountKey, amount);
+      // Calculate the amount based on the new percentage and update the formik value for the amount field
+      const amount = parseFloat(((base * newPercent) / 100).toFixed(2));
+
+      if (newPercent === 0) {
+        set(percentKey, null);
+      } else if (amount > base || newPercent >= 100) {
+        toast.warning('Discount percentage should not be more than 100%');
+        set(amountKey, base);
+      } else {
+        set(amountKey, amount);
+      }
     }
   };
 
