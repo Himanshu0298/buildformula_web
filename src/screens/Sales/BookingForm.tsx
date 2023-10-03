@@ -742,7 +742,7 @@ const BookingForm = () => {
     const {
       project_id,
       unit_id,
-      visitors_id,
+      // visitors_id,
       unit_reserved_date,
       parking_no,
       calculation_method,
@@ -770,7 +770,7 @@ const BookingForm = () => {
         project_bookings_temp_id: 0,
         project_id,
         unit_id,
-        visitors_id,
+        visitors_id: customerDetails?.id,
         unit_reserved_date,
         parking_no,
         calculation_method,
@@ -1745,7 +1745,7 @@ const BookingForm = () => {
                     <input
                       readOnly
                       className="form-control"
-                      value={values.gst_amt + values.stampduty_amount + values.reg_amount}
+                      value={(values.gst_amt + values.stampduty_amount + values.reg_amount).toFixed(2)}
                     />
                   </div>
                 </div>
