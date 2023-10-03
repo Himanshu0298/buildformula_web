@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import {
@@ -33,6 +33,7 @@ import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
   const project_id = searchParams.get('project_id');
@@ -620,11 +621,6 @@ const BookingForm = () => {
   //   return total.toFixed(2);
   // };
 
-  // Other Charges
-  useEffect(() => {
-    setOCList(otherChargesList);
-  }, [otherChargesList]);
-
   // const handlePaymentSchedule = (index, field, value) => {
   //   setInstallmentsList(prevList => {
   //     const newUnitRates = [...prevList];
@@ -657,7 +653,14 @@ const BookingForm = () => {
 
   // Api calls
   useEffect(() => {
-    dispatch(getVisitorsList({ project_id }));
+    dispatch(
+      getVisitorsList({
+        project_id,
+        filter_mode: 'name',
+        role: 'admin',
+        page: 'all',
+      }),
+    );
     dispatch(getUnitInfo({ project_id, tower_id }));
     dispatch(getUnitParkingInfo({ project_id }));
     dispatch(getOtherChargesList({ project_id, unit_id }));
@@ -717,8 +720,8 @@ const BookingForm = () => {
       installments: [],
       extra_charges_total: 0,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    customerDetails?.id,
     project_id,
     unitAreaInfo?.rate_base_amt,
     unitAreaInfo?.super_build_up_area,
@@ -812,6 +815,18 @@ const BookingForm = () => {
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
 
+  const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
+
+  // Other Charges
+  useEffect(() => {
+    const ocData = {
+      other_charge_unit_rates: otherChargesList?.other_charge_unit_rates?.filter(
+        e => e.amount_type === CALCULATION_FLAG,
+      ),
+    };
+    setOCList(ocData);
+  }, [otherChargesList, CALCULATION_FLAG]);
+
   const discountSyncedFields = useSyncedFields(
     baseAmount,
     'basic_rate_disc_amt',
@@ -829,7 +844,7 @@ const BookingForm = () => {
       if (values.calculation_method === 'rate_base') {
         const calulatedAmt =
           unitAreaInfo?.super_build_up_area * newUnitRates[index].ratebase_amounts;
-        const discountAmt = newUnitRates[index].other_charges_disc_amt;
+        const discountAmt = newUnitRates[index].other_charges_disc_amt || 0;
         const totalAmount = calulatedAmt - discountAmt;
         newUnitRates[index].otherChargesTotal = totalAmount;
       } else if (values.calculation_method === 'fixed_amount') {
@@ -929,7 +944,7 @@ const BookingForm = () => {
               name="other_charges_disc_amt"
               placeholder="Amount"
               type="number"
-              value={x.other_charges_disc_amt !== undefined ? x.other_charges_disc_amt : 0 + '.00'}
+              value={x.other_charges_disc_amt !== undefined ? x.other_charges_disc_amt : 0}
               onChange={e => {
                 discountOtherCharges.onChangeAmount(e);
               }}
@@ -942,11 +957,7 @@ const BookingForm = () => {
               name="other_charges_disc_per"
               placeholder="%"
               type="number"
-              value={
-                x?.other_charges_disc_per !== undefined
-                  ? x.other_charges_disc_per.toFixed(2)
-                  : 0 + '.00'
-              }
+              value={x?.other_charges_disc_per !== undefined ? x.other_charges_disc_per : 0}
               onChange={e => {
                 discountOtherCharges.onChangePercent(e);
               }}
@@ -1187,7 +1198,7 @@ const BookingForm = () => {
       {/* top bar */}
       <div className="header-bar">
         <div className="page-header">
-          <button className="header-back-btn">
+          <button className="header-back-btn" onClick={() => navigate(-1)}>
             <svg
               fill="none"
               height="12"
@@ -1208,9 +1219,9 @@ const BookingForm = () => {
             date={currentTime}
             renderer={props => <Timer {...props} />}
             onComplete={() => {
+              localStorage.clear();
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
-              // dispatch(triggerTimer(false));
             }}
           />
         </div>
@@ -1442,7 +1453,7 @@ const BookingForm = () => {
                               name="basic_rate_disc_amt"
                               placeholder="Amount"
                               type="number"
-                              value={values.basic_rate_disc_amt.toFixed(2)}
+                              value={values.basic_rate_disc_amt}
                               onBlur={handleBlur}
                               onChange={discountSyncedFields.onChangeAmount}
                             />
@@ -1454,7 +1465,7 @@ const BookingForm = () => {
                               name="basic_rate_disc_per"
                               placeholder="%"
                               type="number"
-                              value={values.basic_rate_disc_per.toFixed(2)}
+                              value={values.basic_rate_disc_per}
                               onBlur={handleBlur}
                               onChange={discountSyncedFields.onChangePercent}
                             />

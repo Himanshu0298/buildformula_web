@@ -22,9 +22,10 @@ import {
   IUnitParkingInfo,
   IVisitor,
   UnitInfoParams,
+  VisitorParams,
 } from './salesInterface';
 
-export const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
+export const getVisitorsList = createAsyncThunk<IVisitor[], VisitorParams>(
   'sales/getVisitorsList',
   async (params, thunkApi) => {
     try {
