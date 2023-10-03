@@ -255,6 +255,7 @@ export interface IOtherChargesInfo {
   created_at: string;
   updated_at: any;
   title: any;
+  amount_type: string;
 }
 
 export interface IOtherChargesParam {

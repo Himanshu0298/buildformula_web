@@ -41,6 +41,9 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       await dispatch(
         getVisitorsList({
           project_id,
+          filter_mode: 'name',
+          role: 'admin',
+          page: 'all',
         }),
       );
 

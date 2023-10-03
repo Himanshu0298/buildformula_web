@@ -1,5 +1,6 @@
 import { ChangeEventHandler } from 'react';
 import { toast } from 'react-toastify';
+import { DECIMAL_REGEX } from 'utils/constant';
 
 export function useSyncedFields(
   base = 0,
@@ -8,26 +9,26 @@ export function useSyncedFields(
   set: (key: string, value: number) => void,
 ) {
   const onChangeAmount: ChangeEventHandler<HTMLInputElement> = e => {
-    const { valueAsNumber: amount } = e.target;
+    const { valueAsNumber: amount = 0 } = e.target;
 
-    // Fixing the amount
+    // Fixing the amount if it is greater than base amount
     const fixAmount = amount > base ? base : amount;
     // Set to zero if less than zero
     const newAmount = isNaN(fixAmount) || fixAmount < 0 ? 0 : fixAmount;
-    set(amountKey, newAmount);
-
-    // if (isNaN(fixAmount)) {
-    //   set(amountKey, 0);
-    // }
+    // matches for two decimals
+    if (DECIMAL_REGEX.test(String(amount))) {
+      set(amountKey, newAmount);
+    }
     // Calculate the percentage based on the new amount and update the formik value for the percentage field
-    const percent = ((newAmount / base) * 100).toFixed(2);
+    const percent = parseFloat(((newAmount / base) * 100).toFixed(2));
+
     if (newAmount === 0) {
-      set(amountKey, 0);
-    } else if (parseInt(percent) >= 100) {
+      set(amountKey, null);
+    } else if (percent >= 100 || fixAmount > base) {
       toast.warning('Discount Amount cannot be more than Basic Amount');
       set(percentKey, 100);
     } else {
-      set(percentKey, parseFloat(percent));
+      set(percentKey, percent);
     }
   };
 
@@ -37,17 +38,20 @@ export function useSyncedFields(
     const fixPercent = percent > 100 ? 100 : percent;
     // Set to zero if less than zero
     const newPercent = isNaN(fixPercent) || fixPercent < 0 ? 0 : fixPercent;
-    set(percentKey, newPercent);
-
+    // matches for two decimals
+    if (DECIMAL_REGEX.test(String(percent))) {
+      set(percentKey, newPercent);
+    }
     // Calculate the amount based on the new percentage and update the formik value for the amount field
-    const amount = ((base * newPercent) / 100).toFixed(2);
+    const amount = parseFloat(((base * newPercent) / 100).toFixed(2));
+
     if (newPercent === 0) {
-      set(amountKey, 0);
-    } else if (parseInt(amount) > base || newPercent > 100) {
+      set(percentKey, null);
+    } else if (amount > base || newPercent >= 100) {
       toast.warning('Discount percentage should not be more than 100%');
       set(amountKey, base);
     } else {
-      set(amountKey, parseInt(amount));
+      set(amountKey, amount);
     }
   };
 
