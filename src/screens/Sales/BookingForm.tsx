@@ -39,6 +39,11 @@ const BookingForm = () => {
   const project_id = searchParams.get('project_id');
   const unit_id = searchParams.get('unit_id');
   const tower_id = searchParams.get('tower_id');
+  // const project_type = searchParams.get('project_type');
+  const pid = searchParams.get('pid');
+  const project_list_id = searchParams.get('project_list_id');
+
+  const OLD_URL = `https://vshwandrx.in/booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const project_main_types = searchParams.get('project_main_types'); not provided by backend
 
   const {
@@ -785,7 +790,8 @@ const BookingForm = () => {
         custom_payment_remark,
       }),
     );
-    await navigate(-2);
+
+    await window.location.replace(OLD_URL)
   };
 
   const formik = useFormik({
@@ -1208,7 +1214,7 @@ const BookingForm = () => {
             renderer={props => <Timer {...props} />}
             onComplete={() => {
               localStorage.clear();
-              navigate(-2);
+              window.location.replace(OLD_URL)
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
             }}
@@ -1595,10 +1601,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={(
+                      value={
                         parseFloat(handleTotalOtherDiscountAmt()) +
                         parseFloat(values.basic_rate_disc_amt)
-                      ).toFixed(2)}
+                      }
                     />
                   </div>
                 </div>
@@ -1632,10 +1638,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={(
+                      value={
                         parseFloat(values.basic_rate_basic_amount) +
                         parseFloat(handleTotalOtherCharge())
-                      ).toFixed(2)}
+                      }
                     />
                   </div>
                 </div>
@@ -2126,12 +2132,13 @@ const BookingForm = () => {
                 <div className="form-row mb-4">
                   <div className="bookingform-footer mt-5">
                     <button className="Btn btn-lightblue-primary" type="submit">
-                      Save
+                      Submit For Approval
                     </button>
                     <button
                       className="Btn btn-lightblue-primary lbps-btn"
                       data-dismiss="modal"
                       type="button"
+                      onClick={() => window.location.replace(OLD_URL)}
                     >
                       Cancel
                     </button>
