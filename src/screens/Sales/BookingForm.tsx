@@ -568,7 +568,7 @@ const BookingForm = () => {
       {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
-        extra_charges_distribution_method: '',
+        extra_charges_distribution_method: DISTRIBUTION_METHOD,
         extra_charges_area: 0,
         extra_charges_rate: 0,
         extra_charges_disc_amt: 0,
@@ -1613,10 +1613,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
-                       ( parseFloat(handleTotalOtherDiscountAmt()) +
-                        parseFloat(values.basic_rate_disc_amt)).toFixed(2)
-                      }
+                      value={(
+                        parseFloat(handleTotalOtherDiscountAmt()) +
+                        parseFloat(values.basic_rate_disc_amt)
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
@@ -1650,10 +1650,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
-                       ( parseFloat(values.basic_rate_basic_amount) +
-                        parseFloat(handleTotalOtherCharge())).toFixed(2)
-                      }
+                      value={(
+                        parseFloat(values.basic_rate_basic_amount) +
+                        parseFloat(handleTotalOtherCharge())
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
