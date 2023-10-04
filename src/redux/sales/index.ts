@@ -22,9 +22,10 @@ import {
   IUnitParkingInfo,
   IVisitor,
   UnitInfoParams,
+  VisitorParams,
 } from './salesInterface';
 
-export const getVisitorsList = createAsyncThunk<IVisitor[], CommonParams>(
+export const getVisitorsList = createAsyncThunk<IVisitor[], VisitorParams>(
   'sales/getVisitorsList',
   async (params, thunkApi) => {
     try {
@@ -120,7 +121,7 @@ export const getOtherChargesList = createAsyncThunk<IOtherCharges, IOtherCharges
       return thunkApi.rejectWithValue({ error: processedError });
     }
   },
-); 
+);
 
 export const getOtherExtraCharges = createAsyncThunk<IExtraCharges, IOtherChargesParam>(
   'sales/getOtherExtraCharges',

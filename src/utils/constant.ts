@@ -1,17 +1,16 @@
 import { isString } from 'lodash';
-import React from 'react';
-import { useLocation } from 'react-router-dom';
 
-export const SITE_URL = 'http://192.168.20.131/';
-// export const SITE_URL = 'https://3e1c-1-22-140-88.ngrok-free.app';
-// export const SITE_URL = 'http://110.227.208.185/';
-// export const SITE_URL = 'https://portal.buildformula.com';
+export const SITE_URL = 'https://vshwandrx.in';
 export const BASE_API_URL = `${SITE_URL}/api/`;
+
+export const LIVE_REDIRECT = 'https://portal.buildformula.com/';
+export const STAGING_REDIRECT = 'https://vshwandrx.in/';
 
 export const PHONE_REGEX =
   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
 
 export const HTML_REGEX = /(<([^>]+)>)/gi;
+export const DECIMAL_REGEX = /^\d+(\.\d{1,2})?$/;
 
 export const PAN_REGEX =
   /^([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([0-9]([0-9]([0-9]([0-9]([a-zA-Z])?)?)?)?)?)?)?)?)?)?$/;
@@ -140,13 +139,6 @@ export function processError(error: any) {
     ? error
     : 'An error occurred. Please try again.';
 }
-
-export function useQuery() {
-  const { search } = useLocation();
-  return React.useMemo(() => new URLSearchParams(search), [search]);
-}
-// let query = useQuery();
-// const id = query.get('id');
 
 export const MONTHS = [
   'Jan',

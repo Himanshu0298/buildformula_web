@@ -1,5 +1,5 @@
 export interface ISalesState {
-  msg: string,
+  msg: string;
   loading: boolean;
   visitorList: IVisitor[];
   unitInfo: IUnitInfo;
@@ -11,16 +11,23 @@ export interface ISalesState {
   banksList: IBanksList[];
   timer: boolean;
   unitAreaInfo: IUnitAreaInfo;
-  extraChargesList:IExtraCharges;
+  extraChargesList: IExtraCharges;
 }
 
 export type CommonParams = {
-  project_id: number;
+  project_id: string;
+};
+
+export type VisitorParams = {
+  project_id: string;
+  filter_mode: string;
+  role: string;
+  page: string;
 };
 
 export interface IVisitor {
   id: number;
-  project_id: number;
+  project_id: string;
   user_id: number;
   first_name: string;
   last_name: string;
@@ -119,8 +126,8 @@ export interface CreateCustomerParams {
 }
 
 export interface UnitInfoParams {
-  project_id: number;
-  tower_id: number;
+  project_id: string;
+  tower_id: string;
 }
 export interface IUnitTowerInfo {
   project_tower: number;
@@ -248,17 +255,18 @@ export interface IOtherChargesInfo {
   created_at: string;
   updated_at: any;
   title: any;
+  amount_type: string;
 }
 
 export interface IOtherChargesParam {
-  project_id: number;
-  unit_id: number;
+  project_id: string;
+  unit_id: string;
 }
 
 export interface IUnitAreaInfoParam {
-  project_id: number;
+  project_id: string;
   project_main_types: number;
-  unit_id: number;
+  unit_id: string;
 }
 
 export interface IUnitAreaInfo {
@@ -315,7 +323,7 @@ export interface IInstallmentInfo {
   installment_per?: number;
   installment_due_date: string;
   installment_basic_amt?: number;
-  installment_otherchages_amt : number;
+  installment_otherchages_amt: number;
   gst?: number;
   installment_amount: number;
   percentage: number;
@@ -328,19 +336,19 @@ export interface IBanksList {
 }
 
 export interface IExtraCharges {
-  other_charge_unit_rates: IExtraChargesData[]
+  other_charge_unit_rates: IExtraChargesData[];
 }
 
 export interface IExtraChargesData {
-  id: number
-  project_id: number
-  unit_id: number
-  amount_type: string
-  other_charge_field_id: number
-  ratebase_amounts: number
-  fixed_amounts: number
-  type: string
-  created_at: string
-  updated_at: any
-  title: string
+  id: number;
+  project_id: number;
+  unit_id: number;
+  amount_type: string;
+  other_charge_field_id: number;
+  ratebase_amounts: number;
+  fixed_amounts: number;
+  type: string;
+  created_at: string;
+  updated_at: any;
+  title: string;
 }

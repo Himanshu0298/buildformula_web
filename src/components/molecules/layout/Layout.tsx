@@ -1,4 +1,4 @@
-import TopNav from '../molecules/TopNav/TopNav';
+import TopNav from '../TopNav/TopNav';
 // import SideNav from '../molecules/SideNav/SideNav';
 
 const Layout = ({ children }) => {
