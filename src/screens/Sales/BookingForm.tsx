@@ -370,8 +370,8 @@ const BookingForm = () => {
         <td>{i + 1}</td>
         <td>
           <input
-            title={x?.extra_charges_title}
             className="form-control mb-2"
+            title={x?.extra_charges_title}
             type="text"
             value={x?.extra_charges_title}
             onChange={e => handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)}
@@ -410,7 +410,6 @@ const BookingForm = () => {
         </td>
         <td>
           <input
-            readOnly
             className="form-control mb-2"
             type="number"
             value={
@@ -829,13 +828,16 @@ const BookingForm = () => {
 
   // Other Charges
   useEffect(() => {
-    const ocData = {
-      other_charge_unit_rates: otherChargesList?.other_charge_unit_rates?.filter(
-        e => e.amount_type === CALCULATION_FLAG,
-      ),
-    };
-    setOCList(ocData);
-  }, [otherChargesList, CALCULATION_FLAG]);
+    setOCList(otherChargesList);
+  }, [otherChargesList]);
+  // useEffect(() => {
+  //   const ocData = {
+  //     other_charge_unit_rates: otherChargesList?.other_charge_unit_rates?.filter(
+  //       e => e.amount_type === CALCULATION_FLAG,
+  //     ),
+  //   };
+  //   setOCList(ocData);
+  // }, [otherChargesList, CALCULATION_FLAG]);
 
   useEffect(() => {
     handleUpdateExtraCharges();
@@ -850,7 +852,10 @@ const BookingForm = () => {
 
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
-      const newUnitRates = [...prevList.other_charge_unit_rates];
+      const filteredOClist = prevList.other_charge_unit_rates.filter(
+        e => e.amount_type === CALCULATION_FLAG,
+      );
+      const newUnitRates = [...filteredOClist];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
@@ -982,7 +987,7 @@ const BookingForm = () => {
               readOnly
               className="form-control"
               type="number"
-              value={x.otherChargesTotal || 0}
+              value={x?.otherChargesTotal || 0}
             />
           </td>
         </tr>
@@ -1128,7 +1133,10 @@ const BookingForm = () => {
     oclist?.other_charge_unit_rates?.map((x, index) => {
       const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
       setOCList(prevList => {
-        const newUnitRates = [...prevList.other_charge_unit_rates];
+        const filtered = prevList?.other_charge_unit_rates?.filter(
+          e => e.amount_type === CALCULATION_FLAG,
+        );
+        const newUnitRates = [...filtered];
         newUnitRates[index] = {
           ...newUnitRates[index],
           otherChargesTotal: calculatedAmount,
@@ -1143,7 +1151,10 @@ const BookingForm = () => {
     oclist?.other_charge_unit_rates?.map((x, index) => {
       const calculatedAmount = x.fixed_amounts;
       setOCList(prevList => {
-        const newUnitRates = [...prevList.other_charge_unit_rates];
+        const filtered = prevList?.other_charge_unit_rates?.filter(
+          e => e.amount_type === CALCULATION_FLAG,
+        );
+        const newUnitRates = [...filtered];
         newUnitRates[index] = {
           ...newUnitRates[index],
           otherChargesTotal: calculatedAmount,
@@ -1156,7 +1167,7 @@ const BookingForm = () => {
   //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount
   function handleExtraBaseAmount() {
     setExtraCharges(prevList =>
-      prevList.map(x => {
+      prevList?.map(x => {
         const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
         return {
           ...x,
@@ -1168,7 +1179,7 @@ const BookingForm = () => {
 
   function handleExtraFixedAmount() {
     setExtraCharges(prevList =>
-      prevList.map(x => {
+      prevList?.map(x => {
         const calculatedAmount = x.fixed_amounts;
         return {
           ...x,
@@ -1593,7 +1604,9 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {values.calculation_method
-                        ? oclist?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))
+                        ? oclist?.other_charge_unit_rates
+                            ?.filter(e => e.amount_type === CALCULATION_FLAG)
+                            ?.map((x, i) => OtherCharges(i, x))
                         : undefined}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
@@ -1747,7 +1760,9 @@ const BookingForm = () => {
                     <input
                       readOnly
                       className="form-control"
-                      value={(values.gst_amt + values.stampduty_amount + values.reg_amount).toFixed(2)}
+                      value={(values.gst_amt + values.stampduty_amount + values.reg_amount).toFixed(
+                        2,
+                      )}
                     />
                   </div>
                 </div>
@@ -1773,7 +1788,9 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {values.calculation_method
-                        ? extraCharges?.map((x, i) => extraChargeRow(i, x))
+                        ? extraCharges
+                            ?.filter(e => e.amount_type === CALCULATION_FLAG)
+                            ?.map((x, i) => extraChargeRow(i, x))
                         : undefined}
                       {/* total */}
                       <tr>
