@@ -48,3 +48,7 @@ export const getInstallmentData = data => {
 export const getBankList = () => {
   return instance.get('/get_banks', params);
 };
+
+export const updateFormFillingStatus = data => {
+  return instance.post('/update_unit_filling', data, params);
+};

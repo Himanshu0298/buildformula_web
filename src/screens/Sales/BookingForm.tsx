@@ -24,6 +24,7 @@ import {
   getUnitParkingInfo,
   getVisitorsList,
   triggerTimer,
+  updateFormFillingStatus,
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -567,7 +568,7 @@ const BookingForm = () => {
       {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
-        extra_charges_distribution_method: '',
+        extra_charges_distribution_method: DISTRIBUTION_METHOD,
         extra_charges_area: 0,
         extra_charges_rate: 0,
         extra_charges_disc_amt: 0,
@@ -655,6 +656,7 @@ const BookingForm = () => {
     dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(triggerTimer(true));
+    dispatch(updateFormFillingStatus({ project_id, unit_id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -791,7 +793,7 @@ const BookingForm = () => {
       }),
     );
 
-    await window.location.replace(OLD_URL)
+    await window.location.replace(OLD_URL);
   };
 
   const formik = useFormik({
@@ -1186,6 +1188,15 @@ const BookingForm = () => {
   const remainingTime = Number.isNaN(updatedTime) ? 0 : updatedTime;
   const currentTime = Date.now() + 1800000 - remainingTime;
 
+  // const handleBasicRateChanges = e => {
+  //   let basicRATE = 0;
+  //   if (DECIMAL_REGEX.test(e.target.value)) {
+  //     basicRATE = e.target.value;
+  //     setFieldValue('basic_rate', basicRATE);
+  //   }
+  //   setFieldValue('basic_rate', 0);
+  // };
+
   return (
     <>
       <ToastContainer autoClose={2000} />
@@ -1214,7 +1225,7 @@ const BookingForm = () => {
             renderer={props => <Timer {...props} />}
             onComplete={() => {
               localStorage.clear();
-              window.location.replace(OLD_URL)
+              window.location.replace(OLD_URL);
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
             }}
@@ -1431,12 +1442,13 @@ const BookingForm = () => {
                           </td>
                           <td>
                             <input
-                              readOnly
+                              // readOnly
                               className="form-control"
                               name="basic_rate"
                               type="number"
                               value={values?.basic_rate}
                               onBlur={handleBlur}
+                              onChange={(e) => setFieldValue('basic_rate', e.target.value)}
                             />
                           </td>
                           <td>
@@ -1601,10 +1613,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(handleTotalOtherDiscountAmt()) +
                         parseFloat(values.basic_rate_disc_amt)
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
@@ -1638,10 +1650,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(values.basic_rate_basic_amount) +
                         parseFloat(handleTotalOtherCharge())
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>

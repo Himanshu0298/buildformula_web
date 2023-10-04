@@ -25,6 +25,11 @@ export type VisitorParams = {
   page: string;
 };
 
+export type FormFillingParams = {
+  project_id: string;
+  unit_id: string;
+};
+
 export interface IVisitor {
   id: number;
   project_id: string;
