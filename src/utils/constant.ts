@@ -1,7 +1,9 @@
 import { isString } from 'lodash';
 
-export const SITE_URL = 'https://portal.buildformula.com';
-export const BASE_API_URL = `${SITE_URL}/api/`;
+export const STAGING_SITE_URL = 'https://webapp.vshwandrx.in';
+export const LIVE_SITE_URL = 'https://portal.buildformula.com';
+// export const SITE_URL = 'https://portal.buildformula.com';
+export const BASE_API_URL = `${STAGING_SITE_URL}/api/`;
 
 export const LIVE_REDIRECT = 'https://portal.buildformula.com/';
 export const STAGING_REDIRECT = 'https://vshwandrx.in/';

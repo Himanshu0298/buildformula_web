@@ -1,3 +1,5 @@
+import './AddCustomerModal.css';
+
 import { useFormik } from 'formik';
 import Modal from 'react-bootstrap/Modal';
 import { addCustomer, getVisitorsList } from 'redux/sales';
@@ -47,7 +49,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
         }),
       );
 
-      formik.resetForm()
+      formik.resetForm();
       await handleClose();
     },
   });
@@ -82,6 +84,9 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                     />
+                    {formik.touched.firstName && formik.errors.firstName && (
+                      <div className="text-danger">{formik.errors.firstName}</div>
+                    )}
                   </div>
                   <div className="form-group col">
                     <label className="mandate-star mr-3">Last Name</label>
@@ -93,6 +98,9 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                     />
+                    {formik.touched.lastName && formik.errors.lastName && (
+                      <div className="text-danger">{formik.errors.lastName}</div>
+                    )}
                   </div>
                 </div>
                 <div className="form-row newuser">
@@ -106,6 +114,9 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                     />
+                    {formik.touched.email && formik.errors.email && (
+                      <div className="text-danger">{formik.errors.email}</div>
+                    )}
                   </div>
                   <div className="form-group col">
                     <label className="mandate-star mr-3">Phone</label>
@@ -118,6 +129,9 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
                       onBlur={formik.handleBlur}
                       onChange={formik.handleChange}
                     />
+                    {formik.touched.phone && formik.errors.phone && (
+                      <div className="text-danger">{formik.errors.phone}</div>
+                    )}
                   </div>
                 </div>
               </div>
