@@ -3,6 +3,9 @@ import { isString } from 'lodash';
 export const SITE_URL = 'https://vshwandrx.in';
 export const BASE_API_URL = `${SITE_URL}/api/`;
 
+export const LIVE_REDIRECT = 'https://portal.buildformula.com/';
+export const STAGING_REDIRECT = 'https://vshwandrx.in/';
+
 export const PHONE_REGEX =
   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
 
