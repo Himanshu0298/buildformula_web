@@ -7,6 +7,7 @@ import { handleLoading, handleReject } from 'utils/reduxUtils';
 import {
   CommonParams,
   CreateCustomerParams,
+  FormFillingParams,
   IBookingFormParams,
   IExtraCharges,
   IInstallmentDetails,
@@ -100,6 +101,20 @@ export const addBooking = createAsyncThunk(
   async (params: IBookingFormParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addBooking(params);
+      return res;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const updateFormFillingStatus = createAsyncThunk(
+  'sales/updateFormFillingStatus',
+  async (params: FormFillingParams, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.updateFormFillingStatus(params);
       return res;
     } catch (err) {
       const processedError = processError(err);
@@ -227,6 +242,14 @@ const salesSlice = createSlice({
     builder.addCase(addCustomer.pending, handleLoading);
     builder.addCase(addCustomer.fulfilled, (state, action) => {
       toast.success(action.payload.msg);
+      return {
+        ...state,
+      };
+    });
+    // update form filling status
+    builder.addCase(updateFormFillingStatus.rejected, handleReject);
+    builder.addCase(updateFormFillingStatus.pending, handleLoading);
+    builder.addCase(updateFormFillingStatus.fulfilled, state => {
       return {
         ...state,
       };

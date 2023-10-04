@@ -24,6 +24,7 @@ import {
   getUnitParkingInfo,
   getVisitorsList,
   triggerTimer,
+  updateFormFillingStatus,
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
@@ -655,6 +656,7 @@ const BookingForm = () => {
     dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(triggerTimer(true));
+    dispatch(updateFormFillingStatus({ project_id, unit_id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -791,7 +793,7 @@ const BookingForm = () => {
       }),
     );
 
-    await window.location.replace(OLD_URL)
+    await window.location.replace(OLD_URL);
   };
 
   const formik = useFormik({
@@ -1214,7 +1216,7 @@ const BookingForm = () => {
             renderer={props => <Timer {...props} />}
             onComplete={() => {
               localStorage.clear();
-              window.location.replace(OLD_URL)
+              window.location.replace(OLD_URL);
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
             }}
@@ -1431,12 +1433,18 @@ const BookingForm = () => {
                           </td>
                           <td>
                             <input
-                              readOnly
+                              // readOnly
                               className="form-control"
                               name="basic_rate"
                               type="number"
                               value={values?.basic_rate}
                               onBlur={handleBlur}
+                              onChange={e =>
+                                setFieldValue(
+                                  'basic_rate',
+                                  e.target.value.match(DECIMAL_REGEX) && e.target.value,
+                                )
+                              }
                             />
                           </td>
                           <td>

@@ -24,6 +24,7 @@ export function useSyncedFields(
 
       if (newAmount === 0) {
         set(amountKey, null);
+        set(percentKey, 0);
       } else if (percent >= 100 || fixAmount > base) {
         toast.warning('Discount Amount cannot be more than Basic Amount');
         set(percentKey, 100);
@@ -42,6 +43,7 @@ export function useSyncedFields(
 
     if (newPercent === 0) {
       set(percentKey, null);
+      set(amountKey, 0);
     }
 
     // matches for two decimals
