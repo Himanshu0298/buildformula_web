@@ -1188,6 +1188,15 @@ const BookingForm = () => {
   const remainingTime = Number.isNaN(updatedTime) ? 0 : updatedTime;
   const currentTime = Date.now() + 1800000 - remainingTime;
 
+  // const handleBasicRateChanges = e => {
+  //   let basicRATE = 0;
+  //   if (DECIMAL_REGEX.test(e.target.value)) {
+  //     basicRATE = e.target.value;
+  //     setFieldValue('basic_rate', basicRATE);
+  //   }
+  //   setFieldValue('basic_rate', 0);
+  // };
+
   return (
     <>
       <ToastContainer autoClose={2000} />
@@ -1439,12 +1448,7 @@ const BookingForm = () => {
                               type="number"
                               value={values?.basic_rate}
                               onBlur={handleBlur}
-                              onChange={e =>
-                                setFieldValue(
-                                  'basic_rate',
-                                  e.target.value.match(DECIMAL_REGEX) && e.target.value,
-                                )
-                              }
+                              onChange={(e) => setFieldValue('basic_rate', e.target.value)}
                             />
                           </td>
                           <td>
