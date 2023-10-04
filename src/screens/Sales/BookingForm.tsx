@@ -1595,10 +1595,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(handleTotalOtherDiscountAmt()) +
                         parseFloat(values.basic_rate_disc_amt)
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
@@ -1632,10 +1632,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(values.basic_rate_basic_amount) +
                         parseFloat(handleTotalOtherCharge())
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
