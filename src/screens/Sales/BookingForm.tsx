@@ -1224,6 +1224,7 @@ const BookingForm = () => {
             renderer={props => <Timer {...props} />}
             onComplete={() => {
               localStorage.clear();
+              navigate(-2)
               // window.location.replace('https://google.com');
               // url to be redirect or use navigate to navigate back after submission or after timeout
             }}
