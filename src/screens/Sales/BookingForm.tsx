@@ -426,6 +426,7 @@ const BookingForm = () => {
         }
       }
     }
+
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
