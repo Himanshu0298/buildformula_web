@@ -27,7 +27,7 @@ import {
 } from 'redux/sales';
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX } from 'utils/constant';
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
 
 import AddCustomerModal from './AddCustomerModal';
 
@@ -43,7 +43,7 @@ const BookingForm = () => {
   const pid = searchParams.get('pid');
   const project_list_id = searchParams.get('project_list_id');
 
-  const OLD_URL = `https://vshwandrx.in/booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  const OLD_URL = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const project_main_types = searchParams.get('project_main_types'); not provided by backend
 
   const {
