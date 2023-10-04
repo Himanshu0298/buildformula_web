@@ -34,11 +34,16 @@ export function useSyncedFields(
   };
 
   const onChangePercent: ChangeEventHandler<HTMLInputElement> = e => {
-    const { valueAsNumber: percent } = e.target;
+    const { valueAsNumber: percent = 0 } = e.target;
     // Fixing the percent
     const fixPercent = percent > 100 ? 100 : percent;
     // Set to zero if less than zero
-    const newPercent = isNaN(fixPercent) || fixPercent < 0 ? 0 : fixPercent;
+    const newPercent = isNaN(fixPercent) || percent < 0 ? 0 : fixPercent;
+
+    if (newPercent === 0) {
+      set(percentKey, null);
+    }
+
     // matches for two decimals
     if (DECIMAL_REGEX.test(String(percent))) {
       set(percentKey, newPercent);
@@ -48,7 +53,7 @@ export function useSyncedFields(
 
       if (newPercent === 0) {
         set(percentKey, null);
-      } else if (amount > base || newPercent >= 100) {
+      } else if (amount > base || newPercent > 100) {
         toast.warning('Discount percentage should not be more than 100%');
         set(amountKey, base);
       } else {
