@@ -148,7 +148,8 @@ const BookingForm = () => {
   // extra charges update, delete & update
   const handleUpdateExtraCharge = (index: number, field: string, value) => {
     setExtraCharges(prevExtraCharges => {
-      const updatedExtraCharges = [...prevExtraCharges];
+      const filteredEc = prevExtraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
+      const updatedExtraCharges = [...filteredEc];
       updatedExtraCharges[index][field] = value;
       if (values.calculation_method === 'rate_base') {
         updatedExtraCharges[index].extra_charges_amt =
@@ -227,7 +228,7 @@ const BookingForm = () => {
         switch (extra_charges_distribution_method) {
           case 'Equally with all installments': {
             const equallyDistributedAmount = extra_charges_total / installmentLen;
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(
                   equallyDistributedAmount.toFixed(2),
@@ -241,7 +242,7 @@ const BookingForm = () => {
 
           case 'Proportionately with all installment': {
             const proportionatelyDistributedWithAll = extra_charges_total / installmentLen;
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedWithAll * installment.percentage) / 100;
@@ -253,7 +254,7 @@ const BookingForm = () => {
 
           case 'Proportionately with all installment(Except First)': {
             const proportionatelyDistributedAmount = extra_charges_total / (installmentLen - 1);
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedAmount * installment.percentage) / 100;
@@ -264,7 +265,7 @@ const BookingForm = () => {
           }
 
           case 'Connect with last installment': {
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index === installmentLen - 1 && !installment?.lastRow) {
                 installment.installment_otherchages_amt += extra_charges_total;
               }
@@ -274,7 +275,7 @@ const BookingForm = () => {
           }
 
           case 'Dont connect with installment': {
-            updatedList = updatedList.map(installment => {
+            updatedList = updatedList?.map(installment => {
               if (installment?.lastRow) {
                 installment.installment_otherchages_amt += extra_charges_total;
               }
@@ -294,7 +295,7 @@ const BookingForm = () => {
         switch (other_charges_distribution_method) {
           case 'Equally with all installments': {
             const equallyDistributedAmount = otherChargesTotal / installmentLen;
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(
                   equallyDistributedAmount.toFixed(2),
@@ -310,7 +311,7 @@ const BookingForm = () => {
 
           case 'Proportionately with all installment': {
             const proportionatelyDistributedWithAll = otherChargesTotal / installmentLen;
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedWithAll * installment.percentage) / 100;
@@ -324,7 +325,7 @@ const BookingForm = () => {
 
           case 'Proportionately with all installment(Except First)': {
             const proportionatelyDistributedAmount = otherChargesTotal / (installmentLen - 1);
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
                   (proportionatelyDistributedAmount * installment.percentage) / 100;
@@ -335,7 +336,7 @@ const BookingForm = () => {
           }
 
           case 'Connect with last installment': {
-            updatedList = updatedList.map((installment, index) => {
+            updatedList = updatedList?.map((installment, index) => {
               if (index === installmentLen - 1 && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
                 installment.installment_amount =
@@ -347,7 +348,7 @@ const BookingForm = () => {
           }
 
           case 'Dont connect with installment': {
-            updatedList = updatedList.map(installment => {
+            updatedList = updatedList?.map(installment => {
               if (installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
               }
@@ -461,6 +462,7 @@ const BookingForm = () => {
         <td>
           {values.calculation_method === 'rate_base' && (
             <input
+              readOnly
               className="form-control mb-2"
               type="number"
               value={unitAreaInfo?.super_build_up_area}
@@ -472,7 +474,6 @@ const BookingForm = () => {
         </td>
         <td>
           <input
-            readOnly
             className="form-control mb-2"
             type="number"
             value={
@@ -555,8 +556,9 @@ const BookingForm = () => {
   };
 
   const handleAddData = () => {
+    const filteredEC = extraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
     setExtraCharges([
-      ...extraCharges,
+      ...filteredEC,
       {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
@@ -570,6 +572,7 @@ const BookingForm = () => {
         extra_charges_total: 0,
         ratebase_amounts: 0,
         fixed_amounts: 0,
+        amount_type: CALCULATION_FLAG,
       },
     ]);
   };
@@ -797,16 +800,16 @@ const BookingForm = () => {
 
   // Other Charges
   useEffect(() => {
-    const ocData = {
-      other_charge_unit_rates: otherChargesList?.other_charge_unit_rates?.filter(
-        e => e.amount_type === CALCULATION_FLAG,
-      ),
-    };
-    setOCList(ocData);
-  }, [otherChargesList, CALCULATION_FLAG]);
+    setOCList(otherChargesList);
+  }, [otherChargesList]);
 
   useEffect(() => {
     handleUpdateExtraCharges();
+    if (values.calculation_method === 'rate_base') {
+      handleExtraBaseAmount();
+    } else {
+      handleExtraFixedAmount();
+    }
   }, [extraChargesList, CALCULATION_FLAG]);
 
   const discountSyncedFields = useSyncedFields(
@@ -818,7 +821,10 @@ const BookingForm = () => {
 
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
-      const newUnitRates = [...prevList.other_charge_unit_rates];
+      const filteredOClist = prevList.other_charge_unit_rates.filter(
+        e => e.amount_type === CALCULATION_FLAG,
+      );
+      const newUnitRates = [...filteredOClist];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
@@ -1124,7 +1130,7 @@ const BookingForm = () => {
   //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount
   function handleExtraBaseAmount() {
     setExtraCharges(prevList =>
-      prevList.map(x => {
+      prevList?.map(x => {
         const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
         return {
           ...x,
@@ -1136,7 +1142,7 @@ const BookingForm = () => {
 
   function handleExtraFixedAmount() {
     setExtraCharges(prevList =>
-      prevList.map(x => {
+      prevList?.map(x => {
         const calculatedAmount = x.fixed_amounts;
         return {
           ...x,
@@ -1561,7 +1567,9 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {values.calculation_method
-                        ? oclist?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))
+                        ? oclist?.other_charge_unit_rates
+                            ?.filter(e => e.amount_type === CALCULATION_FLAG)
+                            ?.map((x, i) => OtherCharges(i, x))
                         : undefined}
                       <tr>
                         <td className="text-right font-weight-bold" colSpan={6}>
@@ -1743,7 +1751,9 @@ const BookingForm = () => {
                     </thead>
                     <tbody>
                       {values.calculation_method
-                        ? extraCharges?.map((x, i) => extraChargeRow(i, x))
+                        ? extraCharges
+                            ?.filter(item => item?.amount_type === CALCULATION_FLAG)
+                            ?.map((x, i) => extraChargeRow(i, x))
                         : undefined}
                       {/* total */}
                       <tr>
@@ -1813,10 +1823,15 @@ const BookingForm = () => {
                               <span> (-)</span>
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
-                                {(
+                                {isNaN(
                                   parseFloat(handleTotalOtherDiscountAmt()) +
-                                  parseFloat(values.basic_rate_disc_amt)
-                                ).toFixed(2)}
+                                    parseFloat(values.basic_rate_disc_amt),
+                                )
+                                  ? '0.00'
+                                  : (
+                                      parseFloat(handleTotalOtherDiscountAmt()) +
+                                      parseFloat(values.basic_rate_disc_amt)
+                                    ).toFixed(2)}
                               </span>
                             </span>
                           </td>
@@ -1828,12 +1843,19 @@ const BookingForm = () => {
                               <span> (+)</span>
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
-                                {(
+                                {isNaN(
                                   parseFloat(values.gst_amt) +
-                                  parseFloat(values.stampduty_amount) +
-                                  parseFloat(values.reg_amount) +
-                                  parseFloat(values.taxes_amount)
-                                ).toFixed(2)}
+                                    parseFloat(values.stampduty_amount) +
+                                    parseFloat(values.reg_amount) +
+                                    parseFloat(values.taxes_amount),
+                                )
+                                  ? `${0}.00`
+                                  : (
+                                      parseFloat(values.gst_amt) +
+                                      parseFloat(values.stampduty_amount) +
+                                      parseFloat(values.reg_amount) +
+                                      parseFloat(values.taxes_amount)
+                                    ).toFixed(2)}
                               </span>
                             </span>
                           </td>
@@ -1864,15 +1886,29 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {(
+                                {isNaN(
                                   parseFloat(values.basic_rate_basic_amount) +
-                                  parseFloat(handleTotalOtherCharge()) +
-                                  parseFloat(values.gst_amt) +
-                                  parseFloat(values.stampduty_amount) +
-                                  parseFloat(values.reg_amount) +
-                                  parseFloat(values.taxes_amount) +
-                                  parseFloat(handleTotalExtraCharge())
-                                ).toFixed(2)}
+                                    parseFloat(handleTotalOtherCharge()) +
+                                    parseFloat(values.gst_amt) +
+                                    parseFloat(values.stampduty_amount) +
+                                    parseFloat(values.reg_amount) +
+                                    parseFloat(values.taxes_amount) +
+                                    parseFloat(handleTotalExtraCharge()),
+                                )
+                                  ? (
+                                      parseFloat(values.basic_rate_basic_amount) +
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)
+                                  : (
+                                      parseFloat(values.basic_rate_basic_amount) +
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      parseFloat(values.gst_amt) +
+                                      parseFloat(values.stampduty_amount) +
+                                      parseFloat(values.reg_amount) +
+                                      parseFloat(values.taxes_amount) +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)}
                               </span>
                             </p>
                           </td>
