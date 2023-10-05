@@ -1,5 +1,3 @@
-import './AddCustomerModal.css';
-
 import { useFormik } from 'formik';
 import Modal from 'react-bootstrap/Modal';
 import { addCustomer, getVisitorsList } from 'redux/sales';
