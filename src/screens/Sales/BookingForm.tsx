@@ -30,7 +30,8 @@ import {
 } from 'redux/sales';
 import { IBroker, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT, STAGING_REDIRECT } from 'utils/constant';
+// LIVE_REDIRECT
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, STAGING_REDIRECT } from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './AddBrokerModal';
