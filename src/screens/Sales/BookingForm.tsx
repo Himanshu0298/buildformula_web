@@ -749,33 +749,6 @@ const BookingForm = () => {
   //   });
   // };
 
-  const handleToggle = () => {
-    setIsToggle(!isToggle);
-  };
-
-  // Api calls
-  useEffect(() => {
-    dispatch(
-      getVisitorsList({
-        project_id,
-        filter_mode: 'name',
-        role: 'admin',
-        page: 'all',
-      }),
-    );
-    dispatch(getUnitInfo({ project_id, tower_id }));
-    dispatch(getUnitParkingInfo({ project_id }));
-    dispatch(getOtherChargesList({ project_id, unit_id }));
-    dispatch(getOtherExtraCharges({ project_id, unit_id }));
-    dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
-    dispatch(getTermsnConditions({ project_id }));
-    dispatch(getInstallmentOptions({ project_id }));
-    dispatch(getBankList());
-    dispatch(triggerTimer(true));
-    dispatch(updateFormFillingStatus({ project_id, unit_id }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // installments details
   // useEffect(() => {
   //   dispatch(
