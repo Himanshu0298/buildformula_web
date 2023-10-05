@@ -52,3 +52,15 @@ export const getBankList = () => {
 export const updateFormFillingStatus = data => {
   return instance.post('/update_unit_filling', data, params);
 };
+
+export const getProjectUnitStatus = data => {
+  return instance.post('/get_locked_units', data, params);
+};
+
+export const getBrokerList = data => {
+  return instance.post('/list_brokers', data, params);
+};
+
+export const addBroker = data => {
+  return instance.post('/add_broker', data, params);
+};
