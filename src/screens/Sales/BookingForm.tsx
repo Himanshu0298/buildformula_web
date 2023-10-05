@@ -74,7 +74,6 @@ const BookingForm = () => {
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
-  const [throughBroker, setThroughBroker] = useState(false);
   const [extraCharges, setExtraCharges] = useState([]);
   const [_installmentsList, setInstallmentsList] = useState([]);
   const [baseAmount, setBaseAmount] = useState<number>();
@@ -87,9 +86,6 @@ const BookingForm = () => {
   const toggleBrokerModal = () => setShowBroker(v => !v);
   const handleToggle = () => {
     setIsToggle(!isToggle);
-  };
-  const handleBrokerPreference = () => {
-    setThroughBroker(!throughBroker);
   };
 
   function handleUpdateExtraCharges() {
@@ -809,7 +805,7 @@ const BookingForm = () => {
         unit_id,
         visitors_id: customerDetails?.id,
         broker_id,
-        through_broker: throughBroker ? 'yes' : 'no',
+        through_broker: through_broker ? 'yes' : 'no',
         brokerage,
         broker_remark,
         unit_reserved_date,
