@@ -30,7 +30,7 @@ import {
 } from 'redux/sales';
 import { IBroker, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT, STAGING_REDIRECT } from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './AddBrokerModal';
@@ -51,7 +51,7 @@ const BookingForm = () => {
   const project_list_id = searchParams.get('project_list_id');
 
   // old site navigation
-  const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
   // state values
