@@ -28,6 +28,7 @@ import {
 import { IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
+import * as Yup from 'yup';
 
 import AddCustomerModal from './AddCustomerModal';
 
@@ -393,6 +394,7 @@ const BookingForm = () => {
 
         if (newAmount === 0) {
           handleUpdateExtraCharge(i, 'extra_charges_disc_amt', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0);
         } else if (percent >= 100 && newAmount > base) {
           toast.warning('Discount Amount cannot be more than Basic Amount');
           handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
@@ -423,6 +425,7 @@ const BookingForm = () => {
 
         if (newPercent === 0) {
           handleUpdateExtraCharge(i, 'extra_charges_disc_per', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0);
         } else if (percent > 100 && amount > base) {
           toast.warning('Discount % cannot be more than 100%');
           handleUpdateExtraCharge(i, 'extra_charges_disc_amt', base);
@@ -432,14 +435,27 @@ const BookingForm = () => {
         }
       }
     }
-
+    function handleExtraChargeChange(e) {
+      const extraChargevalue = e.target.value;
+      const rateBasedAmount = extraChargevalue < x.ratebase_amounts ? null : x.ratebase_amounts;
+      const fixedBasedAmount = extraChargevalue < x.fixed_amounts ? null : x.fixed_amounts;
+      if (extraChargevalue.match(DECIMAL_REGEX)) {
+        values.calculation_method === 'rate_base'
+          ? handleUpdateExtraCharge(i, 'ratebase_amounts', extraChargevalue)
+          : handleUpdateExtraCharge(i, 'fixed_amounts', extraChargevalue);
+      } else if (!extraChargevalue.match(DECIMAL_REGEX)) {
+        values.calculation_method === 'rate_base'
+          ? handleUpdateExtraCharge(i, 'ratebase_amounts', rateBasedAmount)
+          : handleUpdateExtraCharge(i, 'fixed_amounts', fixedBasedAmount);
+      }
+    }
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
         <td>
           <input
-            title={x?.extra_charges_title}
             className="form-control mb-2"
+            title={x?.extra_charges_title}
             type="text"
             value={x?.extra_charges_title}
             onChange={e => handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)}
@@ -483,14 +499,10 @@ const BookingForm = () => {
             type="number"
             value={
               values.calculation_method === 'rate_base'
-                ? parseFloat(x.ratebase_amounts) || 0
-                : parseFloat(x.fixed_amounts) || 0
+                ? parseFloat(x.ratebase_amounts)
+                : parseFloat(x.fixed_amounts)
             }
-            onChange={
-              values.calculation_method === 'rate_base'
-                ? e => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
-                : e => handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
-            }
+            onChange={handleExtraChargeChange}
           />
         </td>
         <td>
@@ -502,16 +514,7 @@ const BookingForm = () => {
             name="extra_charges_disc_amt"
             placeholder="Amount"
             type="number"
-            value={
-              values.calculation_method === 'rate_base'
-                ? parseFloat(x.extra_charges_disc_amt) >
-                  unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  ? unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  : x?.extra_charges_disc_amt
-                : parseFloat(x?.extra_charges_disc_amt) > x?.fixed_amounts
-                ? x?.fixed_amounts
-                : x?.extra_charges_disc_amt
-            }
+            value={x.extra_charges_disc_amt}
             onChange={handleExtraChargesDiscAmt}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
@@ -575,8 +578,8 @@ const BookingForm = () => {
         extra_charges_amt: 0,
         extra_charges_base: 0,
         extra_charges_total: 0,
-        ratebase_amounts: 0,
-        fixed_amounts: 0,
+        ratebase_amounts: '0',
+        fixed_amounts: '0',
         amount_type: CALCULATION_FLAG,
       },
     ]);
@@ -798,9 +801,12 @@ const BookingForm = () => {
     initialValues,
     enableReinitialize: true,
     onSubmit: handleSubmit,
+    validationSchema: Yup.object({
+      visitors_id: Yup.string().required('Visitor Id is required'),
+    }),
   });
 
-  const { values, setFieldValue, handleChange, handleBlur } = formik;
+  const { values, setFieldValue, handleChange, handleBlur} = formik;
 
   const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
 
@@ -1260,11 +1266,17 @@ const BookingForm = () => {
                           marginBottom: 50,
                         }),
                       }}
-                      onChange={e => setCustomerDetails(e.details)}
+                      onBlur={formik.handleBlur}
+                      onChange={e => {
+                        setCustomerDetails(e?.details);
+                        setFieldValue('visitors_id', e?.details.id)
+                      }}
                     />
+                    {formik.touched.visitors_id && formik.errors.visitors_id && (
+                      <div className="text-danger">{String(formik.errors.visitors_id)}</div>
+                    )}
                   </div>
                 </div>
-
                 {customerDetails ? (
                   <div className="form-row">
                     <div className="form-group col form-col-gap">
