@@ -2,11 +2,11 @@ import './AddCustomerModal.css';
 
 import { useFormik } from 'formik';
 import Modal from 'react-bootstrap/Modal';
-import { addCustomer, getVisitorsList } from 'redux/sales';
+import { addBroker, getBrokerList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
 
-const AddCustomerModal = ({ show, handleClose, project_id }) => {
+const AddBrokerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
 
   const formik = useFormik({
@@ -25,29 +25,16 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
     onSubmit: async values => {
       const { firstName, lastName, email, phone } = values;
       dispatch(
-        addCustomer({
+        addBroker({
           project_id,
           first_name: firstName,
           last_name: lastName,
           email,
           phone: parseInt(phone, 10),
-          inquiry_for: 2,
-          priority: 'medium',
-          occupation: 0,
-          budget_from: 0,
-          budget_to: 0,
-          other_occupation: 0,
         }),
       );
 
-      await dispatch(
-        getVisitorsList({
-          project_id,
-          filter_mode: 'name',
-          role: 'admin',
-          page: 'all',
-        }),
-      );
+      await dispatch(getBrokerList({ project_id }));
 
       formik.resetForm();
       await handleClose();
@@ -65,7 +52,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
     >
       <Modal.Header className="justify-content-center">
         <Modal.Title>
-          <b>Add Customer</b>
+          <b>Add Broker</b>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -154,4 +141,4 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
   );
 };
 
-export default AddCustomerModal;
+export default AddBrokerModal;

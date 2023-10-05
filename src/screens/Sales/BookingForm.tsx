@@ -2,6 +2,7 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
+import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
@@ -16,57 +17,76 @@ import {
   addBooking,
   getAreaInfo,
   getBankList,
-  getInstallmentOptions,
+  getBrokerList,
+  // getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
+  getProjectUnitStatus,
   getTermsnConditions,
   getUnitInfo,
   getUnitParkingInfo,
   getVisitorsList,
-  triggerTimer,
+  updateFormFillingStatus,
 } from 'redux/sales';
-import { IVisitor } from 'redux/sales/salesInterface';
+import { IBroker, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT, STAGING_REDIRECT } from 'utils/constant';
+import * as Yup from 'yup';
 
+import AddBrokerModal from './AddBrokerModal';
 import AddCustomerModal from './AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
   const [searchParams] = useSearchParams();
+
+  // url params
   const project_id = searchParams.get('project_id');
   const unit_id = searchParams.get('unit_id');
   const tower_id = searchParams.get('tower_id');
+  const floor_id = searchParams.get('project_floor');
   // const project_type = searchParams.get('project_type');
-  const pid = searchParams.get('pid');
+  const pid = searchParams.get('pid'); //encrypted project id
   const project_list_id = searchParams.get('project_list_id');
 
-  const OLD_URL = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
-  // const project_main_types = searchParams.get('project_main_types'); not provided by backend
+  // old site navigation
+  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
+  // state values
   const {
     visitorList,
+    brokerList,
     unitInfo,
     unitParkingInfo,
     otherChargesList,
     termsList,
-    // installmentsList,
     installmentsInformation,
     banksList,
     unitAreaInfo,
     extraChargesList,
-    // timer,
+    projectUnitStatus,
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
-
+  const [showBroker, setShowBroker] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-
+  const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
-
   const [extraCharges, setExtraCharges] = useState([]);
+  const [_installmentsList, setInstallmentsList] = useState([]);
+  const [baseAmount, setBaseAmount] = useState<number>();
+  const [termsId, setTermsId] = useState(0);
+  const [oclist, setOCList] = useState({
+    other_charge_unit_rates: [],
+  });
+
+  const toggleModal = () => setShow(v => !v);
+  const toggleBrokerModal = () => setShowBroker(v => !v);
+  const handleToggle = () => {
+    setIsToggle(!isToggle);
+  };
 
   function handleUpdateExtraCharges() {
     const updatedData = extraChargesList?.other_charge_unit_rates
@@ -90,20 +110,10 @@ const BookingForm = () => {
     setExtraCharges(updatedData);
   }
 
-  const [termsId, setTermsId] = useState(0);
-  const [oclist, setOCList] = useState({
-    other_charge_unit_rates: [],
-  });
-
-  const [_installmentsList, setInstallmentsList] = useState([]);
-
-  const [baseAmount, setBaseAmount] = useState<number>();
-
   // const [installmentId, setInstallmentId] = useState<number>(0);
 
   // const [showInstall, setShowInstall] = useState(false);
 
-  const toggleModal = () => setShow(!show);
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(
@@ -116,6 +126,54 @@ const BookingForm = () => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unit_id);
   }, [unitParkingInfo?.all_parking_units, unit_id]);
 
+  const initialValues = useMemo(() => {
+    return {
+      project_id,
+      unit_id: unit_id,
+      visitors_id: customerDetails?.id,
+      broker_id: 0,
+      through_broker: false,
+      brokerage: 0,
+      broker_remark: '',
+      unit_reserved_date: dayjs().format('YYYY-MM-DD'),
+      parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
+      calculation_method: '',
+      basic_rate_no: 1,
+      basic_rate_description: 'Basic rate of unit',
+      basic_rate_area: unitAreaInfo?.super_build_up_area || 0,
+      basic_rate: unitAreaInfo?.rate_base_amt || 0,
+      basic_rate_disc_amt: 0,
+      basic_rate_disc_per: 0,
+      basic_rate_basic_amount: 0,
+      other_charges: [],
+      other_charges_total: 0,
+      other_charges_total_discount: 0,
+      custom_payment_remark_id: 0,
+      custom_payment_remark: '',
+      extra_charges: [],
+      gst_per: 0,
+      gst_amt: 0,
+      stampduty_per: 0,
+      stampduty_amount: 0,
+      reg_per: 0,
+      reg_amount: 0,
+      total_gove_tax: 0,
+      is_loan: 'yes',
+      loan_amt: 0,
+      bank: 0,
+      loan_remarks: '',
+      installments: [],
+      extra_charges_total: 0,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    project_id,
+    unitAreaInfo?.rate_base_amt,
+    unitAreaInfo?.super_build_up_area,
+    unitParkingInfoValues,
+    unit_id,
+  ]);
+
   // customers options
   const customerOptions = useMemo(() => {
     return visitorList?.map(e => ({
@@ -124,6 +182,15 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
+
+  // broker options
+  const brokerOptions = useMemo(() => {
+    return brokerList?.map(e => ({
+      label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
+      value: e.id,
+      details: e,
+    }));
+  }, [brokerList]);
 
   // t&c
   const termsOptions = useMemo(() => {
@@ -150,49 +217,12 @@ const BookingForm = () => {
     }));
   }, [banksList]);
 
-  // extra charges update, delete & update
-  const handleUpdateExtraCharge = (index: number, field: string, value) => {
-    setExtraCharges(prevExtraCharges => {
-      const filteredEc = prevExtraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
-      const updatedExtraCharges = [...filteredEc];
-      updatedExtraCharges[index][field] = value;
-      if (values.calculation_method === 'rate_base') {
-        updatedExtraCharges[index].extra_charges_amt =
-          updatedExtraCharges[index].extra_charges_base;
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
-        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
-        const calulatedAmt =
-          updatedExtraCharges[index].extra_charges_area *
-          updatedExtraCharges[index].extra_charges_rate;
-        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
-        const totalAmount = calulatedAmt - discountAmt;
-        updatedExtraCharges[index].extra_charges_total = totalAmount;
-      } else if (values.calculation_method === 'fixed_amount') {
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
-        const calulatedAmt = updatedExtraCharges[index].extra_charges_rate;
-        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
-        const totalAmount = calulatedAmt - discountAmt;
-        updatedExtraCharges[index].extra_charges_total = totalAmount;
-      }
-      return updatedExtraCharges;
-    });
-  };
-
-  const handleDeleteExtraCharge = (index: number) => {
-    setExtraCharges(prevExtraCharges => {
-      const updatedExtraCharges = [...prevExtraCharges];
-      updatedExtraCharges.splice(index, 1);
-      return updatedExtraCharges;
-    });
-  };
-
-  const handleTotalExtraCharge = () => {
-    let total = 0;
-    extraCharges?.forEach(charge => {
-      total += charge.extra_charges_total;
-    });
-    return total.toFixed(2);
-  };
+  // filtering units for time
+  const unitTimerData = useMemo(() => {
+    const _timerData = projectUnitStatus?.find(e => e.id === Number(unit_id));
+    return _timerData;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectUnitStatus]);
 
   // installment calculations
   useEffect(() => {
@@ -371,6 +401,87 @@ const BookingForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [oclist, extraCharges, installmentsInformation]);
 
+  // Api calls
+  useEffect(() => {
+    dispatch(
+      getVisitorsList({
+        project_id,
+        filter_mode: 'name',
+        role: 'admin',
+        page: 'all',
+      }),
+    );
+    dispatch(
+      getProjectUnitStatus({
+        project_id,
+        project_type: '6',
+        project_tower: tower_id,
+        project_floor: floor_id,
+        id: project_list_id,
+      }),
+    );
+    dispatch(getUnitInfo({ project_id, tower_id }));
+    dispatch(getUnitParkingInfo({ project_id }));
+    dispatch(getBrokerList({ project_id }));
+    dispatch(getOtherChargesList({ project_id, unit_id }));
+    dispatch(getOtherExtraCharges({ project_id, unit_id }));
+    dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
+    dispatch(getTermsnConditions({ project_id }));
+    // dispatch(getInstallmentOptions({ project_id }));
+    dispatch(getBankList());
+    dispatch(updateFormFillingStatus({ project_id, unit_id }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Other Charges
+  useEffect(() => {
+    setOCList(otherChargesList);
+  }, [otherChargesList]);
+
+  // extra charges update, delete & update
+  const handleUpdateExtraCharge = (index: number, field: string, value) => {
+    setExtraCharges(prevExtraCharges => {
+      const filteredEc = prevExtraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
+      const updatedExtraCharges = [...filteredEc];
+      updatedExtraCharges[index][field] = value;
+      if (values.calculation_method === 'rate_base') {
+        updatedExtraCharges[index].extra_charges_amt =
+          updatedExtraCharges[index].extra_charges_base;
+        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
+        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
+        const calulatedAmt =
+          updatedExtraCharges[index].extra_charges_area *
+          updatedExtraCharges[index].extra_charges_rate;
+        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
+        const totalAmount = calulatedAmt - discountAmt;
+        updatedExtraCharges[index].extra_charges_total = totalAmount;
+      } else if (values.calculation_method === 'fixed_amount') {
+        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
+        const calulatedAmt = updatedExtraCharges[index].extra_charges_rate;
+        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
+        const totalAmount = calulatedAmt - discountAmt;
+        updatedExtraCharges[index].extra_charges_total = totalAmount;
+      }
+      return updatedExtraCharges;
+    });
+  };
+
+  const handleDeleteExtraCharge = (index: number) => {
+    setExtraCharges(prevExtraCharges => {
+      const updatedExtraCharges = [...prevExtraCharges];
+      updatedExtraCharges.splice(index, 1);
+      return updatedExtraCharges;
+    });
+  };
+
+  const handleTotalExtraCharge = () => {
+    let total = 0;
+    extraCharges?.forEach(charge => {
+      total += charge.extra_charges_total;
+    });
+    return total.toFixed(2);
+  };
+
   const extraChargeRow = (i, x) => {
     function handleExtraChargesDiscAmt(e, item = x) {
       const base =
@@ -393,6 +504,7 @@ const BookingForm = () => {
 
         if (newAmount === 0) {
           handleUpdateExtraCharge(i, 'extra_charges_disc_amt', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0);
         } else if (percent >= 100 && newAmount > base) {
           toast.warning('Discount Amount cannot be more than Basic Amount');
           handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
@@ -423,6 +535,7 @@ const BookingForm = () => {
 
         if (newPercent === 0) {
           handleUpdateExtraCharge(i, 'extra_charges_disc_per', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0);
         } else if (percent > 100 && amount > base) {
           toast.warning('Discount % cannot be more than 100%');
           handleUpdateExtraCharge(i, 'extra_charges_disc_amt', base);
@@ -432,14 +545,27 @@ const BookingForm = () => {
         }
       }
     }
-
+    function handleExtraChargeChange(e) {
+      const extraChargevalue = e.target.value;
+      const rateBasedAmount = extraChargevalue < x.ratebase_amounts ? null : x.ratebase_amounts;
+      const fixedBasedAmount = extraChargevalue < x.fixed_amounts ? null : x.fixed_amounts;
+      if (extraChargevalue.match(DECIMAL_REGEX)) {
+        values.calculation_method === 'rate_base'
+          ? handleUpdateExtraCharge(i, 'ratebase_amounts', extraChargevalue)
+          : handleUpdateExtraCharge(i, 'fixed_amounts', extraChargevalue);
+      } else if (!extraChargevalue.match(DECIMAL_REGEX)) {
+        values.calculation_method === 'rate_base'
+          ? handleUpdateExtraCharge(i, 'ratebase_amounts', rateBasedAmount)
+          : handleUpdateExtraCharge(i, 'fixed_amounts', fixedBasedAmount);
+      }
+    }
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
         <td>
           <input
-            title={x?.extra_charges_title}
             className="form-control mb-2"
+            title={x?.extra_charges_title}
             type="text"
             value={x?.extra_charges_title}
             onChange={e => handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)}
@@ -483,14 +609,10 @@ const BookingForm = () => {
             type="number"
             value={
               values.calculation_method === 'rate_base'
-                ? parseFloat(x.ratebase_amounts) || 0
-                : parseFloat(x.fixed_amounts) || 0
+                ? parseFloat(x.ratebase_amounts)
+                : parseFloat(x.fixed_amounts)
             }
-            onChange={
-              values.calculation_method === 'rate_base'
-                ? e => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
-                : e => handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
-            }
+            onChange={handleExtraChargeChange}
           />
         </td>
         <td>
@@ -502,16 +624,7 @@ const BookingForm = () => {
             name="extra_charges_disc_amt"
             placeholder="Amount"
             type="number"
-            value={
-              values.calculation_method === 'rate_base'
-                ? parseFloat(x.extra_charges_disc_amt) >
-                  unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  ? unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  : x?.extra_charges_disc_amt
-                : parseFloat(x?.extra_charges_disc_amt) > x?.fixed_amounts
-                ? x?.fixed_amounts
-                : x?.extra_charges_disc_amt
-            }
+            value={x.extra_charges_disc_amt}
             onChange={handleExtraChargesDiscAmt}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
@@ -567,7 +680,7 @@ const BookingForm = () => {
       {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
-        extra_charges_distribution_method: '',
+        extra_charges_distribution_method: DISTRIBUTION_METHOD,
         extra_charges_area: 0,
         extra_charges_rate: 0,
         extra_charges_disc_amt: 0,
@@ -575,8 +688,8 @@ const BookingForm = () => {
         extra_charges_amt: 0,
         extra_charges_base: 0,
         extra_charges_total: 0,
-        ratebase_amounts: 0,
-        fixed_amounts: 0,
+        ratebase_amounts: '0',
+        fixed_amounts: '0',
         amount_type: CALCULATION_FLAG,
       },
     ]);
@@ -632,32 +745,6 @@ const BookingForm = () => {
   //   });
   // };
 
-  const handleToggle = () => {
-    setIsToggle(!isToggle);
-  };
-
-  // Api calls
-  useEffect(() => {
-    dispatch(
-      getVisitorsList({
-        project_id,
-        filter_mode: 'name',
-        role: 'admin',
-        page: 'all',
-      }),
-    );
-    dispatch(getUnitInfo({ project_id, tower_id }));
-    dispatch(getUnitParkingInfo({ project_id }));
-    dispatch(getOtherChargesList({ project_id, unit_id }));
-    dispatch(getOtherExtraCharges({ project_id, unit_id }));
-    dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
-    dispatch(getTermsnConditions({ project_id }));
-    dispatch(getInstallmentOptions({ project_id }));
-    dispatch(getBankList());
-    dispatch(triggerTimer(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // installments details
   // useEffect(() => {
   //   dispatch(
@@ -669,56 +756,14 @@ const BookingForm = () => {
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [installmentId]);
 
-  const initialValues = useMemo(() => {
-    return {
-      project_id,
-      unit_id: unit_id,
-      visitors_id: customerDetails?.id,
-      unit_reserved_date: dayjs().format('YYYY-MM-DD'),
-      parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
-      calculation_method: '',
-      basic_rate_no: 1,
-      basic_rate_description: 'Basic rate of unit',
-      basic_rate_area: unitAreaInfo?.super_build_up_area || 0,
-      basic_rate: unitAreaInfo?.rate_base_amt || 0,
-      basic_rate_disc_amt: 0,
-      basic_rate_disc_per: 0,
-      basic_rate_basic_amount: 0,
-      other_charges: [],
-      other_charges_total: 0,
-      other_charges_total_discount: 0,
-      custom_payment_remark_id: 0,
-      custom_payment_remark: '',
-      extra_charges: [],
-      gst_per: 0,
-      gst_amt: 0,
-      stampduty_per: 0,
-      stampduty_amount: 0,
-      reg_per: 0,
-      reg_amount: 0,
-      taxes_per: 0,
-      taxes_amount: 0,
-      is_loan: 'yes',
-      loan_amt: 0,
-      bank: 0,
-      loan_remarks: '',
-      installments: [],
-      extra_charges_total: 0,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    project_id,
-    unitAreaInfo?.rate_base_amt,
-    unitAreaInfo?.super_build_up_area,
-    unitParkingInfoValues,
-    unit_id,
-  ]);
-
   const handleSubmit = async values => {
     const {
       project_id,
       unit_id,
-      // visitors_id,
+      broker_id,
+      through_broker,
+      brokerage,
+      broker_remark,
       unit_reserved_date,
       parking_no,
       calculation_method,
@@ -741,12 +786,28 @@ const BookingForm = () => {
       loan_amt,
     } = values;
 
+    const otherCharges = oclist?.other_charge_unit_rates?.map(e => ({
+      unit_other_charge_id: e.other_charge_field_id,
+      other_charges_no: e.id,
+      other_charges_title: e.title,
+      other_charges_distribution_method: e.other_charges_distribution_method,
+      other_charges_area: basic_rate_area,
+      other_charges_rate: e.ratebase_amounts,
+      other_charges_disc_amt: e.other_charges_disc_amt,
+      other_charges_disc_per: e.other_charges_disc_per,
+      other_charges_amount: e.otherChargesTotal,
+    }));
+
     await dispatch(
       addBooking({
         project_bookings_temp_id: 0,
         project_id,
         unit_id,
         visitors_id: customerDetails?.id,
+        broker_id,
+        through_broker: through_broker ? 'yes' : 'no',
+        brokerage,
+        broker_remark,
         unit_reserved_date,
         parking_no,
         calculation_method,
@@ -757,7 +818,7 @@ const BookingForm = () => {
         basic_rate_disc_amt,
         basic_rate_disc_per,
         basic_rate_basic_amount,
-        other_charges: oclist.other_charge_unit_rates,
+        other_charges: otherCharges,
         other_charges_total: parseInt(handleTotalOtherCharge()),
         sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
         total_disc:
@@ -791,23 +852,21 @@ const BookingForm = () => {
       }),
     );
 
-    await window.location.replace(OLD_URL)
+    await window.location.replace(OLD_SITE);
   };
 
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
     onSubmit: handleSubmit,
+    validationSchema: Yup.object({
+      visitors_id: Yup.string().required('Visitor Id is required'),
+    }),
   });
 
-  const { values, setFieldValue, handleChange, handleBlur } = formik;
+  const { values, setFieldValue, handleChange, handleBlur} = formik;
 
   const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
-
-  // Other Charges
-  useEffect(() => {
-    setOCList(otherChargesList);
-  }, [otherChargesList]);
 
   useEffect(() => {
     handleUpdateExtraCharges();
@@ -818,10 +877,33 @@ const BookingForm = () => {
     }
   }, [extraChargesList, CALCULATION_FLAG]);
 
+  // discount calculations hook
+
   const discountSyncedFields = useSyncedFields(
     baseAmount,
     'basic_rate_disc_amt',
     'basic_rate_disc_per',
+    setFieldValue,
+  );
+
+  const gstSyncedFields = useSyncedFields(
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    'gst_amt',
+    'gst_per',
+    setFieldValue,
+  );
+
+  const stampDutySyncedFields = useSyncedFields(
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    'stampduty_amount',
+    'stampduty_per',
+    setFieldValue,
+  );
+
+  const registrationSyncedFields = useSyncedFields(
+    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    'reg_amount',
+    'reg_per',
     setFieldValue,
   );
 
@@ -1035,26 +1117,6 @@ const BookingForm = () => {
   // };
 
   // govt Taxes
-  const gstSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
-    'gst_amt',
-    'gst_per',
-    setFieldValue,
-  );
-
-  const stampDutySyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
-    'stampduty_amount',
-    'stampduty_per',
-    setFieldValue,
-  );
-
-  const registrationSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
-    'reg_amount',
-    'reg_per',
-    setFieldValue,
-  );
 
   useEffect(() => {
     const { basic_rate_area = 0, basic_rate = 0, calculation_method } = values;
@@ -1098,10 +1160,6 @@ const BookingForm = () => {
       </p>
     </div>
   );
-
-  // function toggleInstallments() {
-  //   setShowInstall(true);
-  // }
 
   //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount
   function handleBaseAmount() {
@@ -1174,11 +1232,12 @@ const BookingForm = () => {
   // }
 
   // timer calculations
-  const loggedTime = JSON.parse(localStorage.getItem('bookingTimer'));
+
+  const loggedTime = unitTimerData?.tmp_booking_time_start;
   const updatedTime = dayjs().diff(loggedTime, 'milliseconds');
 
   useEffect(() => {
-    if (loggedTime > 1800000 || loggedTime === null) {
+    if (loggedTime > 1800000) {
       localStorage.setItem('bookingTimer', JSON.stringify(dayjs()));
     }
   }, [loggedTime]);
@@ -1189,6 +1248,7 @@ const BookingForm = () => {
   return (
     <>
       <ToastContainer autoClose={2000} />
+
       {/* top bar */}
       <div className="header-bar">
         <div className="page-header">
@@ -1212,27 +1272,28 @@ const BookingForm = () => {
           <Countdown
             date={currentTime}
             renderer={props => <Timer {...props} />}
-            onComplete={() => {
+            onComplete={async () => {
               localStorage.clear();
-              window.location.replace(OLD_URL)
-              // window.location.replace('https://google.com');
-              // url to be redirect or use navigate to navigate back after submission or after timeout
+              window.location.replace(OLD_SITE);
             }}
           />
         </div>
       </div>
+
       <hr style={{ marginTop: 0 }} />
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          {/* <div className="booking-form-row-header">
-            <h4>Customer Details</h4>
-          </div> */}
-
           <Form onSubmit={formik.handleSubmit}>
-            {/* 1st section */}
+            {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
+            <AddBrokerModal
+              handleClose={toggleBrokerModal}
+              project_id={project_id}
+              show={showBroker}
+            />
 
+            {/* 1st section */}
             <div className="booking-form-box shwan-form ">
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
@@ -1260,46 +1321,179 @@ const BookingForm = () => {
                           marginBottom: 50,
                         }),
                       }}
-                      onChange={e => setCustomerDetails(e.details)}
+                      onBlur={formik.handleBlur}
+                      onChange={e => {
+                        setCustomerDetails(e?.details);
+                        setFieldValue('visitors_id', e?.details.id)
+                      }}
                     />
+                    {formik.touched.visitors_id && formik.errors.visitors_id && (
+                      <div className="text-danger">{String(formik.errors.visitors_id)}</div>
+                    )}
                   </div>
                 </div>
-
                 {customerDetails ? (
-                  <div className="form-row">
-                    <div className="form-group col form-col-gap">
-                      <label>Client Name</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
-                      />
+                  <>
+                    <div className="form-row">
+                      <div className="form-group col form-col-gap">
+                        <label>Client Name</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
+                        />
+                      </div>
+                      <div className="form-group col">
+                        <label>Phone No</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={customerDetails?.phone}
+                        />
+                      </div>
+                      <div className="form-group col">
+                        <label>Email ID</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={customerDetails?.email || ''}
+                        />
+                      </div>
                     </div>
-                    <div className="form-group col">
-                      <label>Phone No</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={customerDetails?.phone}
-                      />
+                    <div className="form-row">
+                      <div className="col-6">
+                        <label>Through Broker?</label>
+                        <div className="form-row">
+                          <div className="col-6">
+                            <div className="rd-grp form-check-inline">
+                              <RadioGroup
+                                row
+                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                name="row-radio-buttons-group"
+                              >
+                                <FormControlLabel
+                                  control={
+                                    <Radio onClick={() => setFieldValue('through_broker', true)} />
+                                  }
+                                  label="Yes"
+                                  value="yes"
+                                />
+                                <FormControlLabel
+                                  control={
+                                    <Radio onClick={() => setFieldValue('through_broker', false)} />
+                                  }
+                                  label="No"
+                                  value="no"
+                                />
+                              </RadioGroup>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="form-group col">
-                      <label>Email ID</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={customerDetails?.email || ''}
-                      />
-                    </div>
-                  </div>
+                  </>
                 ) : null}
               </div>
             </div>
 
             {/* 2nd section */}
+            {values.through_broker ? (
+              <div className="booking-form-box shwan-form mt-4">
+                <div className="booking-form-col-12">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <h5>BROKER DETAILS</h5>
+                    <button
+                      className="Btn btn-lightblue-primary lbps-btn mr-0"
+                      type="button"
+                      onClick={toggleBrokerModal}
+                    >
+                      Add Broker
+                    </button>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="col-12">
+                      <Select
+                        closeMenuOnSelect={true}
+                        options={brokerOptions}
+                        placeholder="Existing Broker"
+                        styles={{
+                          container: base => ({
+                            ...base,
+                            width: '31%',
+                            marginTop: 10,
+                            marginBottom: 50,
+                          }),
+                        }}
+                        onChange={e => (
+                          setBrokerDetails(e.details), setFieldValue('broker_id', e.value)
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {brokerDetails ? (
+                    <>
+                      <div className="form-row">
+                        <div className="form-group col form-col-gap">
+                          <label>Broker Name</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={`${brokerDetails?.first_name} ${brokerDetails?.last_name}`}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Phone No</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={brokerDetails?.phone}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Email ID</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={brokerDetails?.email || ''}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Brokerage Amt.</label>
+                          <input
+                            className="form-control"
+                            name="brokerage"
+                            type="text"
+                            value={values.brokerage}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group col">
+                          <label>Remark</label>
+                          <textarea
+                            className="form-control"
+                            name="broker_remark"
+                            value={values.broker_remark}
+                            onChange={handleChange}
+                          ></textarea>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {/* 3rd section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>UNIT INFO</h5>
@@ -1360,7 +1554,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 3rd section */}
+            {/* 4th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>RATE CALCULATION</h5>
@@ -1431,12 +1625,13 @@ const BookingForm = () => {
                           </td>
                           <td>
                             <input
-                              readOnly
+                              // readOnly
                               className="form-control"
                               name="basic_rate"
                               type="number"
                               value={values?.basic_rate}
                               onBlur={handleBlur}
+                              onChange={e => setFieldValue('basic_rate', e.target.value)}
                             />
                           </td>
                           <td>
@@ -1555,7 +1750,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 4th section */}
+            {/* 5th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>OTHER CHARGES</h5>
@@ -1589,7 +1784,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 5th section */}
+            {/* 6th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>OVERALL DISCOUNT</h5>
@@ -1601,10 +1796,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(handleTotalOtherDiscountAmt()) +
                         parseFloat(values.basic_rate_disc_amt)
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
@@ -1624,7 +1819,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 6th section */}
+            {/* 7th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>GOVERNMENT TAXES</h5>
@@ -1638,10 +1833,10 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={
+                      value={(
                         parseFloat(values.basic_rate_basic_amount) +
                         parseFloat(handleTotalOtherCharge())
-                      }
+                      ).toFixed(2)}
                     />
                   </div>
                 </div>
@@ -1738,7 +1933,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 7th section */}
+            {/* 8th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>EXTRA CHARGES</h5>
@@ -1788,7 +1983,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 8th section */}
+            {/* 9th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>SUMMARY</h5>
@@ -1926,7 +2121,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 9th section */}
+            {/* 10th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>LOAN DETAILS</h5>
@@ -1991,7 +2186,6 @@ const BookingForm = () => {
                               ...base,
                               width: '81%',
                               marginTop: 0,
-                              marginBottom: 17,
                             }),
                           }}
                           onChange={e => setFieldValue('bank', e.value)}
@@ -2016,81 +2210,6 @@ const BookingForm = () => {
                 )}
               </div>
             </div>
-
-            {/* 10th section  */}
-            {/* <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>PAYMENT SCHEDULE</h5>
-
-                <div className="form-row">
-                  <div className="col-6 ">
-                    <label>Select Payment Installment</label>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '1rem',
-                      }}
-                    >
-                      <Select
-                        closeMenuOnSelect={true}
-                        options={installmentOptions}
-                        placeholder="Select Payment Installment"
-                        styles={{
-                          container: base => ({
-                            ...base,
-                            marginTop: 10,
-                            marginBottom: 20,
-                            width: '25rem',
-                          }),
-                        }}
-                        onChange={e => {
-                          setInstallmentId(e.value);
-                          setShowInstall(false);
-                        }}
-                      />
-                      <button
-                        className="Btn btn-lightblue-primary lbps-btn py-2"
-                        id="butng"
-                        type="button"
-                        onClick={() => {
-                          toggleInstallments();
-                          handlePaymentUpdate();
-                        }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <table className="table">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Installment Name</th>
-                      <th>Due Date</th>
-                      <th>%</th>
-                      <th>Basic Amount</th>
-                      <th>Other Charges Amount</th>
-                      <th>GST %</th>
-                      <th className="text-right">Installment Amount</th>
-                    </thead>
-                    <tbody>
-                      {showInstall && _installmentsList?.map((e, i) => PaymentSchedule(i, e))}
-
-                      <tr>
-                        <td className="text-right font-weight-bold" colSpan={7}>
-                          Installments Total
-                        </td>
-                        <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div> */}
 
             {/* 11th section */}
             <div className="booking-form-box shwan-form mt-4">
@@ -2138,7 +2257,7 @@ const BookingForm = () => {
                       className="Btn btn-lightblue-primary lbps-btn"
                       data-dismiss="modal"
                       type="button"
-                      onClick={() => window.location.replace(OLD_URL)}
+                      onClick={() => window.location.replace(OLD_SITE)}
                     >
                       Cancel
                     </button>
