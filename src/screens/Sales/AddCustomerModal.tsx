@@ -1,12 +1,11 @@
 import { useFormik } from 'formik';
+import {debounce} from 'lodash';
 import Modal from 'react-bootstrap/Modal';
 import { addCustomer, getVisitorsList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
-
 const AddCustomerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
-
   const formik = useFormik({
     initialValues: {
       firstName: '',
@@ -67,7 +66,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={debounce(formik.handleSubmit, 500)}>
           <div className="shwan-form">
             <div className="booking-form-col-6 border-0" id="showfirstbox">
               <div className="form-group">

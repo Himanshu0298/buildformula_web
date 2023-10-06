@@ -79,7 +79,7 @@ const BookingForm = () => {
         title: x.title,
         extra_charges_no: 1,
         extra_charges_title: x.title,
-        extra_charges_distribution_method: '',
+        extra_charges_distribution_method: DISTRIBUTION_METHOD,
         extra_charges_area: 0,
         extra_charges_rate: 0,
         extra_charges_disc_amt: 0,
@@ -158,8 +158,6 @@ const BookingForm = () => {
       const updatedExtraCharges = [...filteredEc];
       updatedExtraCharges[index][field] = value;
       if (values.calculation_method === 'rate_base') {
-        updatedExtraCharges[index].extra_charges_amt =
-          updatedExtraCharges[index].extra_charges_base;
         updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
         updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
         const calulatedAmt =
@@ -168,12 +166,14 @@ const BookingForm = () => {
         const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
         const totalAmount = calulatedAmt - discountAmt;
         updatedExtraCharges[index].extra_charges_total = totalAmount;
+        updatedExtraCharges[index].extra_charges_amt = totalAmount;
       } else if (values.calculation_method === 'fixed_amount') {
         updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
         const calulatedAmt = updatedExtraCharges[index].extra_charges_rate;
         const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
         const totalAmount = calulatedAmt - discountAmt;
         updatedExtraCharges[index].extra_charges_total = totalAmount;
+        updatedExtraCharges[index].extra_charges_amt = totalAmount;
       }
       return updatedExtraCharges;
     });
@@ -189,9 +189,12 @@ const BookingForm = () => {
 
   const handleTotalExtraCharge = () => {
     let total = 0;
-    extraCharges?.forEach(charge => {
-      total += charge.extra_charges_total;
-    });
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      extraCharges?.forEach(charge => {
+        total += parseFloat(charge.extra_charges_amt);
+      });
+      return total.toFixed(2);
+    }
     return total.toFixed(2);
   };
 
@@ -229,11 +232,11 @@ const BookingForm = () => {
       });
 
       extraCharges?.forEach(extraCharge => {
-        const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
+        const { extra_charges_distribution_method, extra_charges_amt } = extraCharge;
         const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
         switch (extra_charges_distribution_method) {
           case 'Equally with all installments': {
-            const equallyDistributedAmount = extra_charges_total / installmentLen;
+            const equallyDistributedAmount = extra_charges_amt / installmentLen;
             updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt += parseFloat(
@@ -247,7 +250,7 @@ const BookingForm = () => {
           }
 
           case 'Proportionately with all installment': {
-            const proportionatelyDistributedWithAll = extra_charges_total / installmentLen;
+            const proportionatelyDistributedWithAll = extra_charges_amt / installmentLen;
             updatedList = updatedList?.map((installment, index) => {
               if (index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
@@ -259,7 +262,7 @@ const BookingForm = () => {
           }
 
           case 'Proportionately with all installment(Except First)': {
-            const proportionatelyDistributedAmount = extra_charges_total / (installmentLen - 1);
+            const proportionatelyDistributedAmount = extra_charges_amt / (installmentLen - 1);
             updatedList = updatedList?.map((installment, index) => {
               if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
                 installment.installment_otherchages_amt +=
@@ -273,7 +276,7 @@ const BookingForm = () => {
           case 'Connect with last installment': {
             updatedList = updatedList?.map((installment, index) => {
               if (index === installmentLen - 1 && !installment?.lastRow) {
-                installment.installment_otherchages_amt += extra_charges_total;
+                installment.installment_otherchages_amt += extra_charges_amt;
               }
               return installment;
             });
@@ -283,7 +286,7 @@ const BookingForm = () => {
           case 'Dont connect with installment': {
             updatedList = updatedList?.map(installment => {
               if (installment?.lastRow) {
-                installment.installment_otherchages_amt += extra_charges_total;
+                installment.installment_otherchages_amt += extra_charges_amt;
               }
               return installment;
             });
@@ -535,7 +538,9 @@ const BookingForm = () => {
             readOnly
             className="form-control mb-2"
             type="number"
-            value={parseFloat(x.extra_charges_total <= 0 ? 0 : x.extra_charges_total).toFixed(2)}
+            value={
+              parseFloat(x.extra_charges_amt) <= 0 ? 0 : parseFloat(x.extra_charges_amt).toFixed(2)
+            }
           />
         </td>
         <td></td>
@@ -707,6 +712,7 @@ const BookingForm = () => {
       loan_remarks: '',
       installments: [],
       extra_charges_total: 0,
+      extra_charges_amt: 0,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -743,7 +749,6 @@ const BookingForm = () => {
       bank,
       loan_amt,
     } = values;
-
     await dispatch(
       addBooking({
         project_bookings_temp_id: 0,
@@ -774,7 +779,6 @@ const BookingForm = () => {
         reg_amount,
         total_gove_tax: values.gst_amt + values.stampduty_amount + values.reg_amount,
         extra_charges: extraCharges,
-        extra_charges_total: parseFloat(handleTotalExtraCharge()),
         property_final_amount:
           parseFloat(values.basic_rate_basic_amount) +
           parseFloat(handleTotalOtherCharge()) +
@@ -791,6 +795,7 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
+        extra_charges_total: parseFloat(handleTotalExtraCharge()),
       }),
     );
 
@@ -806,7 +811,7 @@ const BookingForm = () => {
     }),
   });
 
-  const { values, setFieldValue, handleChange, handleBlur} = formik;
+  const { values, setFieldValue, handleChange, handleBlur } = formik;
 
   const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
 
@@ -1072,12 +1077,22 @@ const BookingForm = () => {
 
   useEffect(() => {
     const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue(
-      'basic_rate_basic_amount',
-      parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
-    );
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      setFieldValue(
+        'basic_rate_basic_amount',
+        parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
+      );
+    } else {
+      setFieldValue('basic_rate_basic_amount', 0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
+  }, [
+    baseAmount,
+    setFieldValue,
+    values.basic_rate_disc_amt,
+    values.basic_rate_disc_per,
+    values.calculation_method,
+  ]);
 
   useEffect(() => {
     formik.setValues({
@@ -1146,7 +1161,7 @@ const BookingForm = () => {
         const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
         return {
           ...x,
-          extra_charges_total: calculatedAmount,
+          extra_charges_amt: calculatedAmount,
         };
       }),
     );
@@ -1158,7 +1173,7 @@ const BookingForm = () => {
         const calculatedAmount = x.fixed_amounts;
         return {
           ...x,
-          extra_charges_total: calculatedAmount,
+          extra_charges_amt: calculatedAmount,
         };
       }),
     );
@@ -1269,7 +1284,7 @@ const BookingForm = () => {
                       onBlur={formik.handleBlur}
                       onChange={e => {
                         setCustomerDetails(e?.details);
-                        setFieldValue('visitors_id', e?.details.id)
+                        setFieldValue('visitors_id', e?.details.id);
                       }}
                     />
                     {formik.touched.visitors_id && formik.errors.visitors_id && (
