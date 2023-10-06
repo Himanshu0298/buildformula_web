@@ -24,7 +24,7 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
     }),
     onSubmit: async values => {
       const { firstName, lastName, email, phone } = values;
-      dispatch(
+      await dispatch(
         addBroker({
           project_id,
           first_name: firstName,
@@ -34,7 +34,7 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
         }),
       );
 
-      await dispatch(getBrokerList({ project_id }));
+      dispatch(getBrokerList({ project_id }));
 
       formik.resetForm();
       await handleClose();
@@ -56,7 +56,7 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit} method="POST">
           <div className="shwan-form">
             <div className="booking-form-col-6 border-0" id="showfirstbox">
               <div className="form-group">

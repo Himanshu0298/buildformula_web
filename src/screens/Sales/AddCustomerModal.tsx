@@ -24,7 +24,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
     }),
     onSubmit: async values => {
       const { firstName, lastName, email, phone } = values;
-      dispatch(
+      await dispatch(
         addCustomer({
           project_id,
           first_name: firstName,
@@ -40,7 +40,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
         }),
       );
 
-      await dispatch(
+      dispatch(
         getVisitorsList({
           project_id,
           filter_mode: 'name',
