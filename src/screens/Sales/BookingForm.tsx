@@ -1304,7 +1304,7 @@ const BookingForm = () => {
                     type="button"
                     onClick={toggleModal}
                   >
-                    Add Customer
+                    Add Inquiry
                   </button>
                 </div>
 
@@ -1313,7 +1313,7 @@ const BookingForm = () => {
                     <Select
                       closeMenuOnSelect={true}
                       options={customerOptions}
-                      placeholder="Existing Customer"
+                      placeholder="Existing Inquiry"
                       styles={{
                         container: base => ({
                           ...base,
