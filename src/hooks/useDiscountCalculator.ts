@@ -43,6 +43,7 @@ export function useSyncedFields(
 
     if (newPercent === 0) {
       set(percentKey, null);
+      set(amountKey, 0);
     }
 
     // matches for two decimals
