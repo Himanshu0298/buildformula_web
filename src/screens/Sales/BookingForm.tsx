@@ -6,6 +6,7 @@ import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
+import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -446,8 +447,6 @@ const BookingForm = () => {
       const updatedExtraCharges = [...filteredEc];
       updatedExtraCharges[index][field] = value;
       if (values.calculation_method === 'rate_base') {
-        updatedExtraCharges[index].extra_charges_amt =
-          updatedExtraCharges[index].extra_charges_base;
         updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
         updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
         const calulatedAmt =
@@ -455,6 +454,7 @@ const BookingForm = () => {
           updatedExtraCharges[index].extra_charges_rate;
         const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
         const totalAmount = calulatedAmt - discountAmt;
+        updatedExtraCharges[index].extra_charges_amt = totalAmount;
         updatedExtraCharges[index].extra_charges_total = totalAmount;
       } else if (values.calculation_method === 'fixed_amount') {
         updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
@@ -462,6 +462,7 @@ const BookingForm = () => {
         const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
         const totalAmount = calulatedAmt - discountAmt;
         updatedExtraCharges[index].extra_charges_total = totalAmount;
+        updatedExtraCharges[index].extra_charges_amt = totalAmount;
       }
       return updatedExtraCharges;
     });
@@ -477,9 +478,12 @@ const BookingForm = () => {
 
   const handleTotalExtraCharge = () => {
     let total = 0;
-    extraCharges?.forEach(charge => {
-      total += charge.extra_charges_total;
-    });
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      extraCharges?.forEach(charge => {
+        total += charge.extra_charges_total;
+      });
+      return total.toFixed(2);
+    }
     return total.toFixed(2);
   };
 
@@ -681,7 +685,7 @@ const BookingForm = () => {
       {
         extra_charges_no: extraCharges.length + 1,
         extra_charges_title: '',
-        extra_charges_distribution_method: DISTRIBUTION_METHOD,
+        extra_charges_distribution_method: '',
         extra_charges_area: 0,
         extra_charges_rate: 0,
         extra_charges_disc_amt: 0,
@@ -865,7 +869,7 @@ const BookingForm = () => {
     }),
   });
 
-  const { values, setFieldValue, handleChange, handleBlur} = formik;
+  const { values, setFieldValue, handleChange, handleBlur } = formik;
 
   const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
 
@@ -1129,10 +1133,12 @@ const BookingForm = () => {
 
   useEffect(() => {
     const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue(
-      'basic_rate_basic_amount',
-      parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
-    );
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      setFieldValue(
+        'basic_rate_basic_amount',
+        parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
@@ -1285,7 +1291,7 @@ const BookingForm = () => {
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          <Form onSubmit={formik.handleSubmit}>
+          <Form onSubmit={debounce(formik.handleSubmit, 500)}>
             {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
             <AddBrokerModal
@@ -1293,7 +1299,6 @@ const BookingForm = () => {
               project_id={project_id}
               show={showBroker}
             />
-
             {/* 1st section */}
             <div className="booking-form-box shwan-form ">
               <div className="booking-form-col-12">
@@ -1325,7 +1330,7 @@ const BookingForm = () => {
                       onBlur={formik.handleBlur}
                       onChange={e => {
                         setCustomerDetails(e?.details);
-                        setFieldValue('visitors_id', e?.details.id)
+                        setFieldValue('visitors_id', e?.details.id);
                       }}
                     />
                     {formik.touched.visitors_id && formik.errors.visitors_id && (
@@ -1834,10 +1839,15 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={(
-                        parseFloat(values.basic_rate_basic_amount) +
-                        parseFloat(handleTotalOtherCharge())
-                      ).toFixed(2)}
+                      value={
+                        values.calculation_method === 'rate_base' ||
+                        values.calculation_method === 'fixed'
+                          ? (
+                              parseFloat(values.basic_rate_basic_amount) +
+                              parseFloat(handleTotalOtherCharge())
+                            ).toFixed(2)
+                          : '0.00'
+                      }
                     />
                   </div>
                 </div>
