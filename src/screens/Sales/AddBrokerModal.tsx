@@ -1,6 +1,6 @@
-import './AddCustomerModal.css';
-
 import { useFormik } from 'formik';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { addBroker, getBrokerList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
@@ -8,6 +8,30 @@ import * as Yup from 'yup';
 
 const AddBrokerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
+
+  const handleSubmit = async values => {
+    const { firstName, lastName, email, phone } = values;
+    await dispatch(
+      addBroker({
+        project_id,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: parseInt(phone, 10),
+      }),
+    );
+
+    await dispatch(getBrokerList({ project_id }));
+
+    await handleClose();
+    formik.resetForm();
+  };
+
+  const debouncedHandleSubmit = useRef(
+    debounce(values => {
+      handleSubmit(values);
+    }, 500),
+  ).current;
 
   const formik = useFormik({
     initialValues: {
@@ -22,22 +46,8 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
       email: Yup.string().email('Invalid email address'),
       phone: Yup.string().required('Required Field'),
     }),
-    onSubmit: async values => {
-      const { firstName, lastName, email, phone } = values;
-      await dispatch(
-        addBroker({
-          project_id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          phone: parseInt(phone, 10),
-        }),
-      );
-
-      dispatch(getBrokerList({ project_id }));
-
-      formik.resetForm();
-      await handleClose();
+    onSubmit: values => {
+      debouncedHandleSubmit(values);
     },
   });
 

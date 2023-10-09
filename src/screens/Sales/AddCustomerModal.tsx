@@ -1,13 +1,49 @@
-import './AddCustomerModal.css';
-
 import { useFormik } from 'formik';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { addCustomer, getVisitorsList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
-
 const AddCustomerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
+
+  const handleSubmit = async values => {
+    const { firstName, lastName, email, phone } = values;
+    await dispatch(
+      addCustomer({
+        project_id,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: parseInt(phone, 10),
+        inquiry_for: 2,
+        priority: 'medium',
+        occupation: 0,
+        budget_from: 0,
+        budget_to: 0,
+        other_occupation: 0,
+      }),
+    );
+
+    await dispatch(
+      getVisitorsList({
+        project_id,
+        filter_mode: 'name',
+        role: 'admin',
+        page: 'all',
+      }),
+    );
+
+    await handleClose();
+    formik.resetForm();
+  };
+
+  const debouncedHandleSubmit = useRef(
+    debounce(values => {
+      handleSubmit(values);
+    }, 500),
+  ).current;
 
   const formik = useFormik({
     initialValues: {
@@ -22,35 +58,8 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       email: Yup.string().email('Invalid email address'),
       phone: Yup.string().required('Required Field'),
     }),
-    onSubmit: async values => {
-      const { firstName, lastName, email, phone } = values;
-      await dispatch(
-        addCustomer({
-          project_id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          phone: parseInt(phone, 10),
-          inquiry_for: 2,
-          priority: 'medium',
-          occupation: 0,
-          budget_from: 0,
-          budget_to: 0,
-          other_occupation: 0,
-        }),
-      );
-
-      dispatch(
-        getVisitorsList({
-          project_id,
-          filter_mode: 'name',
-          role: 'admin',
-          page: 'all',
-        }),
-      );
-
-      formik.resetForm();
-      await handleClose();
+    onSubmit: values => {
+      debouncedHandleSubmit(values);
     },
   });
 
@@ -140,6 +149,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
           <div className="form-row justify-content-end mr-5 mb-3 ">
             <button
               className="Btn btn-lightblue-primary lbps-btn py-2 px-4 mr-4"
+              type="button"
               onClick={handleClose}
             >
               Close
