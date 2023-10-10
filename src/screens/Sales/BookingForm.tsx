@@ -827,6 +827,7 @@ const BookingForm = () => {
 
   // booking form submission
   const handleSubmit = async values => {
+
     const {
       project_id,
       unit_id,
@@ -906,10 +907,9 @@ const BookingForm = () => {
         property_final_amount:
           parseFloat(values.basic_rate_basic_amount) +
           parseFloat(handleTotalOtherCharge()) +
-          parseFloat(values.gst_amt) +
-          parseFloat(values.stampduty_amount) +
-          parseFloat(values.reg_amount) +
-          parseFloat(values.taxes_amount) +
+          values.gst_amt +
+          values.stampduty_amount +
+          values.reg_amount +
           parseFloat(handleTotalExtraCharge()),
         is_loan: isToggle ? 'no' : 'yes',
         loan_amt,
@@ -1063,7 +1063,7 @@ const BookingForm = () => {
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          <Form onSubmit={formik.handleSubmit}>
+          <Form onSubmit={handleSubmit}>
             {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
             <AddBrokerModal
@@ -1089,7 +1089,7 @@ const BookingForm = () => {
                   <div className="col-12">
                     <Select
                       closeMenuOnSelect={true}
-                      noOptionsMessage={() => 'Loading'}
+                      noOptionsMessage={() => 'Loading...'}
                       options={customerOptions}
                       placeholder="Existing Inquiry"
                       styles={{
