@@ -1063,7 +1063,7 @@ const BookingForm = () => {
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          <Form onSubmit={handleSubmit}>
+          <Form onSubmit={formik.handleSubmit}>
             {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
             <AddBrokerModal
