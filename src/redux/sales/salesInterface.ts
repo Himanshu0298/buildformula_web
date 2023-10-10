@@ -270,7 +270,7 @@ export interface IBookingFormParams {
   loan_amt: number;
   bank: number;
   loan_remarks: string;
-  installments: Installment[];
+  installments?: Installment[];
   custom_payment_total_amount: number;
   custom_payment_remark_id: number;
   custom_payment_remark: string;
