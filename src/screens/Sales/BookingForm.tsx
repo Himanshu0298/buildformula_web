@@ -5,7 +5,6 @@ import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { debounce } from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -28,14 +27,14 @@ import {
   getVisitorsList,
   updateFormFillingStatus,
 } from 'redux/sales';
-import { IBroker, IVisitor } from 'redux/sales/salesInterface';
+import { IBroker, IOwnerShip, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 // LIVE_REDIRECT
 import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, STAGING_REDIRECT } from 'utils/constant';
 import * as Yup from 'yup';
 
-import AddBrokerModal from './AddBrokerModal';
-import AddCustomerModal from './AddCustomerModal';
+import AddBrokerModal from './components/AddBrokerModal';
+import AddCustomerModal from './components/AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -72,6 +71,7 @@ const BookingForm = () => {
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
+  const [ownerShipData, setOwnerShipData] = useState<IOwnerShip[]>([]);
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
   const [extraCharges, setExtraCharges] = useState([]);
@@ -138,6 +138,7 @@ const BookingForm = () => {
       loan_remarks: '',
       installments: [],
       extra_charges_total: 0,
+      ownership: [],
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -501,6 +502,7 @@ const BookingForm = () => {
   const extraChargeRow = (i, x) => {
     // ec disc amt calculation
     function handleExtraChargesDiscAmt(e, item = x) {
+      console.log("🚀 ~ file: BookingForm.tsx:505 ~ handleExtraChargesDiscAmt ~ item:", item)
       const base =
         item.amount_type === 'ratebase_amt'
           ? unitAreaInfo?.super_build_up_area * item.ratebase_amounts
@@ -704,6 +706,130 @@ const BookingForm = () => {
     ]);
   };
 
+  // Ownership flow
+  const handleUpdateOwnershipData = (index: number, field: string, value) => {
+    setOwnerShipData(prevOwnershipData => {
+      const updateOwnershipData = [...prevOwnershipData];
+      updateOwnershipData[index][field] = value;
+
+      return updateOwnershipData;
+    });
+  };
+
+  const handleAddOwnership = () => {
+    setOwnerShipData([
+      ...ownerShipData,
+      {
+        id: ownerShipData.length + 1,
+        ownership_customer_first_name: '',
+        ownership_customer_phone: '',
+        ownership_customer_email: '',
+        ownership_customer_pan: '',
+        ownership_customer_aadhar: '',
+      },
+    ]);
+  };
+
+  const handleRemoveOwnership = (index: number) => {
+    setOwnerShipData(prevOwners => {
+      const updatedOwnershipData = [...prevOwners];
+      updatedOwnershipData.splice(index, 1);
+      return updatedOwnershipData;
+    });
+  };
+
+  const OwnerShipRow = (item, index) => {
+    const {
+      id,
+      ownership_customer_first_name,
+      ownership_customer_phone,
+      ownership_customer_email,
+      ownership_customer_pan,
+      ownership_customer_aadhar,
+    } = item || {};
+    return (
+      <tr key={`${id}${index}`}>
+        <td>{index + 1}</td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_first_name}
+            type="text"
+            value={ownership_customer_first_name}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_first_name', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_phone}
+            type="text"
+            value={ownership_customer_phone}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_phone', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_email}
+            type="text"
+            value={ownership_customer_email}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_email', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_pan}
+            type="text"
+            value={ownership_customer_pan}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_aadhar}
+            type="text"
+            value={ownership_customer_aadhar}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
+            }}
+          />
+        </td>
+
+        <td>
+          <button
+            className="add-comp-btn m-0 acount-act-btn red-common"
+            type="button"
+            onClick={() => handleRemoveOwnership(index)}
+          >
+            <svg
+              fill="none"
+              height="10"
+              viewBox="0 0 6 8"
+              width="8"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
+                fill="#FF5D5D"
+              ></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    );
+  };
+
   // booking form submission
   const handleSubmit = async values => {
     const {
@@ -797,6 +923,7 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
+        ownership: ownerShipData,
       }),
     );
 
@@ -941,7 +1068,7 @@ const BookingForm = () => {
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          <Form onSubmit={debounce(formik.handleSubmit, 500)}>
+          <Form onSubmit={formik.handleSubmit}>
             {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
             <AddBrokerModal
@@ -1020,45 +1147,40 @@ const BookingForm = () => {
                         />
                       </div>
                     </div>
-                    <div className="form-row">
-                      <div className="col-6">
-                        <label>Through Broker?</label>
-                        <div className="form-row">
-                          <div className="col-6">
-                            <div className="rd-grp form-check-inline">
-                              <RadioGroup
-                                row
-                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                name="row-radio-buttons-group"
-                              >
-                                <FormControlLabel
-                                  control={
-                                    <Radio onClick={() => setFieldValue('through_broker', true)} />
-                                  }
-                                  label="Yes"
-                                  value="yes"
-                                />
-                                <FormControlLabel
-                                  control={
-                                    <Radio onClick={() => setFieldValue('through_broker', false)} />
-                                  }
-                                  label="No"
-                                  value="no"
-                                />
-                              </RadioGroup>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </>
                 ) : null}
               </div>
             </div>
 
             {/* 2nd section */}
-            {values.through_broker ? (
-              <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <label>Through Broker?</label>
+                <div className="form-row">
+                  <div className="col-6">
+                    <div className="rd-grp form-check-inline">
+                      <RadioGroup
+                        row
+                        aria-labelledby="demo-row-radio-buttons-group-label"
+                        name="row-radio-buttons-group"
+                      >
+                        <FormControlLabel
+                          control={<Radio onClick={() => setFieldValue('through_broker', true)} />}
+                          label="Yes"
+                          value="yes"
+                        />
+                        <FormControlLabel
+                          control={<Radio onClick={() => setFieldValue('through_broker', false)} />}
+                          label="No"
+                          value="no"
+                        />
+                      </RadioGroup>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {values.through_broker ? (
                 <div className="booking-form-col-12">
                   <div className="d-flex align-items-center justify-content-between">
                     <h5>BROKER DETAILS</h5>
@@ -1147,10 +1269,43 @@ const BookingForm = () => {
                     </>
                   ) : null}
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
 
             {/* 3rd section */}
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <div className="d-flex align-items-center justify-content-between">
+                  <h5>OWNERSHIP DETAILS</h5>
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn mr-0"
+                    type="button"
+                    onClick={handleAddOwnership}
+                  >
+                    Add Owner
+                  </button>
+                </div>
+
+                {ownerShipData.length ? (
+                  <table className="table my-3">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th>PAN</th>
+                      <th>Aadhar</th>
+                      <th></th>
+                    </thead>
+                    <tbody>
+                      {ownerShipData?.map((owner, index) => OwnerShipRow(owner, index))}
+                    </tbody>
+                  </table>
+                ) : undefined}
+              </div>
+            </div>
+
+            {/* 4th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>UNIT INFO</h5>
@@ -1211,7 +1366,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 4th section */}
+            {/* 5th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>RATE CALCULATION</h5>
@@ -1403,7 +1558,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 5th section */}
+            {/* 6th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>OTHER CHARGES</h5>
@@ -1436,7 +1591,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 6th section */}
+            {/* 7th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>OVERALL DISCOUNT</h5>
@@ -1471,7 +1626,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 7th section */}
+            {/* 8th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>GOVERNMENT TAXES</h5>
@@ -1590,7 +1745,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 8th section */}
+            {/* 9th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>EXTRA CHARGES</h5>
@@ -1638,7 +1793,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 9th section */}
+            {/* 10th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>SUMMARY</h5>
@@ -1776,7 +1931,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 10th section */}
+            {/* 11th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>LOAN DETAILS</h5>
@@ -1866,7 +2021,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 11th section */}
+            {/* 12th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>TERMS & CONDITIONS</h5>

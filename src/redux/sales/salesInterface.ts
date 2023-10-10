@@ -136,6 +136,19 @@ export interface IVisitor {
   assign_to_data: IAssignToData;
   interested_properties: any[];
 }
+
+export interface IOwnerShip {
+  id: number,
+  ownership_customer_first_name: string;
+  ownership_customer_phone: string;
+  ownership_customer_address?: string;
+  ownership_customer_email: string;
+  ownership_customer_age?: string;
+  ownership_customer_occupation?: string;
+  ownership_customer_alternate_contact?: string;
+  ownership_customer_pan: string;
+  ownership_customer_aadhar: string;
+}
 export interface IAssignToData {
   id: number;
   first_name: string;
@@ -274,6 +287,7 @@ export interface IBookingFormParams {
   custom_payment_total_amount: number;
   custom_payment_remark_id: number;
   custom_payment_remark: string;
+  ownership: IOwnerShip[]
 }
 
 export interface OtherCharge {
