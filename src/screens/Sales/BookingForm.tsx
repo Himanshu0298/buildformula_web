@@ -529,9 +529,10 @@ const BookingForm = () => {
     }
     // ec disc % calculation
     function handleExtraChargesDiscPer(e, item = x) {
-      const { area, ratebase_amounts, fixed_amounts } = item || 0;
+      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
 
-      const base = item.amount_type === 'ratebase_amt' ? area * ratebase_amounts : fixed_amounts;
+      const base =
+        item.amount_type === 'ratebase_amt' ? extra_charges_area * ratebase_amounts : fixed_amounts;
 
       const { valueAsNumber: percent = 0 } = e.target;
 
