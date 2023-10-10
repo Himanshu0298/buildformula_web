@@ -861,7 +861,7 @@ const BookingForm = () => {
       other_charges_no: e.id,
       other_charges_title: e.title,
       other_charges_distribution_method: e.other_charges_distribution_method,
-      other_charges_area: basic_rate_area,
+      other_charges_area: e.area,
       other_charges_rate: e.ratebase_amounts,
       other_charges_disc_amt: e.other_charges_disc_amt,
       other_charges_disc_per: e.other_charges_disc_per,
@@ -1889,24 +1889,25 @@ const BookingForm = () => {
                                   ? isNaN(
                                       parseFloat(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
-                                        parseFloat(values.gst_amt) +
-                                        parseFloat(values.stampduty_amount) +
-                                        parseFloat(values.reg_amount) +
-                                        parseFloat(values.taxes_amount) +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
                                         parseFloat(handleTotalExtraCharge()),
                                     )
                                     ? (
                                         parseFloat(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
                                         parseFloat(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
-                                        parseFloat(values.gst_amt) +
-                                        parseFloat(values.stampduty_amount) +
-                                        parseFloat(values.reg_amount) +
-                                        parseFloat(values.taxes_amount) +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                   : '0.00'}
