@@ -1636,8 +1636,7 @@ const BookingForm = () => {
                       className="form-control"
                       type="number"
                       value={
-                        values.calculation_method === 'rate_base' ||
-                        values.calculation_method === 'fixed'
+                        values.calculation_method 
                           ? (
                               parseFloat(values.basic_rate_basic_amount) +
                               parseFloat(handleTotalOtherCharge())
