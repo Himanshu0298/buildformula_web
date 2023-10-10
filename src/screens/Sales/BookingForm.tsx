@@ -496,9 +496,12 @@ const BookingForm = () => {
   const extraChargeRow = (i, x) => {
     // ec disc amt calculation
     function handleExtraChargesDiscAmt(e, item = x) {
-      const { area, ratebase_amounts, fixed_amounts } = item || 0;
+      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
 
-      const base = item.amount_type === 'ratebase_amt' ? area * ratebase_amounts : fixed_amounts;
+      const base =
+        item.amount_type === 'ratebase_amt'
+          ? Number(extra_charges_area) * Number(ratebase_amounts)
+          : fixed_amounts;
 
       const { valueAsNumber: amount = 0 } = e.target;
 
@@ -1747,7 +1750,7 @@ const BookingForm = () => {
                       <th>Sr No</th>
                       <th>Title</th>
                       <th>Distribution Method</th>
-                      <th>{values.calculation_method === 'rate_base' && 'Area'}</th>
+                      <th>Area</th>
                       <th>Rate</th>
                       <th>Discount</th>
                       <th className="text-right">Amount</th>
@@ -1845,18 +1848,12 @@ const BookingForm = () => {
                               <span> (+)</span>
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
-                                {isNaN(
-                                  parseFloat(values.gst_amt) +
-                                    parseFloat(values.stampduty_amount) +
-                                    parseFloat(values.reg_amount) +
-                                    parseFloat(values.taxes_amount),
-                                )
-                                  ? `${0}.00`
+                                {isNaN(values.gst_amt + values.stampduty_amount + values.reg_amount)
+                                  ? `0.00`
                                   : (
-                                      parseFloat(values.gst_amt) +
-                                      parseFloat(values.stampduty_amount) +
-                                      parseFloat(values.reg_amount) +
-                                      parseFloat(values.taxes_amount)
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount
                                     ).toFixed(2)}
                               </span>
                             </span>
