@@ -1,7 +1,7 @@
-/* eslint-disable react/no-unescaped-entities */
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
+import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
@@ -16,95 +16,77 @@ import {
   addBooking,
   getAreaInfo,
   getBankList,
-  getInstallmentOptions,
+  getBrokerList,
+  // getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
+  getProjectUnitStatus,
   getTermsnConditions,
   getUnitInfo,
   getUnitParkingInfo,
   getVisitorsList,
-  triggerTimer,
   updateFormFillingStatus,
 } from 'redux/sales';
-import { IVisitor } from 'redux/sales/salesInterface';
+import { IBroker, IOwnerShip, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+// LIVE_REDIRECT
 import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
+import * as Yup from 'yup';
 
-import AddCustomerModal from './AddCustomerModal';
+import AddBrokerModal from './components/AddBrokerModal';
+import AddCustomerModal from './components/AddCustomerModal';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
   const [searchParams] = useSearchParams();
+
+  // url params
   const project_id = searchParams.get('project_id');
   const unit_id = searchParams.get('unit_id');
   const tower_id = searchParams.get('tower_id');
+  const floor_id = searchParams.get('project_floor');
   // const project_type = searchParams.get('project_type');
-  const pid = searchParams.get('pid');
+  const pid = searchParams.get('pid'); //encrypted project id
   const project_list_id = searchParams.get('project_list_id');
 
-  const OLD_URL = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
-  // const project_main_types = searchParams.get('project_main_types'); not provided by backend
+  // old site navigation
+  const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
+  // redux state values
   const {
     visitorList,
+    brokerList,
     unitInfo,
     unitParkingInfo,
     otherChargesList,
     termsList,
-    // installmentsList,
-    installmentsInformation,
     banksList,
     unitAreaInfo,
     extraChargesList,
-    // timer,
+    projectUnitStatus,
   } = useAppSelector(s => s.sales);
 
   const [show, setShow] = useState(false);
-
+  const [showBroker, setShowBroker] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-
+  const [ownerShipData, setOwnerShipData] = useState<IOwnerShip[]>([]);
+  const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
-
   const [extraCharges, setExtraCharges] = useState([]);
-
-  function handleUpdateExtraCharges() {
-    const updatedData = extraChargesList?.other_charge_unit_rates
-      ?.filter(item => item.amount_type === CALCULATION_FLAG)
-      ?.map(x => ({
-        amount_type: x?.amount_type,
-        fixed_amounts: x.fixed_amounts || 0,
-        ratebase_amounts: x.ratebase_amounts || 0,
-        title: x.title,
-        extra_charges_no: 1,
-        extra_charges_title: x.title,
-        extra_charges_distribution_method: '',
-        extra_charges_area: 0,
-        extra_charges_rate: 0,
-        extra_charges_disc_amt: 0,
-        extra_charges_disc_per: 0,
-        extra_charges_amt: 0,
-        extra_charges_total: 0,
-        extra_charges_base: 0,
-      }));
-    setExtraCharges(updatedData);
-  }
-
+  const [baseAmount, setBaseAmount] = useState<number>();
   const [termsId, setTermsId] = useState(0);
-  const [oclist, setOCList] = useState({
+  const [OCList, setOCList] = useState({
     other_charge_unit_rates: [],
   });
 
-  const [_installmentsList, setInstallmentsList] = useState([]);
+  const toggleModal = () => setShow(v => !v);
+  const toggleBrokerModal = () => setShowBroker(v => !v);
+  const handleToggle = () => {
+    setIsToggle(!isToggle);
+  };
 
-  const [baseAmount, setBaseAmount] = useState<number>();
-
-  // const [installmentId, setInstallmentId] = useState<number>(0);
-
-  // const [showInstall, setShowInstall] = useState(false);
-
-  const toggleModal = () => setShow(!show);
   // unitInfo
   const unitInfoValues = useMemo(() => {
     return unitInfo?.booking_unit_sheet_towers_data?.find(
@@ -117,6 +99,56 @@ const BookingForm = () => {
     return unitParkingInfo?.all_parking_units?.filter(e => e.allotment_data === unit_id);
   }, [unitParkingInfo?.all_parking_units, unit_id]);
 
+  // form initials
+  const initialValues = useMemo(() => {
+    return {
+      project_id,
+      unit_id: unit_id,
+      visitors_id: customerDetails?.id,
+      broker_id: 0,
+      through_broker: false,
+      brokerage: 0,
+      broker_remark: '',
+      unit_reserved_date: dayjs().format('YYYY-MM-DD'),
+      parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
+      calculation_method: '',
+      basic_rate_no: 1,
+      basic_rate_description: 'Basic rate of unit',
+      basic_rate_area: unitAreaInfo?.super_build_up_area || 0,
+      basic_rate: unitAreaInfo?.rate_base_amt || 0,
+      basic_rate_disc_amt: 0,
+      basic_rate_disc_per: 0,
+      basic_rate_basic_amount: 0,
+      other_charges: [],
+      other_charges_total: 0,
+      other_charges_total_discount: 0,
+      custom_payment_remark_id: 0,
+      custom_payment_remark: '',
+      extra_charges: [],
+      gst_per: 0,
+      gst_amt: 0,
+      stampduty_per: 0,
+      stampduty_amount: 0,
+      reg_per: 0,
+      reg_amount: 0,
+      total_gove_tax: 0,
+      is_loan: 'yes',
+      loan_amt: 0,
+      bank: 0,
+      loan_remarks: '',
+      installments: [],
+      extra_charges_total: 0,
+      ownership: [],
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    project_id,
+    unitAreaInfo?.rate_base_amt,
+    unitAreaInfo?.super_build_up_area,
+    unitParkingInfoValues,
+    unit_id,
+  ]);
+
   // customers options
   const customerOptions = useMemo(() => {
     return visitorList?.map(e => ({
@@ -125,6 +157,15 @@ const BookingForm = () => {
       details: e,
     }));
   }, [visitorList]);
+
+  // broker options
+  const brokerOptions = useMemo(() => {
+    return brokerList?.map(e => ({
+      label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
+      value: e.id,
+      details: e,
+    }));
+  }, [brokerList]);
 
   // t&c
   const termsOptions = useMemo(() => {
@@ -151,491 +192,12 @@ const BookingForm = () => {
     }));
   }, [banksList]);
 
-  // extra charges update, delete & update
-  const handleUpdateExtraCharge = (index: number, field: string, value) => {
-    setExtraCharges(prevExtraCharges => {
-      const filteredEc = prevExtraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
-      const updatedExtraCharges = [...filteredEc];
-      updatedExtraCharges[index][field] = value;
-      if (values.calculation_method === 'rate_base') {
-        updatedExtraCharges[index].extra_charges_amt =
-          updatedExtraCharges[index].extra_charges_base;
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].ratebase_amounts;
-        updatedExtraCharges[index].extra_charges_area = unitAreaInfo?.super_build_up_area;
-        const calulatedAmt =
-          updatedExtraCharges[index].extra_charges_area *
-          updatedExtraCharges[index].extra_charges_rate;
-        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
-        const totalAmount = calulatedAmt - discountAmt;
-        updatedExtraCharges[index].extra_charges_total = totalAmount;
-      } else if (values.calculation_method === 'fixed_amount') {
-        updatedExtraCharges[index].extra_charges_rate = updatedExtraCharges[index].fixed_amounts;
-        const calulatedAmt = updatedExtraCharges[index].extra_charges_rate;
-        const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
-        const totalAmount = calulatedAmt - discountAmt;
-        updatedExtraCharges[index].extra_charges_total = totalAmount;
-      }
-      return updatedExtraCharges;
-    });
-  };
-
-  const handleDeleteExtraCharge = (index: number) => {
-    setExtraCharges(prevExtraCharges => {
-      const updatedExtraCharges = [...prevExtraCharges];
-      updatedExtraCharges.splice(index, 1);
-      return updatedExtraCharges;
-    });
-  };
-
-  const handleTotalExtraCharge = () => {
-    let total = 0;
-    extraCharges?.forEach(charge => {
-      total += charge.extra_charges_total;
-    });
-    return total.toFixed(2);
-  };
-
-  // installment calculations
-  useEffect(() => {
-    if (installmentsInformation) {
-      let updatedList =
-        installmentsInformation?.payment_scheduled_details_master?.map(item => ({
-          ...item,
-          installment_basic_amt: 0,
-          installment_otherchages_amt: 0,
-          gst: 0,
-          installment_amount: 0,
-        })) || [];
-
-      updatedList.push({
-        installment_otherchages_amt: 0,
-        installment_amount: 0,
-        custom_payment_no: 0,
-        title: 'Other Charges (Separately)',
-        installment_due_date: '',
-        lastRow: 'true',
-      } as any);
-
-      updatedList?.map(installment => {
-        if (!installment.lastRow) {
-          const calculatedAmount = (
-            (parseFloat(values.basic_rate_basic_amount) * installment.percentage) /
-            100
-          ).toFixed(2);
-          installment.installment_basic_amt = parseFloat(calculatedAmount);
-          return installment;
-        }
-        return installment;
-      });
-
-      extraCharges?.forEach(extraCharge => {
-        const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
-        const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
-        switch (extra_charges_distribution_method) {
-          case 'Equally with all installments': {
-            const equallyDistributedAmount = extra_charges_total / installmentLen;
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt += parseFloat(
-                  equallyDistributedAmount.toFixed(2),
-                );
-                return installment;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Proportionately with all installment': {
-            const proportionatelyDistributedWithAll = extra_charges_total / installmentLen;
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt +=
-                  (proportionatelyDistributedWithAll * installment.percentage) / 100;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Proportionately with all installment(Except First)': {
-            const proportionatelyDistributedAmount = extra_charges_total / (installmentLen - 1);
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt +=
-                  (proportionatelyDistributedAmount * installment.percentage) / 100;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Connect with last installment': {
-            updatedList = updatedList?.map((installment, index) => {
-              if (index === installmentLen - 1 && !installment?.lastRow) {
-                installment.installment_otherchages_amt += extra_charges_total;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Dont connect with installment': {
-            updatedList = updatedList?.map(installment => {
-              if (installment?.lastRow) {
-                installment.installment_otherchages_amt += extra_charges_total;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          default:
-        }
-      });
-
-      oclist?.other_charge_unit_rates?.forEach(oclist => {
-        const { other_charges_distribution_method, otherChargesTotal } = oclist;
-        const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
-
-        switch (other_charges_distribution_method) {
-          case 'Equally with all installments': {
-            const equallyDistributedAmount = otherChargesTotal / installmentLen;
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt += parseFloat(
-                  equallyDistributedAmount.toFixed(2),
-                );
-                installment.installment_amount =
-                  installment.installment_otherchages_amt + installment.installment_basic_amt;
-                return installment;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Proportionately with all installment': {
-            const proportionatelyDistributedWithAll = otherChargesTotal / installmentLen;
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt +=
-                  (proportionatelyDistributedWithAll * installment.percentage) / 100;
-                installment.installment_amount =
-                  installment.installment_otherchages_amt + installment.installment_basic_amt;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Proportionately with all installment(Except First)': {
-            const proportionatelyDistributedAmount = otherChargesTotal / (installmentLen - 1);
-            updatedList = updatedList?.map((installment, index) => {
-              if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
-                installment.installment_otherchages_amt +=
-                  (proportionatelyDistributedAmount * installment.percentage) / 100;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Connect with last installment': {
-            updatedList = updatedList?.map((installment, index) => {
-              if (index === installmentLen - 1 && !installment?.lastRow) {
-                installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
-                installment.installment_amount =
-                  installment.installment_otherchages_amt + installment.installment_basic_amt;
-              }
-              return installment;
-            });
-            break;
-          }
-
-          case 'Dont connect with installment': {
-            updatedList = updatedList?.map(installment => {
-              if (installment?.lastRow) {
-                installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
-              }
-              return installment;
-            });
-            break;
-          }
-
-          default:
-        }
-      });
-
-      return setInstallmentsList(updatedList);
-    }
+  // filtering units for time
+  const unitTimerData = useMemo(() => {
+    const _timerData = projectUnitStatus?.find(e => e.id === Number(unit_id));
+    return _timerData;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [oclist, extraCharges, installmentsInformation]);
-
-  const extraChargeRow = (i, x) => {
-    function handleExtraChargesDiscAmt(e, item = x) {
-      const base =
-        values.calculation_method === 'rate_base'
-          ? item.extra_charges_area * item.extra_charges_rate
-          : item.extra_charges_rate;
-
-      const { valueAsNumber: amount = 0 } = e.target;
-
-      // Fixing the amount if it is greater than base amount
-      const fixAmount = amount > base ? base : amount;
-      // Set to zero if less than zero
-      const newAmount = isNaN(fixAmount) || fixAmount < 0 ? 0 : fixAmount;
-      // matches for two decimals
-      if (DECIMAL_REGEX.test(String(newAmount))) {
-        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', newAmount);
-
-        // Calculate the percentage based on the new amount and update the formik value for the percentage field
-        const percent = parseFloat(((newAmount / base) * 100).toFixed(2));
-
-        if (newAmount === 0) {
-          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', null);
-        } else if (percent >= 100 && newAmount > base) {
-          toast.warning('Discount Amount cannot be more than Basic Amount');
-          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
-        } else {
-          handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent);
-        }
-      }
-    }
-
-    function handleExtraChargesDiscPer(e, item = x) {
-      const base =
-        values.calculation_method === 'rate_base'
-          ? item.extra_charges_area * item.extra_charges_rate
-          : item.extra_charges_rate;
-
-      const { valueAsNumber: percent = 0 } = e.target;
-
-      // Fixing the amount if it is greater than base amount
-      const fixPercent = percent > 100 ? 100 : percent;
-      // Set to zero if less than zero
-      const newPercent = isNaN(fixPercent) || fixPercent < 0 ? 0 : fixPercent;
-      // matches for two decimals
-      if (DECIMAL_REGEX.test(String(newPercent))) {
-        handleUpdateExtraCharge(i, 'extra_charges_disc_per', newPercent);
-
-        // Calculate the percentage based on the new amount and update the formik value for the percentage field
-        const amount = parseFloat(((base * newPercent) / 100).toFixed(2));
-
-        if (newPercent === 0) {
-          handleUpdateExtraCharge(i, 'extra_charges_disc_per', null);
-        } else if (percent > 100 && amount > base) {
-          toast.warning('Discount % cannot be more than 100%');
-          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', base);
-          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
-        } else {
-          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
-        }
-      }
-    }
-
-    return (
-      <tr key={x.id}>
-        <td>{i + 1}</td>
-        <td>
-          <input
-            title={x?.extra_charges_title}
-            className="form-control mb-2"
-            type="text"
-            value={x?.extra_charges_title}
-            onChange={e => handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value)}
-          />
-        </td>
-        <td>
-          <select
-            className="form-control mb-2"
-            onChange={e => {
-              handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value);
-            }}
-          >
-            <option disabled selected>
-              Select Distribution Method
-            </option>
-            {DISTRIBUTION_METHOD?.map((e, index) => {
-              return (
-                <option key={index} value={e}>
-                  {e}
-                </option>
-              );
-            })}
-          </select>
-        </td>
-        <td>
-          {values.calculation_method === 'rate_base' && (
-            <input
-              readOnly
-              className="form-control mb-2"
-              type="number"
-              value={unitAreaInfo?.super_build_up_area}
-              onChange={e => {
-                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
-              }}
-            />
-          )}
-        </td>
-        <td>
-          <input
-            className="form-control mb-2"
-            type="number"
-            value={
-              values.calculation_method === 'rate_base'
-                ? parseFloat(x.ratebase_amounts) || 0
-                : parseFloat(x.fixed_amounts) || 0
-            }
-            onChange={
-              values.calculation_method === 'rate_base'
-                ? e => handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
-                : e => handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
-            }
-          />
-        </td>
-        <td>
-          <span className="muted-text" style={{ fontSize: '12px' }}>
-            Amt.
-          </span>
-          <input
-            className="form-control mb-2"
-            name="extra_charges_disc_amt"
-            placeholder="Amount"
-            type="number"
-            value={
-              values.calculation_method === 'rate_base'
-                ? parseFloat(x.extra_charges_disc_amt) >
-                  unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  ? unitAreaInfo?.super_build_up_area * x?.ratebase_amounts
-                  : x?.extra_charges_disc_amt
-                : parseFloat(x?.extra_charges_disc_amt) > x?.fixed_amounts
-                ? x?.fixed_amounts
-                : x?.extra_charges_disc_amt
-            }
-            onChange={handleExtraChargesDiscAmt}
-          />
-          <span className="muted-text" style={{ fontSize: '12px' }}>
-            %
-          </span>
-          <input
-            className="form-control"
-            name="extra_charges_disc_per"
-            placeholder="%"
-            type="number"
-            value={x.extra_charges_disc_per}
-            onChange={handleExtraChargesDiscPer}
-          />
-        </td>
-
-        <td>
-          <input
-            readOnly
-            className="form-control mb-2"
-            type="number"
-            value={parseFloat(x.extra_charges_total <= 0 ? 0 : x.extra_charges_total).toFixed(2)}
-          />
-        </td>
-        <td></td>
-        <td>
-          <button
-            className="add-comp-btn m-0 acount-act-btn red-common"
-            type="button"
-            onClick={() => handleDeleteExtraCharge(i)}
-          >
-            <svg
-              fill="none"
-              height="10"
-              viewBox="0 0 6 8"
-              width="8"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
-                fill="#FF5D5D"
-              ></path>
-            </svg>
-          </button>
-        </td>
-      </tr>
-    );
-  };
-
-  const handleAddData = () => {
-    const filteredEC = extraCharges?.filter(item => item.amount_type === CALCULATION_FLAG);
-    setExtraCharges([
-      ...filteredEC,
-      {
-        extra_charges_no: extraCharges.length + 1,
-        extra_charges_title: '',
-        extra_charges_distribution_method: DISTRIBUTION_METHOD,
-        extra_charges_area: 0,
-        extra_charges_rate: 0,
-        extra_charges_disc_amt: 0,
-        extra_charges_disc_per: 0,
-        extra_charges_amt: 0,
-        extra_charges_base: 0,
-        extra_charges_total: 0,
-        ratebase_amounts: 0,
-        fixed_amounts: 0,
-        amount_type: CALCULATION_FLAG,
-      },
-    ]);
-  };
-
-  const handleTotalOtherCharge = useCallback(() => {
-    let total = 0;
-    oclist?.other_charge_unit_rates?.forEach(charge => {
-      total += parseFloat(charge?.otherChargesTotal) || 0;
-    });
-    return total.toFixed(2);
-  }, [oclist?.other_charge_unit_rates]);
-
-  const handleTotalOtherDiscountAmt = useCallback(() => {
-    let total = 0;
-    oclist?.other_charge_unit_rates?.forEach(charge => {
-      total += parseFloat(charge?.other_charges_disc_amt) || 0;
-    });
-    return total.toFixed(2);
-  }, [oclist]);
-
-  // const handleTotalPaymentCharge = () => {
-  //   let total = 0;
-  //   _installmentsList?.forEach(charge => {
-  //     total += parseFloat(charge?.installment_amount) || 0;
-  //   });
-  //   return total.toFixed(2);
-  // };
-
-  // const handlePaymentSchedule = (index, field, value) => {
-  //   setInstallmentsList(prevList => {
-  //     const newUnitRates = [...prevList];
-  //     newUnitRates[index] = {
-  //       ...newUnitRates[index],
-  //       [field]: value,
-  //     };
-
-  //     const basicAmount = parseFloat(newUnitRates[index].installment_basic_amt) || 0;
-  //     const otherChargesAmt = parseFloat(newUnitRates[index].installment_otherchages_amt) || 0;
-  //     let gst_per = parseFloat(newUnitRates[index].gst) || 0;
-  //     if (gst_per > 100) {
-  //       toast.warning('Gst Discount percentage should not be more than 100%');
-  //     }
-  //     // Calculate the totalPaymentSchedule
-  //     const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100);
-  //     const totalPaymentSchedule = basicAmount + otherChargesAmt + gstAmount;
-
-  //     newUnitRates[index].installment_basic_amt = parseFloat(basicAmount.toFixed(2));
-
-  //     newUnitRates[index].installment_amount = totalPaymentSchedule.toFixed(2);
-
-  //     return newUnitRates;
-  //   });
-  // };
-
-  const handleToggle = () => {
-    setIsToggle(!isToggle);
-  };
+  }, [projectUnitStatus]);
 
   // Api calls
   useEffect(() => {
@@ -647,208 +209,100 @@ const BookingForm = () => {
         page: 'all',
       }),
     );
+    dispatch(
+      getProjectUnitStatus({
+        project_id,
+        project_type: '6',
+        project_tower: tower_id,
+        project_floor: floor_id,
+        id: project_list_id,
+      }),
+    );
     dispatch(getUnitInfo({ project_id, tower_id }));
     dispatch(getUnitParkingInfo({ project_id }));
+    dispatch(getBrokerList({ project_id }));
     dispatch(getOtherChargesList({ project_id, unit_id }));
     dispatch(getOtherExtraCharges({ project_id, unit_id }));
     dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
     dispatch(getTermsnConditions({ project_id }));
-    dispatch(getInstallmentOptions({ project_id }));
+    // dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
-    dispatch(triggerTimer(true));
     dispatch(updateFormFillingStatus({ project_id, unit_id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // installments details
-  // useEffect(() => {
-  //   dispatch(
-  //     getInstallmentDetails({
-  //       project_id: 18,
-  //       payment_scheduled_master_id: installmentId,
-  //     }),
-  //   );
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [installmentId]);
-
-  const initialValues = useMemo(() => {
-    return {
-      project_id,
-      unit_id: unit_id,
-      visitors_id: customerDetails?.id,
-      unit_reserved_date: dayjs().format('YYYY-MM-DD'),
-      parking_no: unitParkingInfoValues?.map(e => e.id).toString(),
-      calculation_method: '',
-      basic_rate_no: 1,
-      basic_rate_description: 'Basic rate of unit',
-      basic_rate_area: unitAreaInfo?.super_build_up_area || 0,
-      basic_rate: unitAreaInfo?.rate_base_amt || 0,
-      basic_rate_disc_amt: 0,
-      basic_rate_disc_per: 0,
-      basic_rate_basic_amount: 0,
-      other_charges: [],
-      other_charges_total: 0,
-      other_charges_total_discount: 0,
-      custom_payment_remark_id: 0,
-      custom_payment_remark: '',
-      extra_charges: [],
-      gst_per: 0,
-      gst_amt: 0,
-      stampduty_per: 0,
-      stampduty_amount: 0,
-      reg_per: 0,
-      reg_amount: 0,
-      taxes_per: 0,
-      taxes_amount: 0,
-      is_loan: 'yes',
-      loan_amt: 0,
-      bank: 0,
-      loan_remarks: '',
-      installments: [],
-      extra_charges_total: 0,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    project_id,
-    unitAreaInfo?.rate_base_amt,
-    unitAreaInfo?.super_build_up_area,
-    unitParkingInfoValues,
-    unit_id,
-  ]);
-
-  const handleSubmit = async values => {
-    const {
-      project_id,
-      unit_id,
-      // visitors_id,
-      unit_reserved_date,
-      parking_no,
-      calculation_method,
-      basic_rate_no,
-      basic_rate_description,
-      basic_rate_area,
-      basic_rate,
-      basic_rate_disc_amt,
-      basic_rate_disc_per,
-      basic_rate_basic_amount,
-      disc_remarks,
-      gst_per,
-      gst_amt,
-      stampduty_per,
-      stampduty_amount,
-      reg_per,
-      reg_amount,
-      custom_payment_remark,
-      bank,
-      loan_amt,
-    } = values;
-
-    await dispatch(
-      addBooking({
-        project_bookings_temp_id: 0,
-        project_id,
-        unit_id,
-        visitors_id: customerDetails?.id,
-        unit_reserved_date,
-        parking_no,
-        calculation_method,
-        basic_rate_no,
-        basic_rate_description,
-        basic_rate_area,
-        basic_rate,
-        basic_rate_disc_amt,
-        basic_rate_disc_per,
-        basic_rate_basic_amount,
-        other_charges: oclist.other_charge_unit_rates,
-        other_charges_total: parseInt(handleTotalOtherCharge()),
-        sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
-        total_disc:
-          parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
-        disc_remarks: disc_remarks,
-        gst_per,
-        gst_amt,
-        stampduty_per,
-        stampduty_amount,
-        reg_per,
-        reg_amount,
-        total_gove_tax: values.gst_amt + values.stampduty_amount + values.reg_amount,
-        extra_charges: extraCharges,
-        extra_charges_total: parseFloat(handleTotalExtraCharge()),
-        property_final_amount:
-          parseFloat(values.basic_rate_basic_amount) +
-          parseFloat(handleTotalOtherCharge()) +
-          parseFloat(values.gst_amt) +
-          parseFloat(values.stampduty_amount) +
-          parseFloat(values.reg_amount) +
-          parseFloat(values.taxes_amount) +
-          parseFloat(handleTotalExtraCharge()),
-        is_loan: isToggle ? 'no' : 'yes',
-        loan_amt,
-        bank,
-        loan_remarks: values.loan_remarks,
-        installments: _installmentsList,
-        custom_payment_total_amount: 0,
-        custom_payment_remark_id: termsId,
-        custom_payment_remark,
-      }),
-    );
-
-    await window.location.replace(OLD_URL);
-  };
-
-  const formik = useFormik({
-    initialValues,
-    enableReinitialize: true,
-    onSubmit: handleSubmit,
-  });
-
-  const { values, setFieldValue, handleChange, handleBlur } = formik;
-
-  const CALCULATION_FLAG = values.calculation_method === 'rate_base' ? 'ratebase_amt' : 'fix_amt';
-
-  // Other Charges
+  // Other Charges list populate
   useEffect(() => {
     setOCList(otherChargesList);
-  }, [otherChargesList]);
+    handle_Other_Charge_Row_Total();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherChargesList, unitAreaInfo]);
 
   useEffect(() => {
-    handleUpdateExtraCharges();
-    if (values.calculation_method === 'rate_base') {
-      handleExtraBaseAmount();
-    } else {
-      handleExtraFixedAmount();
-    }
-  }, [extraChargesList, CALCULATION_FLAG]);
+    handle_Extra_Charge_Row_Total();
+    handle_Other_Charge_Row_Total();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const discountSyncedFields = useSyncedFields(
-    baseAmount,
-    'basic_rate_disc_amt',
-    'basic_rate_disc_per',
-    setFieldValue,
-  );
+  // Extra Charges list populate
+  useEffect(() => {
+    handleUpdateExtraCharges();
+    handle_Extra_Charge_Row_Total();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extraChargesList, unitAreaInfo]);
+
+  // other charges update, delete
+  const handleTotalOtherCharge = useCallback(() => {
+    let total = 0;
+    OCList?.other_charge_unit_rates?.forEach(charge => {
+      total += parseFloat(charge?.otherChargesTotal) || 0;
+    });
+    return total.toFixed(2);
+  }, [OCList?.other_charge_unit_rates]);
+
+  const handleTotalOtherDiscountAmt = useCallback(() => {
+    let total = 0;
+    OCList?.other_charge_unit_rates?.forEach(charge => {
+      total += parseFloat(charge?.other_charges_disc_amt) || 0;
+    });
+    return total.toFixed(2);
+  }, [OCList]);
+
+  function handle_Other_Charge_Row_Total() {
+    OCList?.other_charge_unit_rates?.map((x, index) => {
+      const calculatedAmount =
+        x.amount_type === 'ratebase_amt' ? x.area * x.ratebase_amounts : x.fixed_amounts;
+
+      setOCList(prevList => {
+        const newUnitRates = [...prevList.other_charge_unit_rates];
+
+        newUnitRates[index] = {
+          ...newUnitRates[index],
+          otherChargesTotal: calculatedAmount,
+        };
+
+        return { ...prevList, other_charge_unit_rates: newUnitRates };
+      });
+    });
+  }
 
   const handleOCListChange = (index, field, value) => {
     setOCList(prevList => {
-      const filteredOClist = prevList.other_charge_unit_rates.filter(
-        e => e.amount_type === CALCULATION_FLAG,
-      );
-      const newUnitRates = [...filteredOClist];
+      const newUnitRates = [...prevList.other_charge_unit_rates];
       newUnitRates[index] = {
         ...newUnitRates[index],
         [field]: value,
       };
-      if (values.calculation_method === 'rate_base') {
-        const calulatedAmt =
-          unitAreaInfo?.super_build_up_area * newUnitRates[index].ratebase_amounts;
-        const discountAmt = newUnitRates[index].other_charges_disc_amt || 0;
-        const totalAmount = calulatedAmt - discountAmt;
-        newUnitRates[index].otherChargesTotal = totalAmount;
-      } else if (values.calculation_method === 'fixed_amount') {
-        const calulatedAmt = newUnitRates[index].fixed_amounts;
-        const discountAmt = newUnitRates[index].other_charges_disc_amt;
-        const totalAmount = calulatedAmt - discountAmt;
-        newUnitRates[index].otherChargesTotal = totalAmount;
-      }
+
+      const OC_ROW_BASE_AMT =
+        newUnitRates[index].amount_type === 'ratebase_amt'
+          ? newUnitRates[index].area * newUnitRates[index].ratebase_amounts
+          : newUnitRates[index].fixed_amounts;
+
+      const discountAmt = newUnitRates[index].other_charges_disc_amt;
+      const totalAmount = OC_ROW_BASE_AMT - discountAmt;
+      newUnitRates[index].otherChargesTotal = totalAmount.toFixed(2);
+
       return {
         ...prevList,
         other_charge_unit_rates: newUnitRates,
@@ -858,12 +312,13 @@ const BookingForm = () => {
 
   const OtherCharges = (i, x) => {
     const oc_Base =
-      values.calculation_method === 'rate_base'
-        ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
-        : values.calculation_method === 'fixed_amount'
+      x.amount_type === 'ratebase_amt'
+        ? x.area * x.ratebase_amounts
+        : x.amount_type === 'fix_amt'
         ? x.fixed_amounts
         : 0;
 
+    // discount calculations for oc
     const discountOtherCharges = useSyncedFields(
       oc_Base,
       'other_charges_disc_amt',
@@ -882,14 +337,14 @@ const BookingForm = () => {
             <select
               className="form-control"
               onChange={
-                values.calculation_method === 'rate_base'
+                x.amount_type === 'ratebase_amt'
                   ? e => {
                       handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handleBaseAmount();
+                      handle_Other_Charge_Row_Total();
                     }
                   : e => {
                       handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handleFixedAmount();
+                      handle_Other_Charge_Row_Total();
                     }
               }
             >
@@ -906,14 +361,8 @@ const BookingForm = () => {
             </select>
           </td>
           <td>
-            {values.calculation_method === 'rate_base' && (
-              <input
-                readOnly
-                className="form-control"
-                type="number"
-                value={unitAreaInfo?.super_build_up_area}
-                onChange={e => handleOCListChange(i, 'other_charges_area', e.target.value)}
-              />
+            {x.amount_type === 'ratebase_amt' && (
+              <input readOnly className="form-control" type="number" value={x.area} />
             )}
           </td>
           <td>
@@ -922,13 +371,10 @@ const BookingForm = () => {
               className="form-control"
               type="number"
               value={
-                values.calculation_method === 'rate_base'
+                x.amount_type === 'ratebase_amt'
                   ? x.ratebase_amounts.toFixed(2)
                   : x.fixed_amounts.toFixed(2)
               }
-              onChange={e => {
-                handleOCListChange(i, 'other_charges_rate', e.target.value);
-              }}
             />
           </td>
           <td>
@@ -972,71 +418,532 @@ const BookingForm = () => {
     );
   };
 
-  // const PaymentSchedule = (i, e) => {
-  //   return (
-  //     <tr key={`${i}_${e.id}`}>
-  //       <td>{i + 1}</td>
-  //       <td>{e.title}</td>
-  //       <td>
-  //         <input
-  //           className="form-control"
-  //           type="date"
-  //           value={e.date}
-  //           onChange={x => {
-  //             handlePaymentSchedule(i, 'date', x.target.value);
-  //           }}
-  //         />
-  //       </td>
+  // extra charges update, delete & add
+  function handleUpdateExtraCharges() {
+    const updatedData = extraChargesList?.other_charge_unit_rates?.map(x => ({
+      amount_type: x?.amount_type,
+      fixed_amounts: x.fixed_amounts || 0,
+      ratebase_amounts: x.ratebase_amounts || 0,
+      title: x.title,
+      extra_charges_no: 1,
+      extra_charges_title: x.title,
+      extra_charges_distribution_method: '',
+      extra_charges_area: x.area,
+      extra_charges_rate: 0,
+      extra_charges_disc_amt: 0,
+      extra_charges_disc_per: 0,
+      extra_charges_amt: 0,
+      extra_charges_total: 0,
+      extra_charges_base: 0,
+    }));
+    setExtraCharges(updatedData);
+  }
 
-  //       <td>
-  //         {!e.lastRow && <input className="form-control" type="number" value={e.percentage} />}
-  //       </td>
-  //       <td>
-  //         {!e.lastRow && (
-  //           <input className="form-control" type="number" value={e.installment_basic_amt} />
-  //         )}
-  //       </td>
-  //       <td>
-  //         <input
-  //           className="form-control"
-  //           type="number"
-  //           value={parseFloat(e.installment_otherchages_amt)}
-  //           onChange={e => {
-  //             handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
-  //           }}
-  //         />
-  //       </td>
-  //       <td>
-  //         {!e.lastRow && (
-  //           <input
-  //             className="form-control"
-  //             maxLength={100}
-  //             type="number"
-  //             value={e.gst}
-  //             onChange={e => {
-  //               if (parseFloat(e.target.value) > 100) {
-  //                 handlePaymentSchedule(i, 'gst', 100);
-  //                 toast.warning('GST% cannot be more than 100%');
-  //               } else {
-  //                 handlePaymentSchedule(i, 'gst', e.target.value);
-  //               }
-  //             }}
-  //           />
-  //         )}
-  //       </td>
-  //       <td>
-  //         <input
-  //           readOnly
-  //           className="form-control"
-  //           type="number"
-  //           value={parseFloat(e.installment_amount)}
-  //         />
-  //       </td>
-  //     </tr>
-  //   );
-  // };
+  const handleUpdateExtraCharge = (index: number, field: string, value) => {
+    setExtraCharges(prevExtraCharges => {
+      const updatedExtraCharges = [...prevExtraCharges];
+      updatedExtraCharges[index][field] = value;
 
-  // govt Taxes
+      const EXTRA_CHARGE_BASE =
+        updatedExtraCharges[index].amount_type === 'ratebase_amt'
+          ? updatedExtraCharges[index].extra_charges_area *
+            updatedExtraCharges[index].ratebase_amounts
+          : updatedExtraCharges[index].fixed_amounts;
+
+      const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
+      const totalAmount = EXTRA_CHARGE_BASE - discountAmt;
+
+      updatedExtraCharges[index].extra_charges_amt = totalAmount;
+
+      return updatedExtraCharges;
+    });
+  };
+
+  function handle_Extra_Charge_Row_Total() {
+    setExtraCharges(prevList =>
+      prevList?.map(x => {
+        const Amt =
+          x.amount_type === 'ratebase_amt'
+            ? x.extra_charges_area * x.ratebase_amounts
+            : x.fixed_amounts;
+        return {
+          ...x,
+          extra_charges_amt: Amt,
+        };
+      }),
+    );
+  }
+
+  const handleDeleteExtraCharge = (index: number) => {
+    setExtraCharges(prevExtraCharges => {
+      const updatedExtraCharges = [...prevExtraCharges];
+      updatedExtraCharges.splice(index, 1);
+      return updatedExtraCharges;
+    });
+  };
+
+  const handleTotalExtraCharge = () => {
+    let total = 0;
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      extraCharges?.forEach(charge => {
+        total += charge.extra_charges_amt;
+      });
+      return total.toFixed(2);
+    }
+    return total.toFixed(2);
+  };
+
+  const extraChargeRow = (i, x) => {
+    // ec disc amt calculation
+    function handleExtraChargesDiscAmt(e, item = x) {
+      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
+
+      const base =
+        item.amount_type === 'ratebase_amt'
+          ? Number(extra_charges_area) * Number(ratebase_amounts)
+          : fixed_amounts;
+
+      const { valueAsNumber: amount = 0 } = e.target;
+
+      // Fixing the amount if it is greater than base amount
+      const fixAmount = amount > base ? base : amount;
+      // Set to zero if less than zero
+      const newAmount = isNaN(fixAmount) || fixAmount < 0 ? 0 : fixAmount;
+      // matches for two decimals
+      if (DECIMAL_REGEX.test(String(newAmount))) {
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', newAmount);
+
+        // Calculate the percentage based on the new amount and update the formik value for the percentage field
+        const percent = parseFloat(((newAmount / base) * 100).toFixed(2));
+
+        if (newAmount === 0) {
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0);
+        } else if (percent >= 100 && newAmount > base) {
+          toast.warning('Discount Amount cannot be more than Basic Amount');
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
+        } else {
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', percent);
+        }
+      }
+    }
+    // ec disc % calculation
+    function handleExtraChargesDiscPer(e, item = x) {
+      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
+
+      const base =
+        item.amount_type === 'ratebase_amt' ? extra_charges_area * ratebase_amounts : fixed_amounts;
+
+      const { valueAsNumber: percent = 0 } = e.target;
+
+      // Fixing the amount if it is greater than base amount
+      const fixPercent = percent > 100 ? 100 : percent;
+      // Set to zero if less than zero
+      const newPercent = isNaN(fixPercent) || fixPercent < 0 ? 0 : fixPercent;
+      // matches for two decimals
+      if (DECIMAL_REGEX.test(String(newPercent))) {
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', newPercent);
+
+        const amount = parseFloat(((base * newPercent) / 100).toFixed(2));
+
+        if (newPercent === 0) {
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', null);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0);
+        } else if (percent > 100 && amount > base) {
+          toast.warning('Discount % cannot be more than 100%');
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', base);
+          handleUpdateExtraCharge(i, 'extra_charges_disc_per', 100);
+        } else {
+          handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
+        }
+      }
+    }
+
+    return (
+      <tr key={x.id}>
+        <td>{i + 1}</td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={x?.extra_charges_title}
+            type="text"
+            value={x?.extra_charges_title}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_title', e.target.value);
+              handle_Extra_Charge_Row_Total();
+            }}
+          />
+        </td>
+        <td>
+          <select
+            className="form-control mb-2"
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_distribution_method', e.target.value);
+              handle_Extra_Charge_Row_Total();
+            }}
+          >
+            <option disabled selected>
+              Select Distribution Method
+            </option>
+            {DISTRIBUTION_METHOD?.map((e, index) => {
+              return (
+                <option key={index} value={e}>
+                  {e}
+                </option>
+              );
+            })}
+          </select>
+        </td>
+        <td>
+          {x.amount_type === 'ratebase_amt' && (
+            <input
+              readOnly
+              className="form-control mb-2"
+              type="number"
+              value={x?.extra_charges_area}
+              onChange={e => {
+                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
+              }}
+            />
+          )}
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            type="number"
+            value={
+              x.amount_type === 'ratebase_amt'
+                ? parseFloat(x.ratebase_amounts)
+                : parseFloat(x.fixed_amounts)
+            }
+            onChange={e =>
+              x.amount_type === 'ratebase_amt'
+                ? handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
+                : handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
+            }
+          />
+        </td>
+        <td>
+          <span className="muted-text" style={{ fontSize: '12px' }}>
+            Amt.
+          </span>
+          <input
+            className="form-control mb-2"
+            name="extra_charges_disc_amt"
+            placeholder="Amount"
+            type="number"
+            value={x.extra_charges_disc_amt}
+            onChange={handleExtraChargesDiscAmt}
+          />
+          <span className="muted-text" style={{ fontSize: '12px' }}>
+            %
+          </span>
+          <input
+            className="form-control"
+            name="extra_charges_disc_per"
+            placeholder="%"
+            type="number"
+            value={x.extra_charges_disc_per}
+            onChange={handleExtraChargesDiscPer}
+          />
+        </td>
+
+        <td>
+          <input
+            readOnly
+            className="form-control mb-2"
+            type="number"
+            value={parseFloat(x.extra_charges_amt <= 0 ? 0 : x.extra_charges_amt).toFixed(2)}
+          />
+        </td>
+        <td></td>
+        <td>
+          <button
+            className="add-comp-btn m-0 acount-act-btn red-common"
+            type="button"
+            onClick={() => handleDeleteExtraCharge(i)}
+          >
+            <svg
+              fill="none"
+              height="10"
+              viewBox="0 0 6 8"
+              width="8"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
+                fill="#FF5D5D"
+              ></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    );
+  };
+
+  const handleExtraChargeAdd = () => {
+    setExtraCharges([
+      ...extraCharges,
+      {
+        extra_charges_no: extraCharges.length + 1,
+        extra_charges_title: '',
+        extra_charges_distribution_method: '',
+        extra_charges_area: 0,
+        extra_charges_rate: 0,
+        extra_charges_disc_amt: 0,
+        extra_charges_disc_per: 0,
+        extra_charges_amt: 0,
+        extra_charges_base: 0,
+        ratebase_amounts: '0',
+        fixed_amounts: '0',
+        amount_type: '',
+      },
+    ]);
+  };
+
+  // Ownership flow
+  const handleUpdateOwnershipData = (index: number, field: string, value) => {
+    setOwnerShipData(prevOwnershipData => {
+      const updateOwnershipData = [...prevOwnershipData];
+      updateOwnershipData[index][field] = value;
+
+      return updateOwnershipData;
+    });
+  };
+
+  const handleAddOwnership = () => {
+    setOwnerShipData([
+      ...ownerShipData,
+      {
+        id: ownerShipData.length + 1,
+        ownership_customer_first_name: '',
+        ownership_customer_phone: '',
+        ownership_customer_email: '',
+        ownership_customer_pan: '',
+        ownership_customer_aadhar: '',
+      },
+    ]);
+  };
+
+  const handleRemoveOwnership = (index: number) => {
+    setOwnerShipData(prevOwners => {
+      const updatedOwnershipData = [...prevOwners];
+      updatedOwnershipData.splice(index, 1);
+      return updatedOwnershipData;
+    });
+  };
+
+  const OwnerShipRow = (item, index) => {
+    const {
+      id,
+      ownership_customer_first_name,
+      ownership_customer_phone,
+      ownership_customer_email,
+      ownership_customer_pan,
+      ownership_customer_aadhar,
+    } = item || {};
+    return (
+      <tr key={`${id}${index}`}>
+        <td>{index + 1}</td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_first_name}
+            type="text"
+            value={ownership_customer_first_name}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_first_name', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_phone}
+            type="text"
+            value={ownership_customer_phone}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_phone', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_email}
+            type="text"
+            value={ownership_customer_email}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_email', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_pan}
+            type="text"
+            value={ownership_customer_pan}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
+            }}
+          />
+        </td>
+        <td>
+          <input
+            className="form-control mb-2"
+            title={ownership_customer_aadhar}
+            type="text"
+            value={ownership_customer_aadhar}
+            onChange={e => {
+              handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
+            }}
+          />
+        </td>
+
+        <td>
+          <button
+            className="add-comp-btn m-0 acount-act-btn red-common"
+            type="button"
+            onClick={() => handleRemoveOwnership(index)}
+          >
+            <svg
+              fill="none"
+              height="10"
+              viewBox="0 0 6 8"
+              width="8"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.498698 6.91667C0.498698 7.375 0.873698 7.75 1.33203 7.75H4.66537C5.1237 7.75 5.4987 7.375 5.4987 6.91667V1.91667H0.498698V6.91667ZM5.91537 0.666667H4.45703L4.04036 0.25H1.95703L1.54036 0.666667H0.0820312V1.5H5.91537V0.666667Z"
+                fill="#FF5D5D"
+              ></path>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    );
+  };
+
+  // booking form submission
+  const handleSubmit = async values => {
+
+    const {
+      project_id,
+      unit_id,
+      broker_id,
+      through_broker,
+      brokerage,
+      broker_remark,
+      unit_reserved_date,
+      parking_no,
+      calculation_method,
+      basic_rate_no,
+      basic_rate_description,
+      basic_rate_area,
+      basic_rate,
+      basic_rate_disc_amt,
+      basic_rate_disc_per,
+      basic_rate_basic_amount,
+      disc_remarks,
+      gst_per,
+      gst_amt,
+      stampduty_per,
+      stampduty_amount,
+      reg_per,
+      reg_amount,
+      custom_payment_remark,
+      bank,
+      loan_amt,
+    } = values;
+
+    const otherCharges = OCList?.other_charge_unit_rates?.map(e => ({
+      unit_other_charge_id: e.other_charge_field_id,
+      other_charges_no: e.id,
+      other_charges_title: e.title,
+      other_charges_distribution_method: e.other_charges_distribution_method,
+      other_charges_area: e.area,
+      other_charges_rate: e.ratebase_amounts,
+      other_charges_disc_amt: e.other_charges_disc_amt,
+      other_charges_disc_per: e.other_charges_disc_per,
+      other_charges_amount: e.otherChargesTotal,
+    }));
+
+    await dispatch(
+      addBooking({
+        project_bookings_temp_id: 0,
+        project_id,
+        unit_id,
+        visitors_id: customerDetails?.id,
+        broker_id,
+        through_broker: through_broker ? 'yes' : 'no',
+        brokerage,
+        broker_remark,
+        unit_reserved_date,
+        parking_no,
+        calculation_method,
+        basic_rate_no,
+        basic_rate_description,
+        basic_rate_area,
+        basic_rate,
+        basic_rate_disc_amt,
+        basic_rate_disc_per,
+        basic_rate_basic_amount,
+        other_charges: otherCharges,
+        other_charges_total: parseInt(handleTotalOtherCharge()),
+        sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
+        total_disc:
+          parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
+        disc_remarks: disc_remarks,
+        gst_per,
+        gst_amt,
+        stampduty_per,
+        stampduty_amount,
+        reg_per,
+        reg_amount,
+        total_gove_tax: values.gst_amt + values.stampduty_amount + values.reg_amount,
+        extra_charges: extraCharges,
+        extra_charges_total: parseFloat(handleTotalExtraCharge()),
+        property_final_amount:
+          parseFloat(values.basic_rate_basic_amount) +
+          parseFloat(handleTotalOtherCharge()) +
+          values.gst_amt +
+          values.stampduty_amount +
+          values.reg_amount +
+          parseFloat(handleTotalExtraCharge()),
+        is_loan: isToggle ? 'no' : 'yes',
+        loan_amt,
+        bank,
+        loan_remarks: values.loan_remarks,
+        custom_payment_total_amount: 0,
+        custom_payment_remark_id: termsId,
+        custom_payment_remark,
+        ownership: ownerShipData,
+      }),
+    );
+
+    await window.location.replace(OLD_SITE);
+  };
+
+  const formik = useFormik({
+    initialValues,
+    enableReinitialize: true,
+    onSubmit: handleSubmit,
+    validationSchema: Yup.object({
+      visitors_id: Yup.string().required('Visitor Id is required'),
+    }),
+  });
+
+  const { values, setFieldValue, handleChange, handleBlur } = formik;
+
+  // discount calculations hook
+  const discountSyncedFields = useSyncedFields(
+    baseAmount,
+    'basic_rate_disc_amt',
+    'basic_rate_disc_per',
+    setFieldValue,
+  );
+
   const gstSyncedFields = useSyncedFields(
     parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'gst_amt',
@@ -1058,6 +965,7 @@ const BookingForm = () => {
     setFieldValue,
   );
 
+  // govt Taxes
   useEffect(() => {
     const { basic_rate_area = 0, basic_rate = 0, calculation_method } = values;
 
@@ -1068,10 +976,12 @@ const BookingForm = () => {
 
   useEffect(() => {
     const { basic_rate_disc_amt = 0 } = values;
-    setFieldValue(
-      'basic_rate_basic_amount',
-      parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
-    );
+    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
+      setFieldValue(
+        'basic_rate_basic_amount',
+        parseFloat((baseAmount - basic_rate_disc_amt).toFixed(2)),
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseAmount, setFieldValue, values.basic_rate_disc_amt, values.basic_rate_disc_per]);
 
@@ -1101,86 +1011,12 @@ const BookingForm = () => {
     </div>
   );
 
-  // function toggleInstallments() {
-  //   setShowInstall(true);
-  // }
-
-  //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount
-  function handleBaseAmount() {
-    oclist?.other_charge_unit_rates?.map((x, index) => {
-      const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
-      setOCList(prevList => {
-        const newUnitRates = [...prevList.other_charge_unit_rates];
-        newUnitRates[index] = {
-          ...newUnitRates[index],
-          otherChargesTotal: calculatedAmount,
-        };
-        return { ...prevList, other_charge_unit_rates: newUnitRates };
-      });
-    });
-  }
-
-  //This function will result in calculating the area*rate based on fixedamount and reflect the value by default on amount
-  function handleFixedAmount() {
-    oclist?.other_charge_unit_rates?.map((x, index) => {
-      const calculatedAmount = x.fixed_amounts;
-      setOCList(prevList => {
-        const newUnitRates = [...prevList.other_charge_unit_rates];
-        newUnitRates[index] = {
-          ...newUnitRates[index],
-          otherChargesTotal: calculatedAmount,
-        };
-        return { ...prevList, other_charge_unit_rates: newUnitRates };
-      });
-    });
-  }
-
-  //This function will result in calculating the area*rate based on baseamount and reflect the value by default on amount
-  function handleExtraBaseAmount() {
-    setExtraCharges(prevList =>
-      prevList?.map(x => {
-        const calculatedAmount = unitAreaInfo?.super_build_up_area * x.ratebase_amounts;
-        return {
-          ...x,
-          extra_charges_total: calculatedAmount,
-        };
-      }),
-    );
-  }
-
-  function handleExtraFixedAmount() {
-    setExtraCharges(prevList =>
-      prevList?.map(x => {
-        const calculatedAmount = x.fixed_amounts;
-        return {
-          ...x,
-          extra_charges_total: calculatedAmount,
-        };
-      }),
-    );
-  }
-
-  // function handlePaymentUpdate() {
-  //   setInstallmentsList(prevList =>
-  //     prevList.map(x => {
-  //       const calculatedAmount = (
-  //         (parseFloat(values.basic_rate_basic_amount) * x.percentage) / 100 +
-  //         parseFloat(x.installment_otherchages_amt)
-  //       ).toFixed(2);
-  //       return {
-  //         ...x,
-  //         installment_amount: calculatedAmount,
-  //       };
-  //     }),
-  //   );
-  // }
-
   // timer calculations
-  const loggedTime = JSON.parse(localStorage.getItem('bookingTimer'));
+  const loggedTime = unitTimerData?.tmp_booking_time_start;
   const updatedTime = dayjs().diff(loggedTime, 'milliseconds');
 
   useEffect(() => {
-    if (loggedTime > 1800000 || loggedTime === null) {
+    if (loggedTime > 1800000) {
       localStorage.setItem('bookingTimer', JSON.stringify(dayjs()));
     }
   }, [loggedTime]);
@@ -1188,18 +1024,10 @@ const BookingForm = () => {
   const remainingTime = Number.isNaN(updatedTime) ? 0 : updatedTime;
   const currentTime = Date.now() + 1800000 - remainingTime;
 
-  // const handleBasicRateChanges = e => {
-  //   let basicRATE = 0;
-  //   if (DECIMAL_REGEX.test(e.target.value)) {
-  //     basicRATE = e.target.value;
-  //     setFieldValue('basic_rate', basicRATE);
-  //   }
-  //   setFieldValue('basic_rate', 0);
-  // };
-
   return (
     <>
       <ToastContainer autoClose={2000} />
+
       {/* top bar */}
       <div className="header-bar">
         <div className="page-header">
@@ -1223,27 +1051,27 @@ const BookingForm = () => {
           <Countdown
             date={currentTime}
             renderer={props => <Timer {...props} />}
-            onComplete={() => {
+            onComplete={async () => {
               localStorage.clear();
-              window.location.replace(OLD_URL);
-              // window.location.replace('https://google.com');
-              // url to be redirect or use navigate to navigate back after submission or after timeout
+              window.location.replace(OLD_SITE);
             }}
           />
         </div>
       </div>
+
       <hr style={{ marginTop: 0 }} />
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
         <div className="booking-form-row">
-          {/* <div className="booking-form-row-header">
-            <h4>Customer Details</h4>
-          </div> */}
-
           <Form onSubmit={formik.handleSubmit}>
-            {/* 1st section */}
+            {/* Customer Modal */}
             <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
-
+            <AddBrokerModal
+              handleClose={toggleBrokerModal}
+              project_id={project_id}
+              show={showBroker}
+            />
+            {/* 1st section */}
             <div className="booking-form-box shwan-form ">
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
@@ -1253,7 +1081,7 @@ const BookingForm = () => {
                     type="button"
                     onClick={toggleModal}
                   >
-                    Add Customer
+                    Add Inquiry
                   </button>
                 </div>
 
@@ -1261,8 +1089,9 @@ const BookingForm = () => {
                   <div className="col-12">
                     <Select
                       closeMenuOnSelect={true}
+                      noOptionsMessage={() => 'Loading...'}
                       options={customerOptions}
-                      placeholder="Existing Customer"
+                      placeholder="Existing Inquiry"
                       styles={{
                         container: base => ({
                           ...base,
@@ -1271,46 +1100,207 @@ const BookingForm = () => {
                           marginBottom: 50,
                         }),
                       }}
-                      onChange={e => setCustomerDetails(e.details)}
+                      onBlur={formik.handleBlur}
+                      onChange={e => {
+                        setCustomerDetails(e?.details);
+                        setFieldValue('visitors_id', e?.details.id);
+                      }}
                     />
+                    {formik.touched.visitors_id && formik.errors.visitors_id && (
+                      <div className="text-danger">{String(formik.errors.visitors_id)}</div>
+                    )}
                   </div>
                 </div>
-
                 {customerDetails ? (
-                  <div className="form-row">
-                    <div className="form-group col form-col-gap">
-                      <label>Client Name</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
-                      />
+                  <>
+                    <div className="form-row">
+                      <div className="form-group col form-col-gap">
+                        <label>Client Name</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
+                        />
+                      </div>
+                      <div className="form-group col">
+                        <label>Phone No</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={customerDetails?.phone}
+                        />
+                      </div>
+                      <div className="form-group col">
+                        <label>Email ID</label>
+                        <input
+                          readOnly
+                          className="form-control"
+                          type="text"
+                          value={customerDetails?.email || ''}
+                        />
+                      </div>
                     </div>
-                    <div className="form-group col">
-                      <label>Phone No</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={customerDetails?.phone}
-                      />
-                    </div>
-                    <div className="form-group col">
-                      <label>Email ID</label>
-                      <input
-                        readOnly
-                        className="form-control"
-                        type="text"
-                        value={customerDetails?.email || ''}
-                      />
-                    </div>
-                  </div>
+                  </>
                 ) : null}
               </div>
             </div>
 
             {/* 2nd section */}
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <label>Through Broker?</label>
+                <div className="form-row">
+                  <div className="col-6">
+                    <div className="rd-grp form-check-inline">
+                      <RadioGroup
+                        row
+                        aria-labelledby="demo-row-radio-buttons-group-label"
+                        name="row-radio-buttons-group"
+                      >
+                        <FormControlLabel
+                          control={<Radio onClick={() => setFieldValue('through_broker', true)} />}
+                          label="Yes"
+                          value="yes"
+                        />
+                        <FormControlLabel
+                          control={<Radio onClick={() => setFieldValue('through_broker', false)} />}
+                          label="No"
+                          value="no"
+                        />
+                      </RadioGroup>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {values.through_broker ? (
+                <div className="booking-form-col-12">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <h5>BROKER DETAILS</h5>
+                    <button
+                      className="Btn btn-lightblue-primary lbps-btn mr-0"
+                      type="button"
+                      onClick={toggleBrokerModal}
+                    >
+                      Add Broker
+                    </button>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="col-12">
+                      <Select
+                        closeMenuOnSelect={true}
+                        options={brokerOptions}
+                        placeholder="Existing Broker"
+                        styles={{
+                          container: base => ({
+                            ...base,
+                            width: '31%',
+                            marginTop: 10,
+                            marginBottom: 50,
+                          }),
+                        }}
+                        onChange={e => (
+                          setBrokerDetails(e.details), setFieldValue('broker_id', e.value)
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {brokerDetails ? (
+                    <>
+                      <div className="form-row">
+                        <div className="form-group col form-col-gap">
+                          <label>Broker Name</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={`${brokerDetails?.first_name} ${brokerDetails?.last_name}`}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Phone No</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={brokerDetails?.phone}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Email ID</label>
+                          <input
+                            readOnly
+                            className="form-control"
+                            type="text"
+                            value={brokerDetails?.email || ''}
+                          />
+                        </div>
+                        <div className="form-group col">
+                          <label>Brokerage Amt.</label>
+                          <input
+                            className="form-control"
+                            name="brokerage"
+                            type="text"
+                            value={values.brokerage}
+                            onChange={handleChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="form-row">
+                        <div className="form-group col">
+                          <label>Remark</label>
+                          <textarea
+                            className="form-control"
+                            name="broker_remark"
+                            value={values.broker_remark}
+                            onChange={handleChange}
+                          ></textarea>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            {/* 3rd section */}
+            <div className="booking-form-box shwan-form mt-4">
+              <div className="booking-form-col-12">
+                <div className="d-flex align-items-center justify-content-between">
+                  <h5>OWNERSHIP DETAILS</h5>
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn mr-0"
+                    type="button"
+                    onClick={handleAddOwnership}
+                  >
+                    Add Owner
+                  </button>
+                </div>
+
+                {ownerShipData.length ? (
+                  <table className="table my-3">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th>PAN</th>
+                      <th>Aadhar</th>
+                      <th></th>
+                    </thead>
+                    <tbody>
+                      {ownerShipData?.map((owner, index) => OwnerShipRow(owner, index))}
+                    </tbody>
+                  </table>
+                ) : undefined}
+              </div>
+            </div>
+
+            {/* 4th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>UNIT INFO</h5>
@@ -1371,7 +1361,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 3rd section */}
+            {/* 5th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>RATE CALCULATION</h5>
@@ -1390,8 +1380,6 @@ const BookingForm = () => {
                           value={'rate_base'}
                           onChange={e => {
                             handleChange(e);
-                            handleBaseAmount();
-                            handleExtraBaseAmount();
                           }}
                         />
                       </Col>
@@ -1404,8 +1392,6 @@ const BookingForm = () => {
                           value={'fixed_amount'}
                           onChange={e => {
                             handleChange(e);
-                            handleFixedAmount();
-                            handleExtraFixedAmount();
                           }}
                         />
                       </Col>
@@ -1448,7 +1434,7 @@ const BookingForm = () => {
                               type="number"
                               value={values?.basic_rate}
                               onBlur={handleBlur}
-                              onChange={(e) => setFieldValue('basic_rate', e.target.value)}
+                              onChange={e => setFieldValue('basic_rate', e.target.value)}
                             />
                           </td>
                           <td>
@@ -1567,7 +1553,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 4th section */}
+            {/* 6th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>OTHER CHARGES</h5>
@@ -1578,30 +1564,29 @@ const BookingForm = () => {
                       <th>Sr No</th>
                       <th>Title</th>
                       <th>Distribution Method</th>
-                      <th>{values.calculation_method === 'rate_base' && 'Area'}</th>
+                      <th>Area</th>
                       <th>Rate</th>
                       <th>Discount</th>
                       <th className="text-right">Amount</th>
                     </thead>
-                    <tbody>
-                      {values.calculation_method
-                        ? oclist?.other_charge_unit_rates
-                            ?.filter(e => e.amount_type === CALCULATION_FLAG)
-                            ?.map((x, i) => OtherCharges(i, x))
-                        : undefined}
-                      <tr>
-                        <td className="text-right font-weight-bold" colSpan={6}>
-                          Other Charges Total
-                        </td>
-                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
-                      </tr>
-                    </tbody>
+                    {values.calculation_method ? (
+                      <tbody>
+                        {OCList?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))}
+
+                        <tr>
+                          <td className="text-right font-weight-bold" colSpan={6}>
+                            Other Charges Total
+                          </td>
+                          <td className="text-right">₹ {handleTotalOtherCharge()}</td>
+                        </tr>
+                      </tbody>
+                    ) : undefined}
                   </table>
                 </div>
               </div>
             </div>
 
-            {/* 5th section */}
+            {/* 7th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>OVERALL DISCOUNT</h5>
@@ -1636,7 +1621,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 6th section */}
+            {/* 8th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>GOVERNMENT TAXES</h5>
@@ -1650,10 +1635,14 @@ const BookingForm = () => {
                       readOnly
                       className="form-control"
                       type="number"
-                      value={(
-                        parseFloat(values.basic_rate_basic_amount) +
-                        parseFloat(handleTotalOtherCharge())
-                      ).toFixed(2)}
+                      value={
+                        values.calculation_method
+                          ? (
+                              parseFloat(values.basic_rate_basic_amount) +
+                              parseFloat(handleTotalOtherCharge())
+                            ).toFixed(2)
+                          : '0.00'
+                      }
                     />
                   </div>
                 </div>
@@ -1750,7 +1739,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 7th section */}
+            {/* 9th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>EXTRA CHARGES</h5>
@@ -1761,37 +1750,35 @@ const BookingForm = () => {
                       <th>Sr No</th>
                       <th>Title</th>
                       <th>Distribution Method</th>
-                      <th>{values.calculation_method === 'rate_base' && 'Area'}</th>
+                      <th>Area</th>
                       <th>Rate</th>
                       <th>Discount</th>
                       <th className="text-right">Amount</th>
                       <th></th>
                     </thead>
-                    <tbody>
-                      {values.calculation_method
-                        ? extraCharges
-                            ?.filter(item => item?.amount_type === CALCULATION_FLAG)
-                            ?.map((x, i) => extraChargeRow(i, x))
-                        : undefined}
-                      {/* total */}
-                      <tr>
-                        <td className="text-right font-weight-bold" colSpan={6}>
-                          Extra Charges Total
-                        </td>
-                        <td className="font-weight-bold">
-                          ₹{' '}
-                          {parseFloat(handleTotalExtraCharge()) < 0
-                            ? 0
-                            : parseFloat(handleTotalExtraCharge())}
-                        </td>
-                      </tr>
-                    </tbody>
+                    {values.calculation_method ? (
+                      <tbody>
+                        {extraCharges?.map((x, i) => extraChargeRow(i, x))}
+                        {/* total */}
+                        <tr>
+                          <td className="text-right font-weight-bold" colSpan={6}>
+                            Extra Charges Total
+                          </td>
+                          <td className="font-weight-bold">
+                            ₹{' '}
+                            {parseFloat(handleTotalExtraCharge()) < 0
+                              ? 0
+                              : parseFloat(handleTotalExtraCharge())}
+                          </td>
+                        </tr>
+                      </tbody>
+                    ) : undefined}
                   </table>
                   <div className="row w-100">
                     <button
                       className="Btn btn-lightblue-primary lbps-btn"
                       type="button"
-                      onClick={handleAddData}
+                      onClick={handleExtraChargeAdd}
                     >
                       Add More
                     </button>
@@ -1800,7 +1787,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 8th section */}
+            {/* 10th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>SUMMARY</h5>
@@ -1829,7 +1816,7 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {handleTotalOtherCharge()}{' '}
+                                {values.calculation_method ? handleTotalOtherCharge() : '0.00'}{' '}
                               </span>
                             </span>
                           </td>
@@ -1861,18 +1848,12 @@ const BookingForm = () => {
                               <span> (+)</span>
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
-                                {isNaN(
-                                  parseFloat(values.gst_amt) +
-                                    parseFloat(values.stampduty_amount) +
-                                    parseFloat(values.reg_amount) +
-                                    parseFloat(values.taxes_amount),
-                                )
-                                  ? `${0}.00`
+                                {isNaN(values.gst_amt + values.stampduty_amount + values.reg_amount)
+                                  ? `0.00`
                                   : (
-                                      parseFloat(values.gst_amt) +
-                                      parseFloat(values.stampduty_amount) +
-                                      parseFloat(values.reg_amount) +
-                                      parseFloat(values.taxes_amount)
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount
                                     ).toFixed(2)}
                               </span>
                             </span>
@@ -1904,29 +1885,32 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {isNaN(
-                                  parseFloat(values.basic_rate_basic_amount) +
-                                    parseFloat(handleTotalOtherCharge()) +
-                                    parseFloat(values.gst_amt) +
-                                    parseFloat(values.stampduty_amount) +
-                                    parseFloat(values.reg_amount) +
-                                    parseFloat(values.taxes_amount) +
-                                    parseFloat(handleTotalExtraCharge()),
-                                )
-                                  ? (
+                                {values.calculation_method
+                                  ? isNaN(
                                       parseFloat(values.basic_rate_basic_amount) +
-                                      parseFloat(handleTotalOtherCharge()) +
-                                      parseFloat(handleTotalExtraCharge())
-                                    ).toFixed(2)
-                                  : (
-                                      parseFloat(values.basic_rate_basic_amount) +
-                                      parseFloat(handleTotalOtherCharge()) +
-                                      parseFloat(values.gst_amt) +
-                                      parseFloat(values.stampduty_amount) +
-                                      parseFloat(values.reg_amount) +
-                                      parseFloat(values.taxes_amount) +
-                                      parseFloat(handleTotalExtraCharge())
-                                    ).toFixed(2)}
+                                        parseFloat(handleTotalOtherCharge()) +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
+                                        parseFloat(handleTotalExtraCharge()),
+                                    )
+                                    ? (
+                                        parseFloat(values.basic_rate_basic_amount) +
+                                        parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                        parseFloat(handleTotalExtraCharge())
+                                      ).toFixed(2)
+                                    : (
+                                        parseFloat(values.basic_rate_basic_amount) +
+                                        parseFloat(handleTotalOtherCharge()) +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
+                                        parseFloat(handleTotalExtraCharge())
+                                      ).toFixed(2)
+                                  : '0.00'}
                               </span>
                             </p>
                           </td>
@@ -1938,7 +1922,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 9th section */}
+            {/* 11th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-6">
                 <h5>LOAN DETAILS</h5>
@@ -2003,7 +1987,6 @@ const BookingForm = () => {
                               ...base,
                               width: '81%',
                               marginTop: 0,
-                              marginBottom: 17,
                             }),
                           }}
                           onChange={e => setFieldValue('bank', e.value)}
@@ -2029,82 +2012,7 @@ const BookingForm = () => {
               </div>
             </div>
 
-            {/* 10th section  */}
-            {/* <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>PAYMENT SCHEDULE</h5>
-
-                <div className="form-row">
-                  <div className="col-6 ">
-                    <label>Select Payment Installment</label>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: '1rem',
-                      }}
-                    >
-                      <Select
-                        closeMenuOnSelect={true}
-                        options={installmentOptions}
-                        placeholder="Select Payment Installment"
-                        styles={{
-                          container: base => ({
-                            ...base,
-                            marginTop: 10,
-                            marginBottom: 20,
-                            width: '25rem',
-                          }),
-                        }}
-                        onChange={e => {
-                          setInstallmentId(e.value);
-                          setShowInstall(false);
-                        }}
-                      />
-                      <button
-                        className="Btn btn-lightblue-primary lbps-btn py-2"
-                        id="butng"
-                        type="button"
-                        onClick={() => {
-                          toggleInstallments();
-                          handlePaymentUpdate();
-                        }}
-                      >
-                        Apply
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <table className="table">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Installment Name</th>
-                      <th>Due Date</th>
-                      <th>%</th>
-                      <th>Basic Amount</th>
-                      <th>Other Charges Amount</th>
-                      <th>GST %</th>
-                      <th className="text-right">Installment Amount</th>
-                    </thead>
-                    <tbody>
-                      {showInstall && _installmentsList?.map((e, i) => PaymentSchedule(i, e))}
-
-                      <tr>
-                        <td className="text-right font-weight-bold" colSpan={7}>
-                          Installments Total
-                        </td>
-                        <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div> */}
-
-            {/* 11th section */}
+            {/* 12th section */}
             <div className="booking-form-box shwan-form mt-4">
               <div className="booking-form-col-12">
                 <h5>TERMS & CONDITIONS</h5>
@@ -2150,7 +2058,7 @@ const BookingForm = () => {
                       className="Btn btn-lightblue-primary lbps-btn"
                       data-dismiss="modal"
                       type="button"
-                      onClick={() => window.location.replace(OLD_URL)}
+                      onClick={() => window.location.replace(OLD_SITE)}
                     >
                       Cancel
                     </button>

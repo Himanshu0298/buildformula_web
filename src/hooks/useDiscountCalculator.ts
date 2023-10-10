@@ -55,6 +55,7 @@ export function useSyncedFields(
 
       if (newPercent === 0) {
         set(percentKey, null);
+        set(amountKey, 0);
       } else if (amount > base || newPercent > 100) {
         toast.warning('Discount percentage should not be more than 100%');
         set(amountKey, base);

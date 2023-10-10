@@ -5,10 +5,13 @@ import { processError } from 'utils/constant';
 import { handleLoading, handleReject } from 'utils/reduxUtils';
 
 import {
+  AddBrokerParams,
   CommonParams,
   CreateCustomerParams,
   FormFillingParams,
+  GetProjectUnitParams,
   IBookingFormParams,
+  IBroker,
   IExtraCharges,
   IInstallmentDetails,
   IInstallmentOptions,
@@ -21,6 +24,7 @@ import {
   IUnitAreaInfoParam,
   IUnitInfo,
   IUnitParkingInfo,
+  IUnitStatus,
   IVisitor,
   UnitInfoParams,
   VisitorParams,
@@ -40,11 +44,39 @@ export const getVisitorsList = createAsyncThunk<IVisitor[], VisitorParams>(
   },
 );
 
+export const getBrokerList = createAsyncThunk<IBroker[], CommonParams>(
+  'sales/getBrokerList',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBrokerList(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const addCustomer = createAsyncThunk(
   'sales/addCustomer',
   async (params: CreateCustomerParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addCustomer(params);
+      return res;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const addBroker = createAsyncThunk(
+  'sales/addBroker',
+  async (params: AddBrokerParams, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.addBroker(params);
       return res;
     } catch (err) {
       const processedError = processError(err);
@@ -194,6 +226,20 @@ export const getInstallmentDetails = createAsyncThunk<IInstallmentDetails, Insta
   },
 );
 
+export const getProjectUnitStatus = createAsyncThunk<IUnitStatus[], GetProjectUnitParams>(
+  'sales/projectUnitStatus',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getProjectUnitStatus(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const getBankList = createAsyncThunk('sales/getBankList', async () => {
   try {
     const { data: res } = await visitorService.getBankList();
@@ -204,9 +250,9 @@ export const getBankList = createAsyncThunk('sales/getBankList', async () => {
 });
 
 const initialState: ISalesState = {
-  msg: '',
   loading: false,
   visitorList: [],
+  brokerList: [],
   unitInfo: {} as IUnitInfo,
   unitParkingInfo: {} as IUnitParkingInfo,
   otherChargesList: {} as IOtherCharges,
@@ -214,9 +260,10 @@ const initialState: ISalesState = {
   installmentsList: {} as IInstallmentOptions,
   installmentsInformation: {} as IInstallmentDetails,
   banksList: [],
-  timer: false,
   unitAreaInfo: {} as IUnitAreaInfo,
   extraChargesList: {} as IExtraCharges,
+  projectUnitStatus: [],
+  timer: false,
 };
 
 const salesSlice = createSlice({
@@ -237,10 +284,28 @@ const salesSlice = createSlice({
         visitorList: action?.payload,
       };
     });
+    // broker list
+    builder.addCase(getBrokerList.rejected, handleReject);
+    builder.addCase(getBrokerList.pending, handleLoading);
+    builder.addCase(getBrokerList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        brokerList: action?.payload,
+      };
+    });
     // add visitor
     builder.addCase(addCustomer.rejected, handleReject);
     builder.addCase(addCustomer.pending, handleLoading);
     builder.addCase(addCustomer.fulfilled, (state, action) => {
+      toast.success(action.payload.msg);
+      return {
+        ...state,
+      };
+    });
+    // add broker
+    builder.addCase(addBroker.rejected, handleReject);
+    builder.addCase(addBroker.pending, handleLoading);
+    builder.addCase(addBroker.fulfilled, (state, action) => {
       toast.success(action.payload.msg);
       return {
         ...state,
@@ -270,6 +335,15 @@ const salesSlice = createSlice({
       return {
         ...state,
         unitAreaInfo: action?.payload,
+      };
+    });
+    // Project Unit Status
+    builder.addCase(getProjectUnitStatus.rejected, handleReject);
+    builder.addCase(getProjectUnitStatus.pending, handleLoading);
+    builder.addCase(getProjectUnitStatus.fulfilled, (state, action) => {
+      return {
+        ...state,
+        projectUnitStatus: action?.payload,
       };
     });
     // Unit Parking info

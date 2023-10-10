@@ -1,13 +1,37 @@
-import './AddCustomerModal.css';
-
 import { useFormik } from 'formik';
+import { debounce } from 'lodash';
+import { useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
-import { addCustomer, getVisitorsList } from 'redux/sales';
+import { addBroker, getBrokerList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
 import * as Yup from 'yup';
 
-const AddCustomerModal = ({ show, handleClose, project_id }) => {
+const AddBrokerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
+
+  const handleSubmit = async values => {
+    const { firstName, lastName, email, phone } = values;
+    await dispatch(
+      addBroker({
+        project_id,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: parseInt(phone, 10),
+      }),
+    );
+
+    await dispatch(getBrokerList({ project_id }));
+
+    await handleClose();
+    formik.resetForm();
+  };
+
+  const debouncedHandleSubmit = useRef(
+    debounce(values => {
+      handleSubmit(values);
+    }, 500),
+  ).current;
 
   const formik = useFormik({
     initialValues: {
@@ -22,35 +46,8 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       email: Yup.string().email('Invalid email address'),
       phone: Yup.string().required('Required Field'),
     }),
-    onSubmit: async values => {
-      const { firstName, lastName, email, phone } = values;
-      dispatch(
-        addCustomer({
-          project_id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          phone: parseInt(phone, 10),
-          inquiry_for: 2,
-          priority: 'medium',
-          occupation: 0,
-          budget_from: 0,
-          budget_to: 0,
-          other_occupation: 0,
-        }),
-      );
-
-      await dispatch(
-        getVisitorsList({
-          project_id,
-          filter_mode: 'name',
-          role: 'admin',
-          page: 'all',
-        }),
-      );
-
-      formik.resetForm();
-      await handleClose();
+    onSubmit: values => {
+      debouncedHandleSubmit(values);
     },
   });
 
@@ -65,11 +62,11 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
     >
       <Modal.Header className="justify-content-center">
         <Modal.Title>
-          <b>Add Customer</b>
+          <b>Add Broker</b>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit} method="POST">
           <div className="shwan-form">
             <div className="booking-form-col-6 border-0" id="showfirstbox">
               <div className="form-group">
@@ -154,4 +151,4 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
   );
 };
 
-export default AddCustomerModal;
+export default AddBrokerModal;
