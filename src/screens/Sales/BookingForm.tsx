@@ -1636,7 +1636,7 @@ const BookingForm = () => {
                       className="form-control"
                       type="number"
                       value={
-                        values.calculation_method 
+                        values.calculation_method
                           ? (
                               parseFloat(values.basic_rate_basic_amount) +
                               parseFloat(handleTotalOtherCharge())
@@ -1816,7 +1816,7 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {handleTotalOtherCharge()}{' '}
+                                {values.calculation_method ? handleTotalOtherCharge() : '0.00'}{' '}
                               </span>
                             </span>
                           </td>
@@ -1885,29 +1885,31 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {isNaN(
-                                  parseFloat(values.basic_rate_basic_amount) +
-                                    parseFloat(handleTotalOtherCharge()) +
-                                    parseFloat(values.gst_amt) +
-                                    parseFloat(values.stampduty_amount) +
-                                    parseFloat(values.reg_amount) +
-                                    parseFloat(values.taxes_amount) +
-                                    parseFloat(handleTotalExtraCharge()),
-                                )
-                                  ? (
+                                {values.calculation_method
+                                  ? isNaN(
                                       parseFloat(values.basic_rate_basic_amount) +
-                                      parseFloat(handleTotalOtherCharge()) +
-                                      parseFloat(handleTotalExtraCharge())
-                                    ).toFixed(2)
-                                  : (
-                                      parseFloat(values.basic_rate_basic_amount) +
-                                      parseFloat(handleTotalOtherCharge()) +
-                                      parseFloat(values.gst_amt) +
-                                      parseFloat(values.stampduty_amount) +
-                                      parseFloat(values.reg_amount) +
-                                      parseFloat(values.taxes_amount) +
-                                      parseFloat(handleTotalExtraCharge())
-                                    ).toFixed(2)}
+                                        parseFloat(handleTotalOtherCharge()) +
+                                        parseFloat(values.gst_amt) +
+                                        parseFloat(values.stampduty_amount) +
+                                        parseFloat(values.reg_amount) +
+                                        parseFloat(values.taxes_amount) +
+                                        parseFloat(handleTotalExtraCharge()),
+                                    )
+                                    ? (
+                                        parseFloat(values.basic_rate_basic_amount) +
+                                        parseFloat(handleTotalOtherCharge()) +
+                                        parseFloat(handleTotalExtraCharge())
+                                      ).toFixed(2)
+                                    : (
+                                        parseFloat(values.basic_rate_basic_amount) +
+                                        parseFloat(handleTotalOtherCharge()) +
+                                        parseFloat(values.gst_amt) +
+                                        parseFloat(values.stampduty_amount) +
+                                        parseFloat(values.reg_amount) +
+                                        parseFloat(values.taxes_amount) +
+                                        parseFloat(handleTotalExtraCharge())
+                                      ).toFixed(2)
+                                  : '0.00'}
                               </span>
                             </p>
                           </td>
