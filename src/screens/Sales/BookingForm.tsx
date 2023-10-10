@@ -271,9 +271,7 @@ const BookingForm = () => {
   function handle_Other_Charge_Row_Total() {
     OCList?.other_charge_unit_rates?.map((x, index) => {
       const calculatedAmount =
-        x.amount_type === 'ratebase_amt'
-          ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
-          : x.fixed_amounts;
+        x.amount_type === 'ratebase_amt' ? x.area * x.ratebase_amounts : x.fixed_amounts;
 
       setOCList(prevList => {
         const newUnitRates = [...prevList.other_charge_unit_rates];
@@ -298,7 +296,7 @@ const BookingForm = () => {
 
       const OC_ROW_BASE_AMT =
         newUnitRates[index].amount_type === 'ratebase_amt'
-          ? unitAreaInfo?.super_build_up_area * newUnitRates[index].ratebase_amounts
+          ? newUnitRates[index].area * newUnitRates[index].ratebase_amounts
           : newUnitRates[index].fixed_amounts;
 
       const discountAmt = newUnitRates[index].other_charges_disc_amt;
@@ -315,7 +313,7 @@ const BookingForm = () => {
   const OtherCharges = (i, x) => {
     const oc_Base =
       x.amount_type === 'ratebase_amt'
-        ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
+        ? x.area * x.ratebase_amounts
         : x.amount_type === 'fix_amt'
         ? x.fixed_amounts
         : 0;
@@ -364,12 +362,7 @@ const BookingForm = () => {
           </td>
           <td>
             {x.amount_type === 'ratebase_amt' && (
-              <input
-                readOnly
-                className="form-control"
-                type="number"
-                value={unitAreaInfo?.super_build_up_area}
-              />
+              <input readOnly className="form-control" type="number" value={x.area} />
             )}
           </td>
           <td>
@@ -435,7 +428,7 @@ const BookingForm = () => {
       extra_charges_no: 1,
       extra_charges_title: x.title,
       extra_charges_distribution_method: '',
-      extra_charges_area: 0,
+      extra_charges_area: x.area,
       extra_charges_rate: 0,
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
@@ -453,7 +446,8 @@ const BookingForm = () => {
 
       const EXTRA_CHARGE_BASE =
         updatedExtraCharges[index].amount_type === 'ratebase_amt'
-          ? unitAreaInfo?.super_build_up_area * updatedExtraCharges[index].ratebase_amounts
+          ? updatedExtraCharges[index].extra_charges_area *
+            updatedExtraCharges[index].ratebase_amounts
           : updatedExtraCharges[index].fixed_amounts;
 
       const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
@@ -470,7 +464,7 @@ const BookingForm = () => {
       prevList?.map(x => {
         const Amt =
           x.amount_type === 'ratebase_amt'
-            ? unitAreaInfo?.super_build_up_area * x.ratebase_amounts
+            ? x.extra_charges_area * x.ratebase_amounts
             : x.fixed_amounts;
         return {
           ...x,
@@ -502,11 +496,9 @@ const BookingForm = () => {
   const extraChargeRow = (i, x) => {
     // ec disc amt calculation
     function handleExtraChargesDiscAmt(e, item = x) {
-      console.log("🚀 ~ file: BookingForm.tsx:505 ~ handleExtraChargesDiscAmt ~ item:", item)
-      const base =
-        item.amount_type === 'ratebase_amt'
-          ? unitAreaInfo?.super_build_up_area * item.ratebase_amounts
-          : item.fixed_amounts;
+      const { area, ratebase_amounts, fixed_amounts } = item || 0;
+
+      const base = item.amount_type === 'ratebase_amt' ? area * ratebase_amounts : fixed_amounts;
 
       const { valueAsNumber: amount = 0 } = e.target;
 
@@ -534,10 +526,9 @@ const BookingForm = () => {
     }
     // ec disc % calculation
     function handleExtraChargesDiscPer(e, item = x) {
-      const base =
-        item.amount_type === 'ratebase_amt'
-          ? unitAreaInfo?.super_build_up_area * item.ratebase_amounts
-          : item.fixed_amounts;
+      const { area, ratebase_amounts, fixed_amounts } = item || 0;
+
+      const base = item.amount_type === 'ratebase_amt' ? area * ratebase_amounts : fixed_amounts;
 
       const { valueAsNumber: percent = 0 } = e.target;
 
@@ -605,7 +596,7 @@ const BookingForm = () => {
               readOnly
               className="form-control mb-2"
               type="number"
-              value={unitAreaInfo?.super_build_up_area}
+              value={x?.extra_charges_area}
               onChange={e => {
                 handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
               }}

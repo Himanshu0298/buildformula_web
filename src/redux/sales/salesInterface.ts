@@ -436,4 +436,5 @@ export interface IExtraChargesData {
   created_at: string;
   updated_at: any;
   title: string;
+  area: string;
 }
