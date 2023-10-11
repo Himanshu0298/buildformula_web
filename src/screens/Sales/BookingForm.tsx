@@ -919,7 +919,11 @@ const BookingForm = () => {
     enableReinitialize: true,
     onSubmit: handleSubmit,
     validationSchema: Yup.object({
-      visitors_id: Yup.string().required('Visitor Id is required'),
+      visitors_id: Yup.string().required('Customer is required'),
+      broker_id: Yup.number().when('through_broker', {
+        is: value => !!value,
+        then: () => Yup.number().required('Broker is required'),
+      }),
     }),
   });
 
@@ -1086,7 +1090,7 @@ const BookingForm = () => {
                           ...base,
                           width: '31%',
                           marginTop: 10,
-                          marginBottom: 50,
+                          marginBottom: 20,
                         }),
                       }}
                       onBlur={formik.handleBlur}
@@ -1188,13 +1192,16 @@ const BookingForm = () => {
                             ...base,
                             width: '31%',
                             marginTop: 10,
-                            marginBottom: 50,
+                            marginBottom: 20,
                           }),
                         }}
                         onChange={e => (
                           setBrokerDetails(e.details), setFieldValue('broker_id', e.value)
                         )}
                       />
+                      {formik.errors.broker_id && (
+                        <div className="text-danger">{String(formik.errors.broker_id)}</div>
+                      )}
                     </div>
                   </div>
 
