@@ -17,7 +17,6 @@ import {
   getAreaInfo,
   getBankList,
   getBrokerList,
-  // getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
   getProjectUnitStatus,
@@ -175,14 +174,6 @@ const BookingForm = () => {
       details: e.description,
     }));
   }, [termsList]);
-
-  // installment options
-  // const installmentOptions = useMemo(() => {
-  //   return installmentsList?.payment_scheduled_master?.map(e => ({
-  //     label: e.title,
-  //     value: e.id,
-  //   }));
-  // }, [installmentsList]);
 
   //BankLists Options
   const bankListOptions = useMemo(() => {
@@ -429,7 +420,7 @@ const BookingForm = () => {
       extra_charges_title: x.title,
       extra_charges_distribution_method: '',
       extra_charges_area: x.area,
-      extra_charges_rate: 0,
+      extra_charges_rate: x.amount_type === 'rate_base' ? x.ratebase_amounts : x.fixed_amounts,
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
       extra_charges_amt: 0,
@@ -609,16 +600,11 @@ const BookingForm = () => {
           <input
             className="form-control mb-2"
             type="number"
-            value={
-              x.amount_type === 'ratebase_amt'
-                ? parseFloat(x.ratebase_amounts)
-                : parseFloat(x.fixed_amounts)
-            }
-            onChange={e =>
-              x.amount_type === 'ratebase_amt'
-                ? handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
-                : handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
-            }
+            value={x.extra_charges_rate}
+            onChange={e => {
+              handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
+                handle_Extra_Charge_Row_Total();
+            }}
           />
         </td>
         <td>
@@ -825,7 +811,6 @@ const BookingForm = () => {
 
   // booking form submission
   const handleSubmit = async values => {
-
     const {
       project_id,
       unit_id,
@@ -861,7 +846,7 @@ const BookingForm = () => {
       other_charges_title: e.title,
       other_charges_distribution_method: e.other_charges_distribution_method,
       other_charges_area: e.area,
-      other_charges_rate: e.ratebase_amounts,
+      other_charges_rate: e.amount_type === 'ratebase_amt' ? e.ratebase_amounts : e.fixed_amounts,
       other_charges_disc_amt: e.other_charges_disc_amt,
       other_charges_disc_per: e.other_charges_disc_per,
       other_charges_amount: e.otherChargesTotal,
@@ -887,8 +872,22 @@ const BookingForm = () => {
         basic_rate_disc_amt,
         basic_rate_disc_per,
         basic_rate_basic_amount,
-        other_charges: otherCharges,
-        other_charges_total: parseInt(handleTotalOtherCharge()),
+        other_charges: otherCharges.length
+          ? otherCharges
+          : [
+              {
+                unit_other_charge_id: 0,
+                other_charges_no: 0,
+                other_charges_title: '',
+                other_charges_distribution_method: '',
+                other_charges_area: 0,
+                other_charges_rate: 0,
+                other_charges_disc_amt: 0,
+                other_charges_disc_per: 0,
+                other_charges_amount: 0,
+              },
+            ],
+        other_charges_total: parseFloat(handleTotalOtherCharge()),
         sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
         total_disc:
           parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
@@ -900,7 +899,20 @@ const BookingForm = () => {
         reg_per,
         reg_amount,
         total_gove_tax: values.gst_amt + values.stampduty_amount + values.reg_amount,
-        extra_charges: extraCharges,
+        extra_charges: extraCharges.length
+          ? extraCharges
+          : [
+              {
+                extra_charges_no: '',
+                extra_charges_title: '',
+                extra_charges_distribution_method: '',
+                extra_charges_area: '',
+                extra_charges_rate: '',
+                extra_charges_disc_per: '',
+                extra_charges_disc_amt: '',
+                extra_charges_amt: '',
+              },
+            ],
         extra_charges_total: parseFloat(handleTotalExtraCharge()),
         property_final_amount:
           parseFloat(values.basic_rate_basic_amount) +
@@ -916,7 +928,18 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
-        ownership: ownerShipData,
+        ownership: ownerShipData.length
+          ? ownerShipData
+          : [
+              {
+                id: 0,
+                ownership_customer_first_name: '',
+                ownership_customer_phone: '',
+                ownership_customer_email: '',
+                ownership_customer_pan: '',
+                ownership_customer_aadhar: '',
+              },
+            ],
       }),
     );
 
@@ -929,7 +952,7 @@ const BookingForm = () => {
     onSubmit: handleSubmit,
     validationSchema: Yup.object({
       visitors_id: Yup.string().required('Customer is required'),
-      calculation_method: Yup.string().required('Calculation method is required')
+      calculation_method: Yup.string().required('Calculation method is required'),
     }),
   });
 
@@ -1899,9 +1922,9 @@ const BookingForm = () => {
                                     ? (
                                         parseFloat(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
-                                      values.gst_amt +
-                                      values.stampduty_amount +
-                                      values.reg_amount +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
