@@ -1869,7 +1869,7 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {handleTotalExtraCharge()}{' '}
+                                {values.calculation_method ? handleTotalExtraCharge() : '0.00'}{' '}
                               </span>
                             </span>
                           </td>
