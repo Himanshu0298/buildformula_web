@@ -257,7 +257,7 @@ const BookingForm = () => {
     OCList?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.otherChargesTotal) || 0;
     });
-    return total.toFixed(2);
+    return Number(total).toFixed(2);
   }, [OCList?.other_charge_unit_rates]);
 
   const handleTotalOtherDiscountAmt = useCallback(() => {
@@ -265,7 +265,7 @@ const BookingForm = () => {
     OCList?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.other_charges_disc_amt) || 0;
     });
-    return total.toFixed(2);
+    return Number(total).toFixed(2);
   }, [OCList]);
 
   function handle_Other_Charge_Row_Total() {
@@ -300,7 +300,7 @@ const BookingForm = () => {
           : newUnitRates[index].fixed_amounts;
 
       const discountAmt = newUnitRates[index].other_charges_disc_amt;
-      const totalAmount = OC_ROW_BASE_AMT - discountAmt;
+      const totalAmount = Number(OC_ROW_BASE_AMT) - Number(discountAmt);
       newUnitRates[index].otherChargesTotal = totalAmount.toFixed(2);
 
       return {
@@ -484,13 +484,11 @@ const BookingForm = () => {
 
   const handleTotalExtraCharge = () => {
     let total = 0;
-    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
-      extraCharges?.forEach(charge => {
-        total += charge.extra_charges_amt;
-      });
-      return total.toFixed(2);
-    }
-    return total.toFixed(2);
+    extraCharges?.forEach(charge => {
+      total += charge.extra_charges_amt || 0;
+    });
+
+    return Number(total).toFixed(2);
   };
 
   const extraChargeRow = (i, x) => {
