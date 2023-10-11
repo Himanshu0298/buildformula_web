@@ -930,7 +930,8 @@ const BookingForm = () => {
     enableReinitialize: true,
     onSubmit: handleSubmit,
     validationSchema: Yup.object({
-      visitors_id: Yup.string().required('Visitor Id is required'),
+      visitors_id: Yup.string().required('Customer is required'),
+      calculation_method: Yup.string().required('Calculation method is required')
     }),
   });
 
@@ -1396,6 +1397,9 @@ const BookingForm = () => {
                         />
                       </Col>
                     </div>
+                    {formik.touched.calculation_method && formik.errors.calculation_method && (
+                      <div className="text-danger">{String(formik.errors.calculation_method)}</div>
+                    )}
                   </div>
                 </div>
 
