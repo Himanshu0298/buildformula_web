@@ -176,14 +176,6 @@ const BookingForm = () => {
     }));
   }, [termsList]);
 
-  // installment options
-  // const installmentOptions = useMemo(() => {
-  //   return installmentsList?.payment_scheduled_master?.map(e => ({
-  //     label: e.title,
-  //     value: e.id,
-  //   }));
-  // }, [installmentsList]);
-
   //BankLists Options
   const bankListOptions = useMemo(() => {
     return banksList?.map(x => ({
@@ -257,7 +249,7 @@ const BookingForm = () => {
     OCList?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.otherChargesTotal) || 0;
     });
-    return total.toFixed(2);
+    return Number(total).toFixed(2);
   }, [OCList?.other_charge_unit_rates]);
 
   const handleTotalOtherDiscountAmt = useCallback(() => {
@@ -265,7 +257,7 @@ const BookingForm = () => {
     OCList?.other_charge_unit_rates?.forEach(charge => {
       total += parseFloat(charge?.other_charges_disc_amt) || 0;
     });
-    return total.toFixed(2);
+    return Number(total).toFixed(2);
   }, [OCList]);
 
   function handle_Other_Charge_Row_Total() {
@@ -428,7 +420,7 @@ const BookingForm = () => {
       extra_charges_no: 1,
       extra_charges_title: x.title,
       extra_charges_distribution_method: '',
-      extra_charges_area: x.area,
+      extra_charges_area: x.area || 0,
       extra_charges_rate: 0,
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
@@ -484,13 +476,11 @@ const BookingForm = () => {
 
   const handleTotalExtraCharge = () => {
     let total = 0;
-    if (values.calculation_method === 'rate_base' || values.calculation_method === 'fixed_amount') {
-      extraCharges?.forEach(charge => {
-        total += charge.extra_charges_amt;
-      });
-      return total.toFixed(2);
-    }
-    return total.toFixed(2);
+    extraCharges?.forEach(charge => {
+      total += charge.extra_charges_amt || 0;
+    });
+
+    return Number(total).toFixed(2);
   };
 
   const extraChargeRow = (i, x) => {
@@ -827,7 +817,6 @@ const BookingForm = () => {
 
   // booking form submission
   const handleSubmit = async values => {
-
     const {
       project_id,
       unit_id,
@@ -862,11 +851,11 @@ const BookingForm = () => {
       other_charges_no: e.id,
       other_charges_title: e.title,
       other_charges_distribution_method: e.other_charges_distribution_method,
-      other_charges_area: e.area,
-      other_charges_rate: e.ratebase_amounts,
-      other_charges_disc_amt: e.other_charges_disc_amt,
-      other_charges_disc_per: e.other_charges_disc_per,
-      other_charges_amount: e.otherChargesTotal,
+      other_charges_area: e.area || 0,
+      other_charges_rate: e.ratebase_amounts || 0,
+      other_charges_disc_amt: e.other_charges_disc_amt || 0,
+      other_charges_disc_per: e.other_charges_disc_per || 0,
+      other_charges_amount: e.otherChargesTotal || 0,
     }));
 
     await dispatch(
@@ -881,7 +870,7 @@ const BookingForm = () => {
         broker_remark,
         unit_reserved_date,
         parking_no,
-        calculation_method,
+        calculation_method: calculation_method === 'rate_base' ? 'rate_base' : 'fixied_amt',
         basic_rate_no,
         basic_rate_description,
         basic_rate_area,
@@ -922,7 +911,7 @@ const BookingForm = () => {
       }),
     );
 
-    await window.location.replace(OLD_SITE);
+    // await window.location.replace(OLD_SITE);
   };
 
   const formik = useFormik({
@@ -1897,9 +1886,9 @@ const BookingForm = () => {
                                     ? (
                                         parseFloat(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
-                                      values.gst_amt +
-                                      values.stampduty_amount +
-                                      values.reg_amount +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
