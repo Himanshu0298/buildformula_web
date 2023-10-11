@@ -911,7 +911,7 @@ const BookingForm = () => {
       }),
     );
 
-    // await window.location.replace(OLD_SITE);
+    await window.location.replace(OLD_SITE);
   };
 
   const formik = useFormik({
