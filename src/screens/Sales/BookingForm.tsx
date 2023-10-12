@@ -29,7 +29,7 @@ import {
 import { IBroker, IOwnerShip, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 // LIVE_REDIRECT
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, STAGING_REDIRECT } from 'utils/constant';
+import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
@@ -47,10 +47,10 @@ const BookingForm = () => {
   const floor_id = searchParams.get('project_floor');
   // const project_type = searchParams.get('project_type');
   const pid = searchParams.get('pid'); //encrypted project id
-  const project_list_id = searchParams.get('project_list_id');
+  const project_list_id = searchParams.get('project_list_id') || '1';
 
   // old site navigation
-  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
   // redux state values
