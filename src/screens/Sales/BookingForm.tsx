@@ -47,7 +47,7 @@ const BookingForm = () => {
   const floor_id = searchParams.get('project_floor');
   // const project_type = searchParams.get('project_type');
   const pid = searchParams.get('pid'); //encrypted project id
-  const project_list_id = searchParams.get('project_list_id');
+  const project_list_id = searchParams.get('project_list_id') || '1';
 
   // old site navigation
   const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
