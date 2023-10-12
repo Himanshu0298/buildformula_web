@@ -421,7 +421,7 @@ const BookingForm = () => {
       extra_charges_distribution_method: '',
       extra_charges_area: x.area || 0,
       extra_charges_rate:
-        x.amount_type === 'rate_base' ? Number(x.ratebase_amounts) : Number(x.fixed_amounts),
+        x.amount_type === 'ratebase_amt' ? Number(x.ratebase_amounts) : Number(x.fixed_amounts),
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
       extra_charges_amt: 0,
@@ -1464,7 +1464,6 @@ const BookingForm = () => {
                           </td>
                           <td>
                             <input
-                              // readOnly
                               className="form-control"
                               name="basic_rate"
                               type="number"
