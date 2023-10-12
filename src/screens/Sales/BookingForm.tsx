@@ -454,12 +454,10 @@ const BookingForm = () => {
   function handle_Extra_Charge_Row_Total() {
     setExtraCharges(prevList =>
       prevList?.map(x => {
-        // console.log(x, 'ROW TOTAL ==============<>');
         const Amt = x.extra_charges_area
           ? Number(x.extra_charges_area) * x.extra_charges_rate
           : x.extra_charges_rate;
 
-        console.log('🚀 ~ file: BookingForm.tsx:459 ~ handle_Extra_Charge_Row_Total ~ Amt:', Amt);
         return {
           ...x,
           extra_charges_amt: Amt - x.extra_charges_disc_amt,
@@ -546,6 +544,7 @@ const BookingForm = () => {
       }
     }
 
+    // ec rate change
     function handleExtraChargesRateChange(e) {
       handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
         handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
@@ -553,6 +552,7 @@ const BookingForm = () => {
         handle_Extra_Charge_Row_Total();
     }
 
+    // ec area change
     function handleExtraChargesAreaChange(e) {
       handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value),
         handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
@@ -1468,7 +1468,7 @@ const BookingForm = () => {
                               className="form-control"
                               name="basic_rate"
                               type="number"
-                              value={values?.basic_rate}
+                              value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={e => setFieldValue('basic_rate', e.target.value)}
                             />
