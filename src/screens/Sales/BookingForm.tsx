@@ -958,18 +958,10 @@ const BookingForm = () => {
     await window.location.replace(OLD_SITE);
   };
 
-  const debouncedHandleSubmit = useRef(
-    debounce(values => {
-      handleSubmit(values);
-    }, 500),
-  ).current;
-
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
-    onSubmit: values => {
-      debouncedHandleSubmit(values);
-    },
+    onSubmit: handleSubmit,
     validationSchema: Yup.object({
       visitors_id: Yup.string().required('Customer is required'),
       calculation_method: Yup.string().required('Calculation method is required'),
@@ -1770,7 +1762,6 @@ const BookingForm = () => {
                     <label>Taxes Total</label>
                   </div>
                   <div className="form-group col-5  pr-4">
-                    {/* <label>₹ {values.gst_amt + values.stampduty_amount + values.reg_amount}</label> */}
                     <input
                       readOnly
                       className="form-control"
