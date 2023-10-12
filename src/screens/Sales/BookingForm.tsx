@@ -419,8 +419,9 @@ const BookingForm = () => {
       extra_charges_no: 1,
       extra_charges_title: x.title,
       extra_charges_distribution_method: '',
-      extra_charges_area: x.area,
-      extra_charges_rate: x.amount_type === 'rate_base' ? x.ratebase_amounts : x.fixed_amounts,
+      extra_charges_area: x.area || 0,
+      extra_charges_rate:
+        x.amount_type === 'rate_base' ? Number(x.ratebase_amounts) : Number(x.fixed_amounts),
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
       extra_charges_amt: 0,
@@ -453,13 +454,15 @@ const BookingForm = () => {
   function handle_Extra_Charge_Row_Total() {
     setExtraCharges(prevList =>
       prevList?.map(x => {
-        const Amt =
-          x.amount_type === 'ratebase_amt'
-            ? x.extra_charges_area * x.ratebase_amounts
-            : x.fixed_amounts;
+        // console.log(x, 'ROW TOTAL ==============<>');
+        const Amt = x.extra_charges_area
+          ? Number(x.extra_charges_area) * x.extra_charges_rate
+          : x.extra_charges_rate;
+
+        console.log('🚀 ~ file: BookingForm.tsx:459 ~ handle_Extra_Charge_Row_Total ~ Amt:', Amt);
         return {
           ...x,
-          extra_charges_amt: Amt,
+          extra_charges_amt: Amt - x.extra_charges_disc_amt,
         };
       }),
     );
@@ -483,15 +486,15 @@ const BookingForm = () => {
   };
 
   const extraChargeRow = (i, x) => {
+    const { extra_charges_area = 0, extra_charges_rate = 0 } = x || {};
+
+    const base =
+      extra_charges_area === 0
+        ? Number(extra_charges_rate)
+        : Number(extra_charges_area) * Number(extra_charges_rate);
+
     // ec disc amt calculation
-    function handleExtraChargesDiscAmt(e, item = x) {
-      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
-
-      const base =
-        item.amount_type === 'ratebase_amt'
-          ? Number(extra_charges_area) * Number(ratebase_amounts)
-          : fixed_amounts;
-
+    function handleExtraChargesDiscAmt(e) {
       const { valueAsNumber: amount = 0 } = e.target;
 
       // Fixing the amount if it is greater than base amount
@@ -517,12 +520,7 @@ const BookingForm = () => {
       }
     }
     // ec disc % calculation
-    function handleExtraChargesDiscPer(e, item = x) {
-      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
-
-      const base =
-        item.amount_type === 'ratebase_amt' ? extra_charges_area * ratebase_amounts : fixed_amounts;
-
+    function handleExtraChargesDiscPer(e) {
       const { valueAsNumber: percent = 0 } = e.target;
 
       // Fixing the amount if it is greater than base amount
@@ -592,6 +590,9 @@ const BookingForm = () => {
               value={x?.extra_charges_area}
               onChange={e => {
                 handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
+                handle_Extra_Charge_Row_Total();
+                handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+                  handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0);
               }}
             />
           )}
@@ -603,6 +604,8 @@ const BookingForm = () => {
             value={x.extra_charges_rate}
             onChange={e => {
               handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
+                handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+                handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
                 handle_Extra_Charge_Row_Total();
             }}
           />
@@ -617,7 +620,9 @@ const BookingForm = () => {
             placeholder="Amount"
             type="number"
             value={x.extra_charges_disc_amt}
-            onChange={handleExtraChargesDiscAmt}
+            onChange={e => {
+              handleExtraChargesDiscAmt(e), handle_Extra_Charge_Row_Total();
+            }}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -628,7 +633,9 @@ const BookingForm = () => {
             placeholder="%"
             type="number"
             value={x.extra_charges_disc_per}
-            onChange={handleExtraChargesDiscPer}
+            onChange={e => {
+              handleExtraChargesDiscPer(e), handle_Extra_Charge_Row_Total();
+            }}
           />
         </td>
 
