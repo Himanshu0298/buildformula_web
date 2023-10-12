@@ -287,7 +287,7 @@ export interface IBookingFormParams {
   custom_payment_total_amount: number;
   custom_payment_remark_id: number;
   custom_payment_remark: string;
-  ownership: IOwnerShip[]
+  ownership: IOwnerShip[];
 }
 
 export interface OtherCharge {

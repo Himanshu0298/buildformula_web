@@ -1,11 +1,11 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
-import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
+import { debounce,FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
@@ -17,7 +17,6 @@ import {
   getAreaInfo,
   getBankList,
   getBrokerList,
-  // getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
   getProjectUnitStatus,
@@ -124,6 +123,7 @@ const BookingForm = () => {
       other_charges_total_discount: 0,
       custom_payment_remark_id: 0,
       custom_payment_remark: '',
+      disc_remarks: '',
       extra_charges: [],
       gst_per: 0,
       gst_amt: 0,
@@ -175,14 +175,6 @@ const BookingForm = () => {
       details: e.description,
     }));
   }, [termsList]);
-
-  // installment options
-  // const installmentOptions = useMemo(() => {
-  //   return installmentsList?.payment_scheduled_master?.map(e => ({
-  //     label: e.title,
-  //     value: e.id,
-  //   }));
-  // }, [installmentsList]);
 
   //BankLists Options
   const bankListOptions = useMemo(() => {
@@ -428,8 +420,9 @@ const BookingForm = () => {
       extra_charges_no: 1,
       extra_charges_title: x.title,
       extra_charges_distribution_method: '',
-      extra_charges_area: x.area,
-      extra_charges_rate: 0,
+      extra_charges_area: x.area || 0,
+      extra_charges_rate:
+        x.amount_type === 'ratebase_amt' ? Number(x.ratebase_amounts) : Number(x.fixed_amounts),
       extra_charges_disc_amt: 0,
       extra_charges_disc_per: 0,
       extra_charges_amt: 0,
@@ -462,13 +455,13 @@ const BookingForm = () => {
   function handle_Extra_Charge_Row_Total() {
     setExtraCharges(prevList =>
       prevList?.map(x => {
-        const Amt =
-          x.amount_type === 'ratebase_amt'
-            ? x.extra_charges_area * x.ratebase_amounts
-            : x.fixed_amounts;
+        const Amt = x.extra_charges_area
+          ? Number(x.extra_charges_area) * x.extra_charges_rate
+          : x.extra_charges_rate;
+
         return {
           ...x,
-          extra_charges_amt: Amt,
+          extra_charges_amt: Amt - x.extra_charges_disc_amt,
         };
       }),
     );
@@ -492,15 +485,15 @@ const BookingForm = () => {
   };
 
   const extraChargeRow = (i, x) => {
+    const { extra_charges_area = 0, extra_charges_rate = 0 } = x || {};
+
+    const base =
+      extra_charges_area === 0
+        ? Number(extra_charges_rate)
+        : Number(extra_charges_area) * Number(extra_charges_rate);
+
     // ec disc amt calculation
-    function handleExtraChargesDiscAmt(e, item = x) {
-      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
-
-      const base =
-        item.amount_type === 'ratebase_amt'
-          ? Number(extra_charges_area) * Number(ratebase_amounts)
-          : fixed_amounts;
-
+    function handleExtraChargesDiscAmt(e) {
       const { valueAsNumber: amount = 0 } = e.target;
 
       // Fixing the amount if it is greater than base amount
@@ -526,12 +519,7 @@ const BookingForm = () => {
       }
     }
     // ec disc % calculation
-    function handleExtraChargesDiscPer(e, item = x) {
-      const { extra_charges_area, ratebase_amounts, fixed_amounts } = item || 0;
-
-      const base =
-        item.amount_type === 'ratebase_amt' ? extra_charges_area * ratebase_amounts : fixed_amounts;
-
+    function handleExtraChargesDiscPer(e) {
       const { valueAsNumber: percent = 0 } = e.target;
 
       // Fixing the amount if it is greater than base amount
@@ -555,6 +543,22 @@ const BookingForm = () => {
           handleUpdateExtraCharge(i, 'extra_charges_disc_amt', amount);
         }
       }
+    }
+
+    // ec rate change
+    function handleExtraChargesRateChange(e) {
+      handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
+        handle_Extra_Charge_Row_Total();
+    }
+
+    // ec area change
+    function handleExtraChargesAreaChange(e) {
+      handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
+        handle_Extra_Charge_Row_Total();
     }
 
     return (
@@ -599,9 +603,7 @@ const BookingForm = () => {
               className="form-control mb-2"
               type="number"
               value={x?.extra_charges_area}
-              onChange={e => {
-                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
-              }}
+              onChangeCapture={handleExtraChargesAreaChange}
             />
           )}
         </td>
@@ -609,16 +611,8 @@ const BookingForm = () => {
           <input
             className="form-control mb-2"
             type="number"
-            value={
-              x.amount_type === 'ratebase_amt'
-                ? parseFloat(x.ratebase_amounts)
-                : parseFloat(x.fixed_amounts)
-            }
-            onChange={e =>
-              x.amount_type === 'ratebase_amt'
-                ? handleUpdateExtraCharge(i, 'ratebase_amounts', e.target.value)
-                : handleUpdateExtraCharge(i, 'fixed_amounts', e.target.value)
-            }
+            value={x.extra_charges_rate}
+            onChange={handleExtraChargesRateChange}
           />
         </td>
         <td>
@@ -631,7 +625,9 @@ const BookingForm = () => {
             placeholder="Amount"
             type="number"
             value={x.extra_charges_disc_amt}
-            onChange={handleExtraChargesDiscAmt}
+            onChange={e => {
+              handleExtraChargesDiscAmt(e), handle_Extra_Charge_Row_Total();
+            }}
           />
           <span className="muted-text" style={{ fontSize: '12px' }}>
             %
@@ -642,7 +638,9 @@ const BookingForm = () => {
             placeholder="%"
             type="number"
             value={x.extra_charges_disc_per}
-            onChange={handleExtraChargesDiscPer}
+            onChange={e => {
+              handleExtraChargesDiscPer(e), handle_Extra_Charge_Row_Total();
+            }}
           />
         </td>
 
@@ -825,7 +823,6 @@ const BookingForm = () => {
 
   // booking form submission
   const handleSubmit = async values => {
-
     const {
       project_id,
       unit_id,
@@ -861,7 +858,7 @@ const BookingForm = () => {
       other_charges_title: e.title,
       other_charges_distribution_method: e.other_charges_distribution_method,
       other_charges_area: e.area,
-      other_charges_rate: e.ratebase_amounts,
+      other_charges_rate: e.amount_type === 'ratebase_amt' ? e.ratebase_amounts : e.fixed_amounts,
       other_charges_disc_amt: e.other_charges_disc_amt,
       other_charges_disc_per: e.other_charges_disc_per,
       other_charges_amount: e.otherChargesTotal,
@@ -879,16 +876,30 @@ const BookingForm = () => {
         broker_remark,
         unit_reserved_date,
         parking_no,
-        calculation_method,
+        calculation_method: calculation_method === 'rate_base' ? 'rate_base' : 'fixied_amt',
         basic_rate_no,
         basic_rate_description,
         basic_rate_area,
-        basic_rate,
+        basic_rate: basic_rate || 0,
         basic_rate_disc_amt,
         basic_rate_disc_per,
         basic_rate_basic_amount,
-        other_charges: otherCharges,
-        other_charges_total: parseInt(handleTotalOtherCharge()),
+        other_charges: otherCharges.length
+          ? otherCharges
+          : [
+              {
+                unit_other_charge_id: 0,
+                other_charges_no: 0,
+                other_charges_title: '',
+                other_charges_distribution_method: '',
+                other_charges_area: 0,
+                other_charges_rate: 0,
+                other_charges_disc_amt: 0,
+                other_charges_disc_per: 0,
+                other_charges_amount: 0,
+              },
+            ],
+        other_charges_total: parseFloat(handleTotalOtherCharge()),
         sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
         total_disc:
           parseFloat(handleTotalOtherDiscountAmt()) + parseFloat(values.basic_rate_disc_amt),
@@ -900,7 +911,20 @@ const BookingForm = () => {
         reg_per,
         reg_amount,
         total_gove_tax: values.gst_amt + values.stampduty_amount + values.reg_amount,
-        extra_charges: extraCharges,
+        extra_charges: extraCharges.length
+          ? extraCharges
+          : [
+              {
+                extra_charges_no: '',
+                extra_charges_title: '',
+                extra_charges_distribution_method: '',
+                extra_charges_area: '',
+                extra_charges_rate: '',
+                extra_charges_disc_per: '',
+                extra_charges_disc_amt: '',
+                extra_charges_amt: '',
+              },
+            ],
         extra_charges_total: parseFloat(handleTotalExtraCharge()),
         property_final_amount:
           parseFloat(values.basic_rate_basic_amount) +
@@ -916,20 +940,39 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
-        ownership: ownerShipData,
+        ownership: ownerShipData.length
+          ? ownerShipData
+          : [
+              {
+                id: 0,
+                ownership_customer_first_name: '',
+                ownership_customer_phone: '',
+                ownership_customer_email: '',
+                ownership_customer_pan: '',
+                ownership_customer_aadhar: '',
+              },
+            ],
       }),
     );
 
     await window.location.replace(OLD_SITE);
   };
 
+  const debouncedHandleSubmit = useRef(
+    debounce(values => {
+      handleSubmit(values);
+    }, 500),
+  ).current;
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
-    onSubmit: handleSubmit,
+    onSubmit: values => {
+      debouncedHandleSubmit(values);
+    },
     validationSchema: Yup.object({
       visitors_id: Yup.string().required('Customer is required'),
-      calculation_method: Yup.string().required('Calculation method is required')
+      calculation_method: Yup.string().required('Calculation method is required'),
     }),
   });
 
@@ -944,21 +987,21 @@ const BookingForm = () => {
   );
 
   const gstSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'gst_amt',
     'gst_per',
     setFieldValue,
   );
 
   const stampDutySyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'stampduty_amount',
     'stampduty_per',
     setFieldValue,
   );
 
   const registrationSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'reg_amount',
     'reg_per',
     setFieldValue,
@@ -1430,11 +1473,10 @@ const BookingForm = () => {
                           </td>
                           <td>
                             <input
-                              // readOnly
                               className="form-control"
                               name="basic_rate"
                               type="number"
-                              value={values?.basic_rate}
+                              value={values.basic_rate}
                               onBlur={handleBlur}
                               onChange={e => setFieldValue('basic_rate', e.target.value)}
                             />
@@ -1602,7 +1644,7 @@ const BookingForm = () => {
                       type="number"
                       value={(
                         parseFloat(handleTotalOtherDiscountAmt()) +
-                        parseFloat(values.basic_rate_disc_amt)
+                        Number(values.basic_rate_disc_amt)
                       ).toFixed(2)}
                     />
                   </div>
@@ -1640,7 +1682,7 @@ const BookingForm = () => {
                       value={
                         values.calculation_method
                           ? (
-                              parseFloat(values.basic_rate_basic_amount) +
+                              Number(values.basic_rate_basic_amount) +
                               parseFloat(handleTotalOtherCharge())
                             ).toFixed(2)
                           : '0.00'
@@ -1832,12 +1874,12 @@ const BookingForm = () => {
                               <span style={{ textAlign: 'right' }}>
                                 {isNaN(
                                   parseFloat(handleTotalOtherDiscountAmt()) +
-                                    parseFloat(values.basic_rate_disc_amt),
+                                  Number(values.basic_rate_disc_amt),
                                 )
                                   ? '0.00'
                                   : (
                                       parseFloat(handleTotalOtherDiscountAmt()) +
-                                      parseFloat(values.basic_rate_disc_amt)
+                                    Number(values.basic_rate_disc_amt)
                                     ).toFixed(2)}
                               </span>
                             </span>
@@ -1869,7 +1911,7 @@ const BookingForm = () => {
                               <span> ₹ </span>
                               <span style={{ textAlign: 'right' }}>
                                 {' '}
-                                {handleTotalExtraCharge()}{' '}
+                                {values.calculation_method ? handleTotalExtraCharge() : '0.00'}{' '}
                               </span>
                             </span>
                           </td>
@@ -1889,7 +1931,7 @@ const BookingForm = () => {
                                 {' '}
                                 {values.calculation_method
                                   ? isNaN(
-                                      parseFloat(values.basic_rate_basic_amount) +
+                                    Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
@@ -1897,15 +1939,15 @@ const BookingForm = () => {
                                         parseFloat(handleTotalExtraCharge()),
                                     )
                                     ? (
-                                        parseFloat(values.basic_rate_basic_amount) +
+                                      Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
-                                      values.gst_amt +
-                                      values.stampduty_amount +
-                                      values.reg_amount +
+                                        values.gst_amt +
+                                        values.stampduty_amount +
+                                        values.reg_amount +
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
-                                        parseFloat(values.basic_rate_basic_amount) +
+                                      Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
