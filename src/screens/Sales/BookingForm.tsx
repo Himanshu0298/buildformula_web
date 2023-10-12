@@ -546,6 +546,20 @@ const BookingForm = () => {
       }
     }
 
+    function handleExtraChargesRateChange(e) {
+      handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
+        handle_Extra_Charge_Row_Total();
+    }
+
+    function handleExtraChargesAreaChange(e) {
+      handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
+        handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
+        handle_Extra_Charge_Row_Total();
+    }
+
     return (
       <tr key={x.id}>
         <td>{i + 1}</td>
@@ -588,12 +602,7 @@ const BookingForm = () => {
               className="form-control mb-2"
               type="number"
               value={x?.extra_charges_area}
-              onChange={e => {
-                handleUpdateExtraCharge(i, 'extra_charges_area', e.target.value);
-                handle_Extra_Charge_Row_Total();
-                handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
-                  handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0);
-              }}
+              onChangeCapture={handleExtraChargesAreaChange}
             />
           )}
         </td>
@@ -602,12 +611,7 @@ const BookingForm = () => {
             className="form-control mb-2"
             type="number"
             value={x.extra_charges_rate}
-            onChange={e => {
-              handleUpdateExtraCharge(i, 'extra_charges_rate', e.target.value),
-                handleUpdateExtraCharge(i, 'extra_charges_disc_amt', 0),
-                handleUpdateExtraCharge(i, 'extra_charges_disc_per', 0),
-                handle_Extra_Charge_Row_Total();
-            }}
+            onChange={handleExtraChargesRateChange}
           />
         </td>
         <td>
