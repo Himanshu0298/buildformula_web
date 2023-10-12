@@ -1,11 +1,11 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
-import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
+import { debounce,FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
@@ -123,6 +123,7 @@ const BookingForm = () => {
       other_charges_total_discount: 0,
       custom_payment_remark_id: 0,
       custom_payment_remark: '',
+      disc_remarks: '',
       extra_charges: [],
       gst_per: 0,
       gst_amt: 0,
@@ -957,10 +958,18 @@ const BookingForm = () => {
     await window.location.replace(OLD_SITE);
   };
 
+  const debouncedHandleSubmit = useRef(
+    debounce(values => {
+      handleSubmit(values);
+    }, 500),
+  ).current;
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
-    onSubmit: handleSubmit,
+    onSubmit: values => {
+      debouncedHandleSubmit(values);
+    },
     validationSchema: Yup.object({
       visitors_id: Yup.string().required('Customer is required'),
       calculation_method: Yup.string().required('Calculation method is required'),
@@ -978,21 +987,21 @@ const BookingForm = () => {
   );
 
   const gstSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'gst_amt',
     'gst_per',
     setFieldValue,
   );
 
   const stampDutySyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'stampduty_amount',
     'stampduty_per',
     setFieldValue,
   );
 
   const registrationSyncedFields = useSyncedFields(
-    parseFloat(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
+    Number(values.basic_rate_basic_amount) + parseFloat(handleTotalOtherCharge()),
     'reg_amount',
     'reg_per',
     setFieldValue,
@@ -1635,7 +1644,7 @@ const BookingForm = () => {
                       type="number"
                       value={(
                         parseFloat(handleTotalOtherDiscountAmt()) +
-                        parseFloat(values.basic_rate_disc_amt)
+                        Number(values.basic_rate_disc_amt)
                       ).toFixed(2)}
                     />
                   </div>
@@ -1673,7 +1682,7 @@ const BookingForm = () => {
                       value={
                         values.calculation_method
                           ? (
-                              parseFloat(values.basic_rate_basic_amount) +
+                              Number(values.basic_rate_basic_amount) +
                               parseFloat(handleTotalOtherCharge())
                             ).toFixed(2)
                           : '0.00'
@@ -1865,12 +1874,12 @@ const BookingForm = () => {
                               <span style={{ textAlign: 'right' }}>
                                 {isNaN(
                                   parseFloat(handleTotalOtherDiscountAmt()) +
-                                    parseFloat(values.basic_rate_disc_amt),
+                                  Number(values.basic_rate_disc_amt),
                                 )
                                   ? '0.00'
                                   : (
                                       parseFloat(handleTotalOtherDiscountAmt()) +
-                                      parseFloat(values.basic_rate_disc_amt)
+                                    Number(values.basic_rate_disc_amt)
                                     ).toFixed(2)}
                               </span>
                             </span>
@@ -1922,7 +1931,7 @@ const BookingForm = () => {
                                 {' '}
                                 {values.calculation_method
                                   ? isNaN(
-                                      parseFloat(values.basic_rate_basic_amount) +
+                                    Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
@@ -1930,7 +1939,7 @@ const BookingForm = () => {
                                         parseFloat(handleTotalExtraCharge()),
                                     )
                                     ? (
-                                        parseFloat(values.basic_rate_basic_amount) +
+                                      Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
@@ -1938,7 +1947,7 @@ const BookingForm = () => {
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
-                                        parseFloat(values.basic_rate_basic_amount) +
+                                      Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
