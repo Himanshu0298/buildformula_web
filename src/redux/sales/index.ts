@@ -6,12 +6,18 @@ import { handleLoading, handleReject } from 'utils/reduxUtils';
 
 import {
   AddBrokerParams,
+  bookingApprovalListParams,
+  bookingApprovedRejectParams,
+  brokerDetailParams,
   CommonParams,
   CreateCustomerParams,
   FormFillingParams,
+  getApprovalDetailsParams,
   GetProjectUnitParams,
+  IBookingFormApproval,
   IBookingFormParams,
   IBroker,
+  IBrokerDetail,
   IExtraCharges,
   IInstallmentDetails,
   IInstallmentOptions,
@@ -26,7 +32,9 @@ import {
   IUnitParkingInfo,
   IUnitStatus,
   IVisitor,
+  IVisitorDetail,
   UnitInfoParams,
+  visitorDetailParams,
   VisitorParams,
 } from './salesInterface';
 
@@ -44,11 +52,81 @@ export const getVisitorsList = createAsyncThunk<IVisitor[], VisitorParams>(
   },
 );
 
+export const getVisitorsDetail = createAsyncThunk<IVisitorDetail, visitorDetailParams>(
+  'sales/getVisitorsDetails',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getVisitorDetail(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const getBrokerList = createAsyncThunk<IBroker[], CommonParams>(
   'sales/getBrokerList',
   async (params, thunkApi) => {
     try {
       const { data: res } = await visitorService.getBrokerList(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const getBrokerDetail = createAsyncThunk<IBrokerDetail, brokerDetailParams>(
+  'sales/getBrokerDetail',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBrokerDetail(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const getApprovalUnitDetails = createAsyncThunk<
+  IBookingFormApproval,
+  getApprovalDetailsParams
+>('sales/getApprovalUnitDetails', async (params, thunkApi) => {
+  try {
+    const { data: res } = await visitorService.getApprovalUnitDetails(params);
+    return res.data;
+  } catch (err) {
+    const processedError = processError(err);
+    console.log(err);
+    return thunkApi.rejectWithValue({ error: processedError });
+  }
+});
+
+export const getBookingApprovalList = createAsyncThunk(
+  'sales/getBookingApprovalList',
+  async (params: bookingApprovalListParams, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBookingApprovalList(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const updateBookingStatus = createAsyncThunk(
+  'sales/updateBookingStatus',
+  async (params: bookingApprovedRejectParams, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.updateBookingStatus(params);
       return res.data;
     } catch (err) {
       const processedError = processError(err);
@@ -133,6 +211,20 @@ export const addBooking = createAsyncThunk(
   async (params: IBookingFormParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addBooking(params);
+      return res;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
+export const getUnitBookingFormLIst = createAsyncThunk(
+  'sales/addBooking',
+  async (params: IBookingFormParams, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getApprovalUnitDetails(params);
       return res;
     } catch (err) {
       const processedError = processError(err);
@@ -264,6 +356,10 @@ const initialState: ISalesState = {
   extraChargesList: {} as IExtraCharges,
   projectUnitStatus: [],
   timer: false,
+  visitorDetail: {} as IVisitorDetail,
+  brokerDetail: undefined,
+  bookingApprovalList: undefined,
+  approvalBookingDetails: {} as IBookingFormApproval,
 };
 
 const salesSlice = createSlice({
@@ -418,6 +514,52 @@ const salesSlice = createSlice({
       return {
         ...state,
         banksList: action?.payload,
+      };
+    });
+    // get Visitor details
+    builder.addCase(getVisitorsDetail.rejected, handleReject);
+    builder.addCase(getVisitorsDetail.pending, handleLoading);
+    builder.addCase(getVisitorsDetail.fulfilled, (state, action) => {
+      return {
+        ...state,
+        visitorDetail: action?.payload,
+      };
+    });
+    // get broker details
+    builder.addCase(getBrokerDetail.rejected, handleReject);
+    builder.addCase(getBrokerDetail.pending, handleLoading);
+    builder.addCase(getBrokerDetail.fulfilled, (state, action) => {
+      return {
+        ...state,
+        brokerDetail: action?.payload,
+      };
+    });
+    // get approval list
+    builder.addCase(getBookingApprovalList.rejected, handleReject);
+    builder.addCase(getBookingApprovalList.pending, handleLoading);
+    builder.addCase(getBookingApprovalList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        bookingApprovalList: action?.payload.booking_form_list?.sort(
+          (a, b) => b.bookingid - a.bookingid,
+        ),
+      };
+    });
+    // get approval booking details
+    builder.addCase(getApprovalUnitDetails.rejected, handleReject);
+    builder.addCase(getApprovalUnitDetails.pending, handleLoading);
+    builder.addCase(getApprovalUnitDetails.fulfilled, (state, action) => {
+      return {
+        ...state,
+        approvalBookingDetails: action?.payload,
+      };
+    });
+    // booking approve reject
+    builder.addCase(updateBookingStatus.rejected, handleReject);
+    builder.addCase(updateBookingStatus.pending, handleLoading);
+    builder.addCase(updateBookingStatus.fulfilled, state => {
+      return {
+        ...state,
       };
     });
   },

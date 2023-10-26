@@ -4,8 +4,9 @@ import { BASE_API_URL } from 'utils/constant';
 export const instance = axios.create({ baseURL: BASE_API_URL });
 
 export const config = ({ multipart = true } = {}) => {
-  const searchParams = new URLSearchParams(document.location.search);
-  const token = searchParams.get('token');
+  // const searchParams = new URLSearchParams(document.location.search);
+  // const token = searchParams.get('token');
+  const token ='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvdnNod2FuZHJ4LmluXC91c2VybG9naW4iLCJpYXQiOjE2OTc3ODE0MTAsImV4cCI6MTY5Nzk1NDIxMCwibmJmIjoxNjk3NzgxNDEwLCJqdGkiOiJtVEtRVTVkeFJraU5nWUlEIiwic3ViIjo0NSwicHJ2IjoiODdlMGFmMWVmOWZkMTU4MTJmZGVjOTcxNTNhMTRlMGIwNDc1NDZhYSJ9.GjCElT7mq2IP1si-hwKRCcxAmsihV3mdi-f4f3L5y8Y'
 
   const headers = {
     'Content-Type': 'application/json',
