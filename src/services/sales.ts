@@ -6,6 +6,10 @@ export const getVisitorsList = data => {
   return instance.post('/visitors/get_lists', data, params);
 };
 
+export const getCustomersList = data => {
+  return instance.post('/visitorcustomer/list', data, params);
+};
+
 export const addCustomer = data => {
   return instance.post('/visitors/add', data, params);
 };
@@ -81,6 +85,11 @@ export const getApprovalUnitDetails = data => {
 export const getBookingApprovalList = data => {
   return instance.post('/booking_all_form_list', data, params);
 };
+
 export const updateBookingStatus = data => {
   return instance.post('/booking_form_apporved_reject', data, params);
+};
+
+export const getBookingFormOwnerFlag = data => {
+  return instance.post('/booking_form_settings/get_booking_ownership_status', data, params);
 };
