@@ -111,7 +111,11 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
                         approvalListRow.unit_info
                           .toLowerCase()
                           .includes(searchTerm.toLowerCase()) ||
-                        approvalListRow.bookedby.toLowerCase().includes(searchTerm.toLowerCase())
+                        approvalListRow.bookedby.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        approvalListRow.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        approvalListRow.evaluated_by
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase())
                       );
                     })
                     ?.slice(page * rowsPerPage, (page + 1) * rowsPerPage)

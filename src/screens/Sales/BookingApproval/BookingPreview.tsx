@@ -932,7 +932,7 @@ const BookingPreview = () => {
   };
 
   const handleBack = () => {
-    navigate('/bookingApproval');
+    navigate(-1);
   };
 
   useEffect(() => {
