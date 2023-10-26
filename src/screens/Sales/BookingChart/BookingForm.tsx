@@ -78,7 +78,7 @@ const BookingForm = () => {
     unitAreaInfo,
     extraChargesList,
     projectUnitStatus,
-    ownership_validation_flag,
+    // ownership_validation_flag,
     loading,
   } = useAppSelector(s => s.sales);
 
