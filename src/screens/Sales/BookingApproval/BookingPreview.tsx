@@ -1,5 +1,17 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Box, Button, Grid, IconButton, Paper, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Grid,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -8,6 +20,7 @@ import TextField from '@mui/material/TextField';
 import { styled } from '@mui/system';
 import Loader from 'components/atoms/Loader';
 import { Formik } from 'formik';
+import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -83,18 +96,35 @@ const Label = styled(Typography)`
 `;
 
 const Value = styled(Typography)`
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #041d36;
   margin-bottom: 8px;
+`;
+
+const TotalRow = styled(Box)`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: #4872f4;
+  color: #fff;
+  padding: 5px;
+  border-radius: 6px;
+  gap: 10px;
+  .totalTitle {
+    color: #fff;
+    font-size: 18px;
+  }
+  .totalAmount {
+    color: #fff;
+    font-weight: 600;
+    font-size: 18px;
+  }
 `;
 
 const CustomerDetails = ({ customerData, brokerData }) => {
   const { first_name, last_name, email, phone } = customerData?.visitors || {};
   const throughBroker = brokerData?.booking_form_list?.through_broker === 'yes';
-
-  if (!(first_name || last_name || email || phone || throughBroker)) {
-    return null;
-  }
 
   return (
     <CommonContainer elevation={0}>
@@ -103,19 +133,19 @@ const CustomerDetails = ({ customerData, brokerData }) => {
       <Grid container spacing={1}>
         <Grid item xs={3}>
           <Label>First Name</Label>
-          <Value>{first_name}</Value>
+          <Value>{first_name || '-'}</Value>
         </Grid>
         <Grid item xs={3}>
           <Label>Last Name</Label>
-          <Value>{last_name}</Value>
+          <Value>{last_name || '-'}</Value>
         </Grid>
         <Grid item xs={3}>
           <Label>Email</Label>
-          <Value>{email}</Value>
+          <Value>{email || '-'}</Value>
         </Grid>
         <Grid item xs={3}>
           <Label>Phone</Label>
-          <Value>{phone}</Value>
+          <Value>{phone || '-'}</Value>
         </Grid>
         <Grid item xs={3}>
           <Label>Through Broker?</Label>
@@ -136,47 +166,37 @@ const BrokerDetails = ({ brokerData }) => {
     broker_remark,
   } = brokerData?.booking_form_list || {};
 
-  if (
-    broker_first_name ||
-    broker_last_name ||
-    broker_email ||
-    broker_phone ||
-    brokerage ||
-    broker_remark
-  ) {
-    return (
-      <CommonContainer>
-        <Heading>BROKER DETAILS</Heading>
-        <Grid container spacing={2}>
-          <Grid item xs={3}>
-            <Label>First Name</Label>
-            <Value>{broker_first_name}</Value>
-          </Grid>
-          <Grid item xs={3}>
-            <Label>Last Name</Label>
-            <Value>{broker_last_name}</Value>
-          </Grid>
-          <Grid item xs={3}>
-            <Label>Email</Label>
-            <Value>{broker_email}</Value>
-          </Grid>
-          <Grid item xs={3}>
-            <Label>Phone</Label>
-            <Value>{broker_phone}</Value>
-          </Grid>
-          <Grid item xs={6}>
-            <Label>Brokerage</Label>
-            <Value>₹ {brokerage}</Value>
-          </Grid>
-          <Grid item xs={6}>
-            <Label>Brokerage Remark</Label>
-            <Value>{broker_remark}</Value>
-          </Grid>
+  return (
+    <CommonContainer>
+      <Heading>BROKER DETAILS</Heading>
+      <Grid container spacing={2}>
+        <Grid item xs={3}>
+          <Label>First Name</Label>
+          <Value>{broker_first_name || '-'}</Value>
         </Grid>
-      </CommonContainer>
-    );
-  }
-  return null;
+        <Grid item xs={3}>
+          <Label>Last Name</Label>
+          <Value>{broker_last_name || '-'}</Value>
+        </Grid>
+        <Grid item xs={3}>
+          <Label>Email</Label>
+          <Value>{broker_email || '-'}</Value>
+        </Grid>
+        <Grid item xs={3}>
+          <Label>Phone</Label>
+          <Value>{broker_phone || '-'}</Value>
+        </Grid>
+        <Grid item xs={6}>
+          <Label>Brokerage</Label>
+          <Value>₹ {brokerage || '-'}</Value>
+        </Grid>
+        <Grid item xs={6}>
+          <Label>Brokerage Remark</Label>
+          <Value>{broker_remark || '-'}</Value>
+        </Grid>
+      </Grid>
+    </CommonContainer>
+  );
 };
 
 const OwnershipDetails = ({ ownerShipData }) => {
@@ -188,49 +208,57 @@ const OwnershipDetails = ({ ownerShipData }) => {
 
   return (
     <CommonContainer>
-      <Typography component="div" sx={{ color: '#4872f4', mb: 2 }} variant="h6">
-        OWNERSHIP DETAILS
-      </Typography>
-      {ownership?.map((ownershipItem, index) => (
-        <Grid key={index} container spacing={1}>
-          <Grid item xs={2}>
-            <Typography gutterBottom color="textSecondary" variant="h6">
-              Sr.No
-            </Typography>
-            <Value>{index + 1}</Value>
+      <Heading>OWNERSHIP DETAILS</Heading>
+      {ownership?.map((ownershipItem, index) => {
+        const {
+          ownership_customer_first_name,
+          ownership_customer_phone,
+          ownership_customer_email,
+          ownership_customer_pan,
+          ownership_customer_aadhar,
+        } = ownershipItem || {};
+
+        return (
+          <Grid key={index} container spacing={1}>
+            <Grid item xs={2}>
+              <Typography gutterBottom color="textSecondary" variant="h6">
+                Sr.No
+              </Typography>
+              <Value>{index + 1}</Value>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography gutterBottom color="textSecondary" variant="h6">
+                Name
+              </Typography>
+              <Value>{ownership_customer_first_name || '-'}</Value>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography color="textSecondary" style={{ marginBottom: 20 }} variant="h6">
+                Phone
+              </Typography>
+              <Value>+91{ownership_customer_phone || '-'}</Value>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography color="textSecondary" variant="h6">
+                Email
+              </Typography>
+              <Value>{ownership_customer_email || '-'}</Value>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography color="textSecondary" variant="h6">
+                Pan
+              </Typography>
+              <Value>{ownership_customer_pan || '-'}</Value>
+            </Grid>
+            <Grid item xs={2}>
+              <Typography color="textSecondary" variant="h6">
+                Aadhar
+              </Typography>
+              <Value>{ownership_customer_aadhar || '-'}</Value>
+            </Grid>
           </Grid>
-          <Grid item xs={2}>
-            <Typography gutterBottom color="textSecondary" variant="h6">
-              Name
-            </Typography>
-            <Value>{ownershipItem.ownership_customer_first_name}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="textSecondary" style={{ marginBottom: 20 }} variant="h6">
-              Phone
-            </Typography>
-            <Value>+91{ownershipItem.ownership_customer_phone}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="textSecondary" variant="h6">
-              Email
-            </Typography>
-            <Value>{ownershipItem.ownership_customer_email}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="textSecondary" variant="h6">
-              Pan
-            </Typography>
-            <Value>{ownershipItem.ownership_customer_pan}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="textSecondary" variant="h6">
-              Aadhar
-            </Typography>
-            <Value>{ownershipItem.ownership_customer_aadhar}</Value>
-          </Grid>
-        </Grid>
-      ))}
+        );
+      })}
     </CommonContainer>
   );
 };
@@ -239,40 +267,31 @@ const UnitInfo = ({ unitInfoData }) => {
   const { unit_reserved_date, unit_info, super_build_up_area, terracearea, parking_no } =
     unitInfoData?.booking_form_list || {};
 
-  if (!(unit_reserved_date || unit_info || super_build_up_area || terracearea || parking_no)) {
-    return null;
-  }
-
   return (
     <CommonContainer>
-      <div>
-        <Typography component="div" style={{ color: '#4872f4' }} sx={{ mb: 2 }} variant="h6">
-          UNIT INFO
-        </Typography>
-
-        <Grid container spacing={1}>
-          <Grid item xs={2}>
-            <Label>Unit Reservation Date</Label>
-            <Value>{unit_reserved_date}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Unit Info</Label>
-            <Value>{unit_info}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Super Buildup Area</Label>
-            <Value>{super_build_up_area}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Terrace Area</Label>
-            <Value>{terracearea}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Car Parking No</Label>
-            <Value>{parking_no}</Value>
-          </Grid>
+      <Heading>UNIT INFO</Heading>
+      <Grid container spacing={1}>
+        <Grid item xs={2}>
+          <Label>Unit Reservation Date</Label>
+          <Value>{unit_reserved_date}</Value>
         </Grid>
-      </div>
+        <Grid item xs={2}>
+          <Label>Unit Info</Label>
+          <Value>{unit_info}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Super Buildup Area</Label>
+          <Value>{super_build_up_area}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Terrace Area</Label>
+          <Value>{terracearea}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Car Parking No</Label>
+          <Value>{parking_no}</Value>
+        </Grid>
+      </Grid>
     </CommonContainer>
   );
 };
@@ -289,20 +308,6 @@ const CalculationMethod = ({ calcMethodData }) => {
     basic_rate_no,
   } = calcMethodData?.booking_form_list || {};
 
-  if (
-    !(
-      calculation_method ||
-      basic_rate ||
-      basic_rate_area ||
-      basic_rate_basic_amount ||
-      basic_rate_description ||
-      basic_rate_disc_amt ||
-      basic_rate_disc_per ||
-      basic_rate_no
-    )
-  ) {
-    return null;
-  }
   return (
     <CommonContainer>
       <Heading>CALCULATION METHOD</Heading>
@@ -314,37 +319,57 @@ const CalculationMethod = ({ calcMethodData }) => {
       <div style={{ maxWidth: '100%' }}>
         <Divider />
       </div>
-      <Grid container spacing={2} sx={{ marginTop: 1 }}>
-        <Grid item xs={1}>
-          <Label>Sr.No</Label>
-          <Value>{basic_rate_no}</Value>
-        </Grid>
-        <Grid item xs={3}>
-          <Label>Description</Label>
-          <Value>{basic_rate_description}</Value>
-        </Grid>
-        <Grid item xs={2}>
-          <Label>Area</Label>
-          <Value>{basic_rate_area}</Value>
-        </Grid>
-        <Grid item xs={2}>
-          <Label>Rate</Label>
-          <Value>{basic_rate}</Value>
-        </Grid>
-        <Grid item style={{ display: 'flex', flexDirection: 'column' }} xs={2}>
-          <Label>Discount Amt</Label>
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <Value>{basic_rate_disc_amt}</Value>
-            <Typography color="#949DB8" style={{ marginLeft: 5 }} variant="body1">
-              ({basic_rate_disc_per}%)
-            </Typography>
-          </div>
-        </Grid>
-        <Grid item xs={2}>
-          <Label>Total Basic Amount</Label>
-          <Value>{basic_rate_basic_amount}</Value>
-        </Grid>
-      </Grid>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>
+              <Label>Sr.No</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Description</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Area</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Rate</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Discount Amt</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Total Basic Amount</Label>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <TableCell>
+              <Value>{basic_rate_no}</Value>
+            </TableCell>
+            <TableCell>
+              <Value>{basic_rate_description}</Value>
+            </TableCell>
+            <TableCell>
+              <Value>{basic_rate_area}</Value>
+            </TableCell>
+            <TableCell>
+              <Value>{basic_rate}</Value>
+            </TableCell>
+            <TableCell>
+              <div style={{ display: 'flex', flexDirection: 'row' }}>
+                <Value>{basic_rate_disc_amt}</Value>
+                <Typography color="#949DB8" style={{ marginLeft: 5 }} variant="body1">
+                  ({basic_rate_disc_per}%)
+                </Typography>
+              </div>
+            </TableCell>
+            <TableCell>
+              <Value>{basic_rate_basic_amount}</Value>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </CommonContainer>
   );
 };
@@ -354,84 +379,87 @@ const OtherCharges = ({ otherChargesData }) => {
 
   const { other_charges_total } = otherChargesData?.booking_form_list || {};
 
-  if (otherCharges.length === 0) {
-    return null;
-  }
-
   return (
     <CommonContainer>
-      <div>
-        <Typography component="div" style={{ color: '#4872f4' }} sx={{ mb: 2 }} variant="h6">
-          OTHER CHARGES
-        </Typography>
+      <Heading>OTHER CHARGES</Heading>
 
-        {otherCharges.map((otherCharge, index) => (
-          <div key={index}>
-            <Grid container spacing={1} sx={{ mt: 1 }}>
-              <Grid item xs={1}>
-                <Label>Sr.No</Label>
-                <Value>{otherCharge.other_charges_no}</Value>
-              </Grid>
-              <Grid item xs={2}>
-                <Label>Title</Label>
-                <Value>{otherCharge.other_charges_title}</Value>
-              </Grid>
-              <Grid item xs={2}>
-                <Label>Distribution Method</Label>
-                <Value>{otherCharge.other_charges_distribution_method}</Value>
-              </Grid>
-              <Grid item xs={2}>
-                <Label>Area</Label>
-                <Value>{otherCharge.other_charges_area}</Value>
-              </Grid>
-              <Grid item xs={2}>
-                <Label>Rate</Label>
-                <Value>{otherCharge.other_charges_rate}</Value>
-              </Grid>
-              <Grid item style={{ display: 'flex', flexDirection: 'column' }} xs={2}>
-                <Label>Discount Amt</Label>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                  <Value>{otherCharge.other_charges_disc_amt}</Value>
-                  <Typography color="grey" style={{ marginLeft: 5 }} variant="body1">
-                    ({otherCharge.other_charges_disc_per}%)
-                  </Typography>
-                </div>
-              </Grid>
-              <Grid item xs={2}>
-                <Label>Amount</Label>
-                <Value>{otherCharge.other_charges_amount}</Value>
-              </Grid>
-            </Grid>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>
+              <Label>Sr.No</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Title</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Distribution Method</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Area</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Rate</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Discount Amt</Label>
+            </TableCell>
+            <TableCell>
+              <Label>Total Amount</Label>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {otherCharges?.map(otherCharge => {
+            const {
+              other_charges_no,
+              other_charges_title,
+              other_charges_distribution_method,
+              other_charges_area,
+              other_charges_rate,
+              other_charges_disc_amt,
+              other_charges_disc_per,
+              other_charges_amount,
+            } = otherCharge || {};
 
-            <div style={{ maxWidth: '100%' }}>
-              <Divider />
-            </div>
-          </div>
-        ))}
+            return (
+              <TableRow key={other_charges_no}>
+                <TableCell>
+                  <Value>{other_charges_no}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{other_charges_title}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{other_charges_distribution_method}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{other_charges_area}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>₹ {other_charges_rate}</Value>
+                </TableCell>
+                <TableCell>
+                  <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    <Value>₹ {other_charges_disc_amt}</Value>
+                    <Typography color="#949DB8" style={{ marginLeft: 5 }} variant="body1">
+                      ({other_charges_disc_per} %)
+                    </Typography>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Value>₹ {other_charges_amount}</Value>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
 
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <div>
-            <Typography align="center" color="#949DB8" sx={{ mt: 3 }} variant="body1">
-              Other Charges Total
-            </Typography>
-          </div>
-          <div>
-            <Typography align="center" sx={{ ml: 2, mt: 3 }} variant="body1">
-              ₹{other_charges_total}
-            </Typography>
-          </div>
-          <div style={{ maxWidth: '100%' }}>
-            <Divider />
-          </div>
-        </div>
-      </div>
+      <TotalRow>
+        <Typography className="totalTitle">Other Charges Total</Typography>
+        <Typography className="totalAmount"> ₹ {other_charges_total}</Typography>
+      </TotalRow>
     </CommonContainer>
   );
 };
@@ -451,7 +479,7 @@ const OverallDiscount = ({ overAllDiscountData }) => {
 
         <div>
           <Label>Total Discount</Label>
-          <Value>{total_disc}</Value>
+          <Value>₹ {total_disc}</Value>
         </div>
         <div>
           <Label>Discount Remark</Label>
@@ -474,116 +502,72 @@ const GovernmentTaxes = ({ govtTaxesData }) => {
     sub_total_amt,
   } = govtTaxesData?.booking_form_list || {};
 
-  if (
-    !(
-      total_gove_tax ||
-      gst_amt ||
-      gst_per ||
-      stampduty_amount ||
-      stampduty_per ||
-      reg_amount ||
-      reg_per ||
-      sub_total_amt
-    )
-  ) {
-    return null;
-  }
   return (
     <CommonContainer>
-      <div>
-        <Typography component="div" style={{ color: '#4872f4', marginBottom: 20 }} variant="h6">
-          GOVERNMENT TAXES
+      <Heading>GOVERNMENT TAXES</Heading>
+      <Box className="d-flex flex-row align-item-center">
+        <Label>Sub Total and Amount</Label>
+        <Typography className="ml-2" color="#949DB8" variant="caption">
+          (Basic Amt + Other Charges)
         </Typography>
+      </Box>
+      <Value>₹ {sub_total_amt}</Value>
 
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
-          <Label>Sub Total and Amount</Label>
-          <Typography color="#949DB8" style={{ marginLeft: 7, marginTop: 5 }} variant="body1">
-            (Basic Amt + Other Charges)
-          </Typography>
-        </div>
-        <Typography sx={{ mb: 2 }} variant="body1">
-          {sub_total_amt}
-        </Typography>
-      </div>
-      <div style={{ maxWidth: '100%' }}>
-        <Divider />
-      </div>
-
-      <div>
-        <Grid container spacing={1} sx={{ marginTop: 1 }}>
-          <Grid item xs={2}>
-            <Label>GST</Label>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
-              %
-            </Typography>
-            <Value>{gst_per}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Amt</Label>
-            <Value>RS.{gst_amt}</Value>
-          </Grid>
+      <Grid container spacing={1} sx={{ marginTop: 1 }}>
+        <Grid item xs={1}>
+          <Label>&nbsp;</Label>
+          <Label>GST</Label>
         </Grid>
-
-        <Grid container spacing={1} sx={{ marginTop: 1 }}>
-          <Grid item xs={2}>
-            <Label>Stamp Duty</Label>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
-              %
-            </Typography>
-            <Value>{stampduty_per}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Amt</Label>
-            <Value>RS.{stampduty_amount}</Value>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={1} sx={{ marginTop: 1 }}>
-          <Grid item xs={2}>
-            <Label>Registration</Label>
-          </Grid>
-          <Grid item xs={2}>
-            <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
-              %
-            </Typography>
-            <Value>{reg_per}</Value>
-          </Grid>
-          <Grid item xs={2}>
-            <Label>Amt</Label>
-            <Value>RS.{reg_amount}</Value>
-          </Grid>
-        </Grid>
-      </div>
-      <div style={{ maxWidth: '100%' }}>
-        <Divider />
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          <Typography align="center" color="#949DB8" sx={{ mb: 2, mt: 2 }} variant="h6">
-            Total Taxes
+        <Grid item xs={2}>
+          <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
+            %
           </Typography>
-        </div>
-        <div>
-          <Typography align="center" sx={{ ml: 2, mb: 2, mt: 2 }} variant="body1">
-            ₹{total_gove_tax}
+          <Value>{gst_per}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Amt</Label>
+          <Value>₹ {gst_amt}</Value>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={1} sx={{ marginTop: 1 }}>
+        <Grid item xs={1}>
+          <Label>&nbsp;</Label>
+          <Label>Stamp Duty</Label>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
+            %
           </Typography>
-        </div>
-      </div>
-      <div style={{ maxWidth: '100%' }}>
-        <Divider />
-      </div>
+          <Value>{stampduty_per}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Amt</Label>
+          <Value>₹ {stampduty_amount}</Value>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={1} sx={{ marginTop: 1 }}>
+        <Grid item xs={1}>
+          <Label>&nbsp;</Label>
+          <Label>Registration</Label>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography color="#949DB8" style={{ marginBottom: '20px' }} variant="h6">
+            %
+          </Typography>
+          <Value>{reg_per}</Value>
+        </Grid>
+        <Grid item xs={2}>
+          <Label>Amt</Label>
+          <Value>₹ {reg_amount}</Value>
+        </Grid>
+      </Grid>
+
+      <TotalRow>
+        <Typography className="totalTitle">Total Taxes</Typography>
+        <Typography className="totalAmount"> ₹ {total_gove_tax}</Typography>
+      </TotalRow>
     </CommonContainer>
   );
 };
@@ -593,85 +577,87 @@ const ExtraCharges = ({ extraChargesData }) => {
 
   const { extra_charges_total } = extraChargesData?.booking_form_list || {};
 
-  if (extraCharges.length === 0) {
-    return null;
-  }
-
   return (
     <CommonContainer>
-      <Typography component="div" style={{ color: '#4872f4' }} sx={{ mb: 2 }} variant="h6">
-        EXTRA CHARGES
-      </Typography>
+      <Heading>EXTRA CHARGES</Heading>
 
-      {extraCharges.map((extraCharge, index) => (
-        <div key={index}>
-          <Grid key={index} container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={2}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>
               <Label>Sr.No</Label>
-              <Value>{extraCharge.extra_charges_no}</Value>
-            </Grid>
-            <Grid item xs={2}>
-              <Label>Description</Label>
-              <Value>{extraCharge.extra_charges_title}</Value>
-            </Grid>
-            <Grid item xs={2}>
+            </TableCell>
+            <TableCell>
+              <Label>Title</Label>
+            </TableCell>
+            <TableCell>
               <Label>Distribution Method</Label>
-              <Value>{extraCharge.extra_charges_distribution_method}</Value>
-            </Grid>
-            <Grid item xs={2}>
+            </TableCell>
+            <TableCell>
               <Label>Area</Label>
-              <Value>{extraCharge.extra_charges_area}</Value>
-            </Grid>
-            <Grid item xs={2}>
+            </TableCell>
+            <TableCell>
               <Label>Rate</Label>
-              <Value>{extraCharge.extra_charges_rate}</Value>
-            </Grid>
-            <Grid item style={{ display: 'flex', flexDirection: 'column' }} xs={2}>
+            </TableCell>
+            <TableCell>
               <Label>Discount Amt</Label>
-              <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <Value>{extraCharge.extra_charges_disc_amt}</Value>
-                <Typography color="#949DB8" style={{ marginLeft: 5 }} variant="body1">
-                  ({extraCharge.extra_charges_disc_per}%)
-                </Typography>
-              </div>
-            </Grid>
-            <Grid item xs={2}>
-              <Label>Amount</Label>
-              <Value>{extraCharge.extra_charges_amt}</Value>
-            </Grid>
-          </Grid>
-          <div>
-            <div style={{ maxWidth: '100%' }}>
-              <Divider />
-            </div>
-          </div>
-        </div>
-      ))}
+            </TableCell>
+            <TableCell>
+              <Label>Total Amount</Label>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {extraCharges?.map(otherCharge => {
+            const {
+              extra_charges_no,
+              extra_charges_title,
+              extra_charges_distribution_method,
+              extra_charges_area,
+              extra_charges_rate,
+              extra_charges_disc_amt,
+              extra_charges_disc_per,
+              extra_charges_amt,
+            } = otherCharge || {};
 
-      <div style={{ maxWidth: '100%' }}>
-        <Divider />
-      </div>
+            return (
+              <TableRow key={extra_charges_no}>
+                <TableCell>
+                  <Value>{extra_charges_no}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{extra_charges_title}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{extra_charges_distribution_method}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>{extra_charges_area}</Value>
+                </TableCell>
+                <TableCell>
+                  <Value>₹ {extra_charges_rate}</Value>
+                </TableCell>
+                <TableCell>
+                  <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    <Value>₹ {extra_charges_disc_amt}</Value>
+                    <Typography color="#949DB8" style={{ marginLeft: 5 }} variant="body1">
+                      ({extra_charges_disc_per} %)
+                    </Typography>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Value>₹ {extra_charges_amt}</Value>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          <Typography align="center" color="#949DB8" sx={{ mt: 3 }} variant="body1">
-            Extra Charges Total
-          </Typography>
-        </div>
-        <div>
-          {/* Calculate the total amount for extra charges here */}
-          <Typography align="center" sx={{ ml: 2, mt: 3 }} variant="body1">
-            ₹{extra_charges_total}
-          </Typography>
-        </div>
-      </div>
+      <TotalRow>
+        <Typography className="totalTitle">Extra Charges Total</Typography>
+        <Typography className="totalAmount"> ₹ {extra_charges_total}</Typography>
+      </TotalRow>
     </CommonContainer>
   );
 };
@@ -686,23 +672,9 @@ const Summary = ({ summaryData }) => {
     property_final_amount,
   } = summaryData?.booking_form_list || {};
 
-  if (
-    !(
-      basic_rate_basic_amount ||
-      other_charges_total ||
-      total_disc ||
-      total_gove_tax ||
-      extra_charges_total ||
-      property_final_amount
-    )
-  ) {
-    return null;
-  }
   return (
     <CommonContainer>
-      <Typography component="div" style={{ color: '#4872f4', marginBottom: 20 }} variant="h6">
-        SUMMARY
-      </Typography>
+      <Heading>SUMMARY</Heading>
 
       <Grid container spacing={2} sx={{ marginTop: 1 }}>
         <Grid item style={{ flex: 1 }} xs={2}>
@@ -849,21 +821,6 @@ const Summary = ({ summaryData }) => {
           </div>
         </Grid>
       </Grid>
-      <div style={{ maxWidth: '100%', marginTop: 10, marginBottom: 10 }}>
-        <Divider />
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          maxWidth: '32.5%',
-        }}
-      >
-        <div style={{ maxWidth: '100%', marginTop: 10, marginBottom: 10 }}>
-          <Divider />
-        </div>
-      </div>
     </CommonContainer>
   );
 };
@@ -873,21 +830,18 @@ const LoanDetail = ({ loanData }) => {
 
   return (
     <CommonContainer>
-      <Typography component="div" style={{ color: '#4872f4' }} sx={{ mb: 2 }} variant="h6">
-        LOAN DETAILS
-      </Typography>
-      <div>
-        <Label>Loan Taken</Label>
-        <Value>{is_loan === 'yes' ? 'Yes' : 'No'}</Value>
-        {is_loan === 'yes' && (
-          <>
-            <Label>Loan Amount</Label>
-            <Value>{loan_amt}</Value>
-            <Label>Loan Remark</Label>
-            <Value>{loan_remarks}</Value>
-          </>
-        )}
-      </div>
+      <Heading>LOAN DETAILS</Heading>
+
+      <Label>Loan Taken</Label>
+      <Value>{is_loan === 'yes' ? 'Yes' : 'No'}</Value>
+      {is_loan === 'yes' && (
+        <>
+          <Label>Loan Amount</Label>
+          <Value>{loan_amt}</Value>
+          <Label>Loan Remark</Label>
+          <Value>{loan_remarks}</Value>
+        </>
+      )}
     </CommonContainer>
   );
 };
@@ -901,14 +855,10 @@ const TermsandCondition = ({ TearmsAndConditionData }) => {
 
   return (
     <CommonContainer>
-      <div>
-        <Typography component="div" style={{ color: '#4872f4' }} sx={{ mb: 2 }} variant="h6">
-          TERMS & CONDITION
-        </Typography>
-        <Typography gutterBottom variant="h6">
-          {custom_payment_remark}
-        </Typography>
-      </div>
+      <Heading>TERMS & CONDITION</Heading>
+      <Typography gutterBottom variant="h6">
+        {custom_payment_remark}
+      </Typography>
     </CommonContainer>
   );
 };
@@ -917,14 +867,14 @@ const BookingPreview = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  const [isRejectDialogVisible, setRejectDialogVisible] = useState(false);
+
   const location = useLocation();
   const { bookingid: project_bookings_temp_id, unitid: unit_id, project_id } = location.state || {};
   const { approvalBookingDetails, visitorDetail, loading } = useAppSelector(s => s.sales);
 
   const visitor_id = approvalBookingDetails?.booking_form_list?.visitors_id || 0;
-  const [isRejectDialogVisible, setRejectDialogVisible] = useState(false);
-
-  // const [rejectedRemarks, setRejectedRemarks] = useState<IbookingApprovedReject>();
+  const isBroker = approvalBookingDetails?.booking_form_list?.through_broker === 'yes';
 
   const toggleRejectDialog = () => {
     setRejectDialogVisible(prevVisible => !prevVisible);
@@ -1006,7 +956,7 @@ const BookingPreview = () => {
       <CustomerDetails brokerData={approvalBookingDetails} customerData={visitorDetail} />
 
       {/* Section 2: Broker Details */}
-      <BrokerDetails brokerData={approvalBookingDetails} />
+      {isBroker ? <BrokerDetails brokerData={approvalBookingDetails} /> : undefined}
 
       {/* Section 3: Ownership Details */}
       <OwnershipDetails ownerShipData={approvalBookingDetails} />
