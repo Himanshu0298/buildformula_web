@@ -35,12 +35,12 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 // LIVE_REDIRECT
 // STAGING_REDIRECT
 import {
-  // ADHAAR_REGEX,
+  ADHAAR_REGEX,
   DECIMAL_REGEX,
   DISTRIBUTION_METHOD,
   HTML_REGEX,
-  LIVE_REDIRECT,
-  // PAN_REGEX,
+  PAN_REGEX,
+  STAGING_REDIRECT,
 } from 'utils/constant';
 import * as Yup from 'yup';
 
@@ -62,7 +62,7 @@ const BookingForm = () => {
   const project_list_id = searchParams.get('project_list_id') || '1';
 
   // old site navigation
-  const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
   // redux state values
@@ -78,12 +78,12 @@ const BookingForm = () => {
     unitAreaInfo,
     extraChargesList,
     projectUnitStatus,
-    // ownership_validation_flag,
+    ownership_validation_flag,
     loading,
   } = useAppSelector(s => s.sales);
 
-  // const VALIDATION_REQUIRED_OWNERSHIP =
-  //   ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
+  const VALIDATION_REQUIRED_OWNERSHIP =
+    ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
@@ -1014,21 +1014,21 @@ const BookingForm = () => {
 
   const Schema = Yup.object({
     visitors_id: Yup.string().required('Customer is required'),
-    // ownership: Yup.array()
-    //   .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
-    //   .of(
-    //     Yup.object().shape({
-    //       ownership_customer_first_name: Yup.string().required('Required'),
-    //       ownership_customer_aadhar: Yup.string().matches(
-    //         ADHAAR_REGEX,
-    //         'Please enter a valid adhaar number',
-    //       ),
-    //       ownership_customer_pan: Yup.string().matches(
-    //         PAN_REGEX,
-    //         'Please enter a valid PAN number',
-    //       ),
-    //     }),
-    //   ),
+    ownership: Yup.array()
+      .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
+      .of(
+        Yup.object().shape({
+          ownership_customer_first_name: Yup.string().required('Required'),
+          ownership_customer_aadhar: Yup.string().matches(
+            ADHAAR_REGEX,
+            'Please enter a valid adhaar number',
+          ),
+          ownership_customer_pan: Yup.string().matches(
+            PAN_REGEX,
+            'Please enter a valid PAN number',
+          ),
+        }),
+      ),
   });
 
   const formik = useFormik({
