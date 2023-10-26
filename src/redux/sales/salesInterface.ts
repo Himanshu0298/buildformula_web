@@ -1,6 +1,7 @@
 export interface ISalesState {
   loading: boolean;
   visitorList: IVisitor[];
+  customerList: IVisitor[];
   brokerList: IBroker[];
   unitInfo: IUnitInfo;
   unitParkingInfo: IUnitParkingInfo;
@@ -108,6 +109,53 @@ export type IUnitStatus = {
 
 export interface IBookingFormApproval {
   booking_form_list: IBookingApprovalDetails;
+}
+
+export interface ICustomers {
+  id: number;
+  project_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  mobile_code?: string;
+  phone: string;
+  phone_2?: string;
+  Inquiry_date?: string;
+  occupation: number;
+  other_occupation?: string;
+  source_type?: number;
+  other_source_type?: string;
+  current_locality?: string;
+  budget_from: number;
+  budget_to: number;
+  cast_type: number;
+  project_status_type: number;
+  source_type_sub_category: number;
+  follow_up_date: any;
+  follow_up_time: any;
+  assign_to: number;
+  priority: string;
+  remarks?: string;
+  inquiry_for: string;
+  bhk: number;
+  inquiry_status_id: number;
+  brokers_id?: number;
+  dob?: string;
+  anniversary_date?: string;
+  address: any;
+  created: string;
+  modified?: string;
+  status: number;
+  import_from_excel: number;
+  customer_ref_no: string;
+  is_verifiy: number;
+  budgetrange_id?: number;
+  visitor_id: number;
+  unitids: string;
+  unitid: number;
+  linked_property: string;
+  linked_property_with_tower_name: string;
 }
 
 export interface IBookingApprovalDetails {

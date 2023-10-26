@@ -53,6 +53,20 @@ export const getVisitorsList = createAsyncThunk<IVisitor[], VisitorParams>(
   },
 );
 
+export const getCustomersList = createAsyncThunk<IVisitor[], CommonParams>(
+  'sales/getCustomersList',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getCustomersList(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const getVisitorsDetail = createAsyncThunk<IVisitorDetail, visitorDetailParams>(
   'sales/getVisitorsDetails',
   async (params, thunkApi) => {
@@ -359,6 +373,7 @@ export const getBankList = createAsyncThunk('sales/getBankList', async () => {
 const initialState: ISalesState = {
   loading: false,
   visitorList: [],
+  customerList: [],
   brokerList: [],
   unitInfo: {} as IUnitInfo,
   unitParkingInfo: {} as IUnitParkingInfo,
@@ -393,7 +408,18 @@ const salesSlice = createSlice({
     builder.addCase(getVisitorsList.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         visitorList: action?.payload,
+      };
+    });
+    // customers list
+    builder.addCase(getCustomersList.rejected, handleReject);
+    builder.addCase(getCustomersList.pending, handleLoading);
+    builder.addCase(getCustomersList.fulfilled, (state, action) => {
+      return {
+        ...state,
+        loading: false,
+        customerList: action?.payload,
       };
     });
     // broker list
@@ -446,6 +472,7 @@ const salesSlice = createSlice({
     builder.addCase(getAreaInfo.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         unitAreaInfo: action?.payload,
       };
     });

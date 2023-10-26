@@ -6,6 +6,10 @@ export const getVisitorsList = data => {
   return instance.post('/visitors/get_lists', data, params);
 };
 
+export const getCustomersList = data => {
+  return instance.post('/visitorcustomer/list', data, params);
+};
+
 export const addCustomer = data => {
   return instance.post('/visitors/add', data, params);
 };
