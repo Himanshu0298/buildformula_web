@@ -77,7 +77,7 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
       <div className="d-flex justify-content-center">
         <Box component={TableContainer}>
           <Paper component={TableContainer} style={styles.tablePaper}>
-            <Table sx={{ mt: 3, mb: 3 }}>
+            <Table sx={{ mt: 3, mb: 3 }} size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>
