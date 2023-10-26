@@ -26,14 +26,39 @@ import {
   getVisitorsList,
   updateFormFillingStatus,
 } from 'redux/sales';
-import { IBroker, IOwnerShip, IVisitor } from 'redux/sales/salesInterface';
+import { IBroker, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 // LIVE_REDIRECT
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, STAGING_REDIRECT } from 'utils/constant';
+import {
+  ADHAAR_REGEX,
+  DECIMAL_REGEX,
+  DISTRIBUTION_METHOD,
+  HTML_REGEX,
+  PAN_REGEX,
+  STAGING_REDIRECT,
+} from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
 import AddCustomerModal from './components/AddCustomerModal';
+
+const VALIDATION_REQUIRED_OWNERSHIP = false;
+
+const Schema = Yup.object({
+  visitors_id: Yup.string().required('Customer is required'),
+  ownership: Yup.array()
+    .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
+    .of(
+      Yup.object().shape({
+        ownership_customer_first_name: Yup.string().required('Required'),
+        ownership_customer_aadhar: Yup.string().matches(
+          ADHAAR_REGEX,
+          'Please enter a valid adhaar number',
+        ),
+        ownership_customer_pan: Yup.string().matches(PAN_REGEX, 'Please enter a valid PAN number'),
+      }),
+    ),
+});
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -70,7 +95,6 @@ const BookingForm = () => {
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  const [ownerShipData, setOwnerShipData] = useState<IOwnerShip[]>([]);
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
   const [extraCharges, setExtraCharges] = useState([]);
@@ -699,19 +723,16 @@ const BookingForm = () => {
 
   // Ownership flow
   const handleUpdateOwnershipData = (index: number, field: string, value) => {
-    setOwnerShipData(prevOwnershipData => {
-      const updateOwnershipData = [...prevOwnershipData];
-      updateOwnershipData[index][field] = value;
-
-      return updateOwnershipData;
-    });
+    const updatedOwnerships = [...values.ownership];
+    updatedOwnerships[index][field] = value;
+    setFieldValue('ownership', updatedOwnerships);
   };
 
   const handleAddOwnership = () => {
-    setOwnerShipData([
-      ...ownerShipData,
+    setFieldValue('ownership', [
+      ...values.ownership,
       {
-        id: ownerShipData.length + 1,
+        id: values.ownership.length + 1,
         ownership_customer_first_name: '',
         ownership_customer_phone: '',
         ownership_customer_email: '',
@@ -722,11 +743,9 @@ const BookingForm = () => {
   };
 
   const handleRemoveOwnership = (index: number) => {
-    setOwnerShipData(prevOwners => {
-      const updatedOwnershipData = [...prevOwners];
-      updatedOwnershipData.splice(index, 1);
-      return updatedOwnershipData;
-    });
+    const updatedOwnerships = [...values.ownership];
+    updatedOwnerships.splice(index, 1);
+    setFieldValue('ownership', updatedOwnerships);
   };
 
   const OwnerShipRow = (item, index) => {
@@ -738,19 +757,28 @@ const BookingForm = () => {
       ownership_customer_pan,
       ownership_customer_aadhar,
     } = item || {};
+
     return (
       <tr key={`${id}${index}`}>
         <td>{index + 1}</td>
         <td>
           <input
             className="form-control mb-2"
+            name={`ownership.${index}.ownership_customer_first_name`}
             title={ownership_customer_first_name}
             type="text"
             value={ownership_customer_first_name}
             onChange={e => {
               handleUpdateOwnershipData(index, 'ownership_customer_first_name', e.target.value);
+              formik.setFieldTouched(`ownership.${index}.ownership_customer_first_name`, true);
             }}
           />
+          {formik?.errors?.ownership?.length &&
+          formik?.errors?.ownership[index]?.ownership_customer_first_name ? (
+            <div className="text-danger">
+              {String(formik?.errors?.ownership[index]?.ownership_customer_first_name)}
+            </div>
+          ) : undefined}
         </td>
         <td>
           <input
@@ -784,6 +812,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
             }}
           />
+          {formik?.errors?.ownership?.length &&
+          formik?.errors?.ownership[index]?.ownership_customer_pan ? (
+            <div className="text-danger">
+              {String(formik?.errors?.ownership[index]?.ownership_customer_pan)}
+            </div>
+          ) : undefined}
         </td>
         <td>
           <input
@@ -795,6 +829,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
             }}
           />
+          {formik?.errors?.ownership?.length &&
+          formik?.errors?.ownership[index]?.ownership_customer_aadhar ? (
+            <div className="text-danger">
+              {String(formik?.errors?.ownership[index]?.ownership_customer_aadhar)}
+            </div>
+          ) : undefined}
         </td>
 
         <td>
@@ -940,8 +980,8 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
-        ownership: ownerShipData.length
-          ? ownerShipData
+        ownership: values.ownership.length
+          ? values.ownership
           : [
               {
                 id: 0,
@@ -962,10 +1002,9 @@ const BookingForm = () => {
     initialValues,
     enableReinitialize: true,
     onSubmit: handleSubmit,
-    validationSchema: Yup.object({
-      visitors_id: Yup.string().required('Customer is required'),
-      calculation_method: Yup.string().required('Calculation method is required'),
-    }),
+    validationSchema: Schema,
+    validateOnChange: false,
+    validateOnBlur: false,
   });
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
@@ -1306,6 +1345,9 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
                   <h5>OWNERSHIP DETAILS</h5>
+                  {/* {formik.errors.ownership && (
+                    <div className="text-danger">{String(formik.errors.ownership)}</div>
+                  )} */}
                   <button
                     className="Btn btn-lightblue-primary lbps-btn mr-0"
                     type="button"
@@ -1314,8 +1356,7 @@ const BookingForm = () => {
                     Add Owner
                   </button>
                 </div>
-
-                {ownerShipData.length ? (
+                {values.ownership.length ? (
                   <table className="table my-3">
                     <thead>
                       <th>Sr No</th>
@@ -1327,7 +1368,7 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {ownerShipData?.map((owner, index) => OwnerShipRow(owner, index))}
+                      {values.ownership?.map((owner, index) => OwnerShipRow(owner, index))}
                     </tbody>
                   </table>
                 ) : undefined}
@@ -1865,12 +1906,12 @@ const BookingForm = () => {
                               <span style={{ textAlign: 'right' }}>
                                 {isNaN(
                                   parseFloat(handleTotalOtherDiscountAmt()) +
-                                  Number(values.basic_rate_disc_amt),
+                                    Number(values.basic_rate_disc_amt),
                                 )
                                   ? '0.00'
                                   : (
                                       parseFloat(handleTotalOtherDiscountAmt()) +
-                                    Number(values.basic_rate_disc_amt)
+                                      Number(values.basic_rate_disc_amt)
                                     ).toFixed(2)}
                               </span>
                             </span>
@@ -1922,7 +1963,7 @@ const BookingForm = () => {
                                 {' '}
                                 {values.calculation_method
                                   ? isNaN(
-                                    Number(values.basic_rate_basic_amount) +
+                                      Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
@@ -1930,7 +1971,7 @@ const BookingForm = () => {
                                         parseFloat(handleTotalExtraCharge()),
                                     )
                                     ? (
-                                      Number(values.basic_rate_basic_amount) +
+                                        Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
@@ -1938,7 +1979,7 @@ const BookingForm = () => {
                                         parseFloat(handleTotalExtraCharge())
                                       ).toFixed(2)
                                     : (
-                                      Number(values.basic_rate_basic_amount) +
+                                        Number(values.basic_rate_basic_amount) +
                                         parseFloat(handleTotalOtherCharge()) +
                                         values.gst_amt +
                                         values.stampduty_amount +
