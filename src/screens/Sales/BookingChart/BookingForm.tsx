@@ -82,8 +82,8 @@ const BookingForm = () => {
     loading,
   } = useAppSelector(s => s.sales);
 
-  const VALIDATION_REQUIRED_OWNERSHIP =
-    ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
+  // const VALIDATION_REQUIRED_OWNERSHIP =
+  //   ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
