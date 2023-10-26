@@ -522,6 +522,7 @@ const salesSlice = createSlice({
     builder.addCase(getVisitorsDetail.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         visitorDetail: action?.payload,
       };
     });
@@ -540,6 +541,7 @@ const salesSlice = createSlice({
     builder.addCase(getBookingApprovalList.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         bookingApprovalList: action?.payload.booking_form_list?.sort(
           (a, b) => b.bookingid - a.bookingid,
         ),
@@ -551,6 +553,7 @@ const salesSlice = createSlice({
     builder.addCase(getApprovalUnitDetails.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         approvalBookingDetails: action?.payload,
       };
     });
