@@ -986,7 +986,7 @@ const BookingPreview = () => {
     );
 
     await toggleRejectDialog();
-    await navigate('/bookingApproval');
+    await navigate(-1);
   };
 
   const handleFormSubmit = (values, setSubmitting, status) => {
