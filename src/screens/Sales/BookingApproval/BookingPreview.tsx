@@ -20,7 +20,6 @@ import TextField from '@mui/material/TextField';
 import { styled } from '@mui/system';
 import Loader from 'components/atoms/Loader';
 import { Formik } from 'formik';
-import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -33,7 +32,7 @@ import { useAppDispatch, useAppSelector } from 'redux/store';
 import * as Yup from 'yup';
 
 const schema = Yup.object().shape({
-  rejected_remarks: Yup.string().required('Required'),
+  // rejected_remarks: Yup.string().required('Required'),
 });
 
 const ApproveBtn = styled(Button)`
@@ -826,7 +825,7 @@ const Summary = ({ summaryData }) => {
 };
 
 const LoanDetail = ({ loanData }) => {
-  const { is_loan, loan_amt, loan_remarks } = loanData?.booking_form_list || {};
+  const { is_loan, loan_amt, loan_remarks, bank } = loanData?.booking_form_list || {};
 
   return (
     <CommonContainer>
@@ -838,6 +837,10 @@ const LoanDetail = ({ loanData }) => {
         <>
           <Label>Loan Amount</Label>
           <Value>{loan_amt}</Value>
+
+          <Label>Bank</Label>
+          <Value>{bank}</Value>
+
           <Label>Loan Remark</Label>
           <Value>{loan_remarks}</Value>
         </>

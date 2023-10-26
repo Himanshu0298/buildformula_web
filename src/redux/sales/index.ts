@@ -16,6 +16,7 @@ import {
   GetProjectUnitParams,
   IBookingFormApproval,
   IBookingFormParams,
+  IBookingOwnershipFlag,
   IBroker,
   IBrokerDetail,
   IExtraCharges,
@@ -332,6 +333,20 @@ export const getProjectUnitStatus = createAsyncThunk<IUnitStatus[], GetProjectUn
   },
 );
 
+export const getBookingFormOwnerFlag = createAsyncThunk<IBookingOwnershipFlag, CommonParams>(
+  'sales/getBookingFormOwnerFlag',
+  async (params, thunkApi) => {
+    try {
+      const { data: res } = await visitorService.getBookingFormOwnerFlag(params);
+      return res.data;
+    } catch (err) {
+      const processedError = processError(err);
+      console.log(err);
+      return thunkApi.rejectWithValue({ error: processedError });
+    }
+  },
+);
+
 export const getBankList = createAsyncThunk('sales/getBankList', async () => {
   try {
     const { data: res } = await visitorService.getBankList();
@@ -360,6 +375,7 @@ const initialState: ISalesState = {
   brokerDetail: undefined,
   bookingApprovalList: undefined,
   approvalBookingDetails: {} as IBookingFormApproval,
+  ownership_validation_flag: undefined,
 };
 
 const salesSlice = createSlice({
@@ -563,6 +579,16 @@ const salesSlice = createSlice({
     builder.addCase(updateBookingStatus.fulfilled, state => {
       return {
         ...state,
+      };
+    });
+    // ownership validation flag
+    builder.addCase(getBookingFormOwnerFlag.rejected, handleReject);
+    builder.addCase(getBookingFormOwnerFlag.pending, handleLoading);
+    builder.addCase(getBookingFormOwnerFlag.fulfilled, (state, action) => {
+      return {
+        ...state,
+        loading: false,
+        ownership_validation_flag: action?.payload,
       };
     });
   },

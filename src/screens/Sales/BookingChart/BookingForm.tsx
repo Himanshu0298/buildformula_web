@@ -5,6 +5,7 @@ import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
+import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -16,6 +17,7 @@ import {
   addBooking,
   getAreaInfo,
   getBankList,
+  getBookingFormOwnerFlag,
   getBrokerList,
   getOtherChargesList,
   getOtherExtraCharges,
@@ -41,24 +43,6 @@ import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
 import AddCustomerModal from './components/AddCustomerModal';
-
-const VALIDATION_REQUIRED_OWNERSHIP = false;
-
-const Schema = Yup.object({
-  visitors_id: Yup.string().required('Customer is required'),
-  ownership: Yup.array()
-    .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
-    .of(
-      Yup.object().shape({
-        ownership_customer_first_name: Yup.string().required('Required'),
-        ownership_customer_aadhar: Yup.string().matches(
-          ADHAAR_REGEX,
-          'Please enter a valid adhaar number',
-        ),
-        ownership_customer_pan: Yup.string().matches(PAN_REGEX, 'Please enter a valid PAN number'),
-      }),
-    ),
-});
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -90,7 +74,11 @@ const BookingForm = () => {
     unitAreaInfo,
     extraChargesList,
     projectUnitStatus,
+    ownership_validation_flag,
   } = useAppSelector(s => s.sales);
+
+  const VALIDATION_REQUIRED_OWNERSHIP =
+    ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
@@ -241,6 +229,7 @@ const BookingForm = () => {
     dispatch(getOtherExtraCharges({ project_id, unit_id }));
     dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
     dispatch(getTermsnConditions({ project_id }));
+    dispatch(getBookingFormOwnerFlag({ project_id }));
     // dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(updateFormFillingStatus({ project_id, unit_id }));
@@ -758,6 +747,17 @@ const BookingForm = () => {
       ownership_customer_aadhar,
     } = item || {};
 
+    // const ErrorFirstName = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_first_name
+
+    // const ErrorAdhaarCard = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_aadhar
+
+    // const ErrorPANCard = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_pan
+
+    // style = {{ backgroundColor: ErrorFirstName ? 'rgba(255, 93, 93, 0.2)' : '#fff' }}
+
     return (
       <tr key={`${id}${index}`}>
         <td>{index + 1}</td>
@@ -773,12 +773,12 @@ const BookingForm = () => {
               formik.setFieldTouched(`ownership.${index}.ownership_customer_first_name`, true);
             }}
           />
-          {formik?.errors?.ownership?.length &&
-          formik?.errors?.ownership[index]?.ownership_customer_first_name ? (
-            <div className="text-danger">
-              {String(formik?.errors?.ownership[index]?.ownership_customer_first_name)}
-            </div>
-          ) : undefined}
+          <p className="text-danger">
+            {formik?.errors?.ownership?.length &&
+            formik?.errors?.ownership[index]?.ownership_customer_first_name
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_first_name)
+              : null}
+          </p>
         </td>
         <td>
           <input
@@ -812,12 +812,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
             }}
           />
-          {formik?.errors?.ownership?.length &&
-          formik?.errors?.ownership[index]?.ownership_customer_pan ? (
-            <div className="text-danger">
-              {String(formik?.errors?.ownership[index]?.ownership_customer_pan)}
-            </div>
-          ) : undefined}
+          <p className="text-danger mb-0">
+            {formik?.errors?.ownership?.length &&
+            formik?.errors?.ownership[index]?.ownership_customer_pan
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_pan)
+              : null}
+          </p>
         </td>
         <td>
           <input
@@ -829,12 +829,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
             }}
           />
-          {formik?.errors?.ownership?.length &&
-          formik?.errors?.ownership[index]?.ownership_customer_aadhar ? (
-            <div className="text-danger">
-              {String(formik?.errors?.ownership[index]?.ownership_customer_aadhar)}
-            </div>
-          ) : undefined}
+          <p className="text-danger mb-0">
+            {formik?.errors?.ownership?.length &&
+            formik?.errors?.ownership[index]?.ownership_customer_aadhar
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_aadhar)
+              : null}
+          </p>
         </td>
 
         <td>
@@ -997,6 +997,25 @@ const BookingForm = () => {
 
     await window.location.replace(OLD_SITE);
   };
+
+  const Schema = Yup.object({
+    visitors_id: Yup.string().required('Customer is required'),
+    ownership: Yup.array()
+      .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
+      .of(
+        Yup.object().shape({
+          ownership_customer_first_name: Yup.string().required('Required'),
+          ownership_customer_aadhar: Yup.string().matches(
+            ADHAAR_REGEX,
+            'Please enter a valid adhaar number',
+          ),
+          ownership_customer_pan: Yup.string().matches(
+            PAN_REGEX,
+            'Please enter a valid PAN number',
+          ),
+        }),
+      ),
+  });
 
   const formik = useFormik({
     initialValues,
@@ -1345,9 +1364,9 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
                   <h5>OWNERSHIP DETAILS</h5>
-                  {/* {formik.errors.ownership && (
+                  {formik.errors.ownership && !_.isArray(formik.errors.ownership) ? (
                     <div className="text-danger">{String(formik.errors.ownership)}</div>
-                  )} */}
+                  ) : null}
                   <button
                     className="Btn btn-lightblue-primary lbps-btn mr-0"
                     type="button"

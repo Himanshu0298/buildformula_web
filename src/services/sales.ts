@@ -81,6 +81,11 @@ export const getApprovalUnitDetails = data => {
 export const getBookingApprovalList = data => {
   return instance.post('/booking_all_form_list', data, params);
 };
+
 export const updateBookingStatus = data => {
   return instance.post('/booking_form_apporved_reject', data, params);
+};
+
+export const getBookingFormOwnerFlag = data => {
+  return instance.post('/booking_form_settings/get_booking_ownership_status', data, params);
 };

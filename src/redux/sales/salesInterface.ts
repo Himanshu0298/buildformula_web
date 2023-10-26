@@ -17,7 +17,12 @@ export interface ISalesState {
   bookingApprovalList: IBookingApprovalList;
   approvalBookingDetails: IBookingFormApproval;
   timer: boolean;
+  ownership_validation_flag: IBookingOwnershipFlag;
 }
+
+export type IBookingOwnershipFlag = {
+  booking_ownership: string;
+};
 
 export type CommonParams = {
   project_id: string;
