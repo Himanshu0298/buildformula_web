@@ -16,7 +16,6 @@ export interface ISalesState {
   brokerDetail: IBrokerDetail;
   bookingApprovalList: IBookingApprovalList;
   approvalBookingDetails: IBookingFormApproval;
-
   timer: boolean;
 }
 

@@ -12,6 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Loader from 'components/atoms/Loader';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getBookingApprovalList } from 'redux/sales';
@@ -245,7 +246,7 @@ const BookingApproval = () => {
   // url params
   const project_id = searchParams.get('project_id');
 
-  const { bookingApprovalList } = useAppSelector(s => s.sales);
+  const { bookingApprovalList, loading } = useAppSelector(s => s.sales);
 
   useEffect(() => {
     dispatch(
@@ -256,7 +257,12 @@ const BookingApproval = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <BookingApprovalTable bookingApprovalList={bookingApprovalList} project_id={project_id} />;
+  return (
+    <>
+      <Loader loading={loading} />
+      <BookingApprovalTable bookingApprovalList={bookingApprovalList} project_id={project_id} />
+    </>
+  );
 };
 
 export default BookingApproval;

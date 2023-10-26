@@ -6,13 +6,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import { styled } from '@mui/system';
+import Loader from 'components/atoms/Loader';
 import { Formik } from 'formik';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   getApprovalUnitDetails,
   getBookingApprovalList,
-  getBrokerDetail,
   getVisitorsDetail,
   updateBookingStatus,
 } from 'redux/sales';
@@ -919,10 +919,9 @@ const BookingPreview = () => {
 
   const location = useLocation();
   const { bookingid: project_bookings_temp_id, unitid: unit_id, project_id } = location.state || {};
-  const { approvalBookingDetails, visitorDetail } = useAppSelector(s => s.sales);
+  const { approvalBookingDetails, visitorDetail, loading } = useAppSelector(s => s.sales);
 
   const visitor_id = approvalBookingDetails?.booking_form_list?.visitors_id || 0;
-  const broker_id = approvalBookingDetails?.booking_form_list?.broker_id || 0;
   const [isRejectDialogVisible, setRejectDialogVisible] = useState(false);
 
   // const [rejectedRemarks, setRejectedRemarks] = useState<IbookingApprovedReject>();
@@ -955,16 +954,6 @@ const BookingPreview = () => {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visitor_id]);
-
-  useEffect(() => {
-    dispatch(
-      getBrokerDetail({
-        broker_id,
-        project_id,
-      }),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [broker_id]);
 
   const formStatus = approvalBookingDetails?.booking_form_list?.is_approved;
 
@@ -1000,6 +989,7 @@ const BookingPreview = () => {
 
   return (
     <>
+      <Loader loading={loading} />
       <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, marginLeft: 40 }}>
         <IconButton style={{ backgroundColor: '#e5eafa', color: '#4872f4' }} onClick={handleBack}>
           <ArrowBackIcon />
