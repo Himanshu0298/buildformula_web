@@ -2,9 +2,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
 import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
+import Loader from 'components/atoms/Loader';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
+import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
@@ -16,7 +18,9 @@ import {
   addBooking,
   getAreaInfo,
   getBankList,
+  getBookingFormOwnerFlag,
   getBrokerList,
+  getCustomersList,
   getOtherChargesList,
   getOtherExtraCharges,
   getProjectUnitStatus,
@@ -26,10 +30,18 @@ import {
   getVisitorsList,
   updateFormFillingStatus,
 } from 'redux/sales';
-import { IBroker, IOwnerShip, IVisitor } from 'redux/sales/salesInterface';
+import { IBroker, IVisitor } from 'redux/sales/salesInterface';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 // LIVE_REDIRECT
-import { DECIMAL_REGEX, DISTRIBUTION_METHOD, HTML_REGEX, LIVE_REDIRECT } from 'utils/constant';
+// STAGING_REDIRECT
+import {
+  // ADHAAR_REGEX,
+  DECIMAL_REGEX,
+  DISTRIBUTION_METHOD,
+  HTML_REGEX,
+  LIVE_REDIRECT,
+  // PAN_REGEX,
+} from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
@@ -55,6 +67,7 @@ const BookingForm = () => {
 
   // redux state values
   const {
+    customerList,
     visitorList,
     brokerList,
     unitInfo,
@@ -65,12 +78,16 @@ const BookingForm = () => {
     unitAreaInfo,
     extraChargesList,
     projectUnitStatus,
+    // ownership_validation_flag,
+    loading,
   } = useAppSelector(s => s.sales);
+
+  // const VALIDATION_REQUIRED_OWNERSHIP =
+  //   ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
-  const [ownerShipData, setOwnerShipData] = useState<IOwnerShip[]>([]);
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
   const [extraCharges, setExtraCharges] = useState([]);
@@ -151,12 +168,20 @@ const BookingForm = () => {
 
   // customers options
   const customerOptions = useMemo(() => {
-    return visitorList?.map(e => ({
+    const visitorOptions = visitorList?.map(e => ({
       label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
       value: e.id,
       details: e,
     }));
-  }, [visitorList]);
+
+    const customerOptions = customerList?.map(e => ({
+      label: `${e.first_name} ${e.last_name} - [${e.phone}]`,
+      value: e.id,
+      details: e,
+    }));
+
+    return [...visitorOptions, ...customerOptions];
+  }, [visitorList, customerList]);
 
   // broker options
   const brokerOptions = useMemo(() => {
@@ -212,11 +237,13 @@ const BookingForm = () => {
     );
     dispatch(getUnitInfo({ project_id, tower_id }));
     dispatch(getUnitParkingInfo({ project_id }));
+    dispatch(getCustomersList({ project_id }));
     dispatch(getBrokerList({ project_id }));
     dispatch(getOtherChargesList({ project_id, unit_id }));
     dispatch(getOtherExtraCharges({ project_id, unit_id }));
     dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
     dispatch(getTermsnConditions({ project_id }));
+    dispatch(getBookingFormOwnerFlag({ project_id }));
     // dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(updateFormFillingStatus({ project_id, unit_id }));
@@ -307,8 +334,8 @@ const BookingForm = () => {
       x.amount_type === 'ratebase_amt'
         ? x.area * x.ratebase_amounts
         : x.amount_type === 'fix_amt'
-        ? x.fixed_amounts
-        : 0;
+          ? x.fixed_amounts
+          : 0;
 
     // discount calculations for oc
     const discountOtherCharges = useSyncedFields(
@@ -331,13 +358,13 @@ const BookingForm = () => {
               onChange={
                 x.amount_type === 'ratebase_amt'
                   ? e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handle_Other_Charge_Row_Total();
-                    }
+                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                    handle_Other_Charge_Row_Total();
+                  }
                   : e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                      handle_Other_Charge_Row_Total();
-                    }
+                    handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                    handle_Other_Charge_Row_Total();
+                  }
               }
             >
               <option disabled selected>
@@ -440,7 +467,7 @@ const BookingForm = () => {
       const EXTRA_CHARGE_BASE =
         updatedExtraCharges[index].amount_type === 'ratebase_amt'
           ? updatedExtraCharges[index].extra_charges_area *
-            updatedExtraCharges[index].ratebase_amounts
+          updatedExtraCharges[index].ratebase_amounts
           : updatedExtraCharges[index].fixed_amounts;
 
       const discountAmt = updatedExtraCharges[index].extra_charges_disc_amt;
@@ -699,19 +726,16 @@ const BookingForm = () => {
 
   // Ownership flow
   const handleUpdateOwnershipData = (index: number, field: string, value) => {
-    setOwnerShipData(prevOwnershipData => {
-      const updateOwnershipData = [...prevOwnershipData];
-      updateOwnershipData[index][field] = value;
-
-      return updateOwnershipData;
-    });
+    const updatedOwnerships = [...values.ownership];
+    updatedOwnerships[index][field] = value;
+    setFieldValue('ownership', updatedOwnerships);
   };
 
   const handleAddOwnership = () => {
-    setOwnerShipData([
-      ...ownerShipData,
+    setFieldValue('ownership', [
+      ...values.ownership,
       {
-        id: ownerShipData.length + 1,
+        id: values.ownership.length + 1,
         ownership_customer_first_name: '',
         ownership_customer_phone: '',
         ownership_customer_email: '',
@@ -722,11 +746,9 @@ const BookingForm = () => {
   };
 
   const handleRemoveOwnership = (index: number) => {
-    setOwnerShipData(prevOwners => {
-      const updatedOwnershipData = [...prevOwners];
-      updatedOwnershipData.splice(index, 1);
-      return updatedOwnershipData;
-    });
+    const updatedOwnerships = [...values.ownership];
+    updatedOwnerships.splice(index, 1);
+    setFieldValue('ownership', updatedOwnerships);
   };
 
   const OwnerShipRow = (item, index) => {
@@ -738,19 +760,39 @@ const BookingForm = () => {
       ownership_customer_pan,
       ownership_customer_aadhar,
     } = item || {};
+
+    // const ErrorFirstName = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_first_name
+
+    // const ErrorAdhaarCard = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_aadhar
+
+    // const ErrorPANCard = formik?.errors?.ownership?.length &&
+    //   formik?.errors?.ownership[index]?.ownership_customer_pan
+
+    // style = {{ backgroundColor: ErrorFirstName ? 'rgba(255, 93, 93, 0.2)' : '#fff' }}
+
     return (
       <tr key={`${id}${index}`}>
         <td>{index + 1}</td>
         <td>
           <input
             className="form-control mb-2"
+            name={`ownership.${index}.ownership_customer_first_name`}
             title={ownership_customer_first_name}
             type="text"
             value={ownership_customer_first_name}
             onChange={e => {
               handleUpdateOwnershipData(index, 'ownership_customer_first_name', e.target.value);
+              formik.setFieldTouched(`ownership.${index}.ownership_customer_first_name`, true);
             }}
           />
+          <p className="text-danger">
+            {formik?.errors?.ownership?.length &&
+              formik?.errors?.ownership[index]?.ownership_customer_first_name
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_first_name)
+              : null}
+          </p>
         </td>
         <td>
           <input
@@ -784,6 +826,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
             }}
           />
+          <p className="text-danger mb-0">
+            {formik?.errors?.ownership?.length &&
+              formik?.errors?.ownership[index]?.ownership_customer_pan
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_pan)
+              : null}
+          </p>
         </td>
         <td>
           <input
@@ -795,6 +843,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
             }}
           />
+          <p className="text-danger mb-0">
+            {formik?.errors?.ownership?.length &&
+              formik?.errors?.ownership[index]?.ownership_customer_aadhar
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_aadhar)
+              : null}
+          </p>
         </td>
 
         <td>
@@ -887,18 +941,18 @@ const BookingForm = () => {
         other_charges: otherCharges.length
           ? otherCharges
           : [
-              {
-                unit_other_charge_id: 0,
-                other_charges_no: 0,
-                other_charges_title: '',
-                other_charges_distribution_method: '',
-                other_charges_area: 0,
-                other_charges_rate: 0,
-                other_charges_disc_amt: 0,
-                other_charges_disc_per: 0,
-                other_charges_amount: 0,
-              },
-            ],
+            {
+              unit_other_charge_id: 0,
+              other_charges_no: 0,
+              other_charges_title: '',
+              other_charges_distribution_method: '',
+              other_charges_area: 0,
+              other_charges_rate: 0,
+              other_charges_disc_amt: 0,
+              other_charges_disc_per: 0,
+              other_charges_amount: 0,
+            },
+          ],
         other_charges_total: parseFloat(handleTotalOtherCharge()),
         sub_total_amt: basic_rate_basic_amount + parseFloat(handleTotalOtherCharge()),
         total_disc:
@@ -914,17 +968,17 @@ const BookingForm = () => {
         extra_charges: extraCharges.length
           ? extraCharges
           : [
-              {
-                extra_charges_no: '',
-                extra_charges_title: '',
-                extra_charges_distribution_method: '',
-                extra_charges_area: '',
-                extra_charges_rate: '',
-                extra_charges_disc_per: '',
-                extra_charges_disc_amt: '',
-                extra_charges_amt: '',
-              },
-            ],
+            {
+              extra_charges_no: '',
+              extra_charges_title: '',
+              extra_charges_distribution_method: '',
+              extra_charges_area: '',
+              extra_charges_rate: '',
+              extra_charges_disc_per: '',
+              extra_charges_disc_amt: '',
+              extra_charges_amt: '',
+            },
+          ],
         extra_charges_total: parseFloat(handleTotalExtraCharge()),
         property_final_amount:
           parseFloat(values.basic_rate_basic_amount) +
@@ -940,32 +994,50 @@ const BookingForm = () => {
         custom_payment_total_amount: 0,
         custom_payment_remark_id: termsId,
         custom_payment_remark,
-        ownership: ownerShipData.length
-          ? ownerShipData
+        ownership: values.ownership.length
+          ? values.ownership
           : [
-              {
-                id: 0,
-                ownership_customer_first_name: '',
-                ownership_customer_phone: '',
-                ownership_customer_email: '',
-                ownership_customer_pan: '',
-                ownership_customer_aadhar: '',
-              },
-            ],
+            {
+              id: 0,
+              ownership_customer_first_name: '',
+              ownership_customer_phone: '',
+              ownership_customer_email: '',
+              ownership_customer_pan: '',
+              ownership_customer_aadhar: '',
+            },
+          ],
       }),
     );
 
     await window.location.replace(OLD_SITE);
   };
 
+  const Schema = Yup.object({
+    visitors_id: Yup.string().required('Customer is required'),
+    // ownership: Yup.array()
+    //   .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
+    //   .of(
+    //     Yup.object().shape({
+    //       ownership_customer_first_name: Yup.string().required('Required'),
+    //       ownership_customer_aadhar: Yup.string().matches(
+    //         ADHAAR_REGEX,
+    //         'Please enter a valid adhaar number',
+    //       ),
+    //       ownership_customer_pan: Yup.string().matches(
+    //         PAN_REGEX,
+    //         'Please enter a valid PAN number',
+    //       ),
+    //     }),
+    //   ),
+  });
+
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
     onSubmit: handleSubmit,
-    validationSchema: Yup.object({
-      visitors_id: Yup.string().required('Customer is required'),
-      calculation_method: Yup.string().required('Calculation method is required'),
-    }),
+    validationSchema: Schema,
+    validateOnChange: false,
+    validateOnBlur: false,
   });
 
   const { values, setFieldValue, handleChange, handleBlur } = formik;
@@ -1060,6 +1132,7 @@ const BookingForm = () => {
 
   return (
     <>
+      <Loader loading={loading} />
       <ToastContainer autoClose={2000} />
 
       {/* top bar */}
@@ -1096,6 +1169,19 @@ const BookingForm = () => {
       <hr style={{ marginTop: 0 }} />
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
+        {/* <Box sx={{ background: 'rgba(255, 93, 93, 0.1)', borderRadius: 2 }}>
+          {Object?.values(formik.errors)?.map((err, index) => {
+            console.log(err, "=========================")
+            return (
+              <List key={index}>
+                <ListItem>
+                  <Typography variant='h6' color={'#ff5d5d'}>{JSON.parse(JSON.stringify(err))}</Typography>
+                </ListItem>
+              </List>
+            );
+          }
+          )}
+        </Box> */}
         <div className="booking-form-row">
           <Form onSubmit={formik.handleSubmit}>
             {/* Customer Modal */}
@@ -1306,6 +1392,9 @@ const BookingForm = () => {
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
                   <h5>OWNERSHIP DETAILS</h5>
+                  {formik.errors.ownership && !_.isArray(formik.errors.ownership) ? (
+                    <div className="text-danger">{String(formik.errors.ownership)}</div>
+                  ) : null}
                   <button
                     className="Btn btn-lightblue-primary lbps-btn mr-0"
                     type="button"
@@ -1314,8 +1403,7 @@ const BookingForm = () => {
                     Add Owner
                   </button>
                 </div>
-
-                {ownerShipData.length ? (
+                {values.ownership.length ? (
                   <table className="table my-3">
                     <thead>
                       <th>Sr No</th>
@@ -1327,7 +1415,7 @@ const BookingForm = () => {
                       <th></th>
                     </thead>
                     <tbody>
-                      {ownerShipData?.map((owner, index) => OwnerShipRow(owner, index))}
+                      {values.ownership?.map((owner, index) => OwnerShipRow(owner, index))}
                     </tbody>
                   </table>
                 ) : undefined}
@@ -1674,9 +1762,9 @@ const BookingForm = () => {
                       value={
                         values.calculation_method
                           ? (
-                              Number(values.basic_rate_basic_amount) +
-                              parseFloat(handleTotalOtherCharge())
-                            ).toFixed(2)
+                            Number(values.basic_rate_basic_amount) +
+                            parseFloat(handleTotalOtherCharge())
+                          ).toFixed(2)
                           : '0.00'
                       }
                     />
@@ -1869,9 +1957,9 @@ const BookingForm = () => {
                                 )
                                   ? '0.00'
                                   : (
-                                      parseFloat(handleTotalOtherDiscountAmt()) +
+                                    parseFloat(handleTotalOtherDiscountAmt()) +
                                     Number(values.basic_rate_disc_amt)
-                                    ).toFixed(2)}
+                                  ).toFixed(2)}
                               </span>
                             </span>
                           </td>
@@ -1886,10 +1974,10 @@ const BookingForm = () => {
                                 {isNaN(values.gst_amt + values.stampduty_amount + values.reg_amount)
                                   ? `0.00`
                                   : (
-                                      values.gst_amt +
-                                      values.stampduty_amount +
-                                      values.reg_amount
-                                    ).toFixed(2)}
+                                    values.gst_amt +
+                                    values.stampduty_amount +
+                                    values.reg_amount
+                                  ).toFixed(2)}
                               </span>
                             </span>
                           </td>
@@ -1923,28 +2011,28 @@ const BookingForm = () => {
                                 {values.calculation_method
                                   ? isNaN(
                                     Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge()),
-                                    )
+                                    parseFloat(handleTotalOtherCharge()) +
+                                    values.gst_amt +
+                                    values.stampduty_amount +
+                                    values.reg_amount +
+                                    parseFloat(handleTotalExtraCharge()),
+                                  )
                                     ? (
                                       Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge())
-                                      ).toFixed(2)
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)
                                     : (
                                       Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge())
-                                      ).toFixed(2)
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)
                                   : '0.00'}
                               </span>
                             </p>

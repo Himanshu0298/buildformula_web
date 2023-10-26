@@ -6,6 +6,10 @@ export const getVisitorsList = data => {
   return instance.post('/visitors/get_lists', data, params);
 };
 
+export const getCustomersList = data => {
+  return instance.post('/visitorcustomer/list', data, params);
+};
+
 export const addCustomer = data => {
   return instance.post('/visitors/add', data, params);
 };
@@ -63,4 +67,29 @@ export const getBrokerList = data => {
 
 export const addBroker = data => {
   return instance.post('/add_broker', data, params);
+};
+
+//booking approval and preview
+export const getBrokerDetail = data => {
+  return instance.post('/broker_details', data, params);
+};
+
+export const getVisitorDetail = data => {
+  return instance.post('/visitors/details', data, params);
+};
+
+export const getApprovalUnitDetails = data => {
+  return instance.post('/unit_booking_form_list', data, params);
+};
+
+export const getBookingApprovalList = data => {
+  return instance.post('/booking_all_form_list', data, params);
+};
+
+export const updateBookingStatus = data => {
+  return instance.post('/booking_form_apporved_reject', data, params);
+};
+
+export const getBookingFormOwnerFlag = data => {
+  return instance.post('/booking_form_settings/get_booking_ownership_status', data, params);
 };

@@ -1,6 +1,7 @@
 export interface ISalesState {
   loading: boolean;
   visitorList: IVisitor[];
+  customerList: IVisitor[];
   brokerList: IBroker[];
   unitInfo: IUnitInfo;
   unitParkingInfo: IUnitParkingInfo;
@@ -12,10 +13,39 @@ export interface ISalesState {
   unitAreaInfo: IUnitAreaInfo;
   extraChargesList: IExtraCharges;
   projectUnitStatus: IUnitStatus[];
+  visitorDetail: IVisitorDetail;
+  brokerDetail: IBrokerDetail;
+  bookingApprovalList: IBookingApprovalList;
+  approvalBookingDetails: IBookingFormApproval;
   timer: boolean;
+  ownership_validation_flag: IBookingOwnershipFlag;
 }
 
+export type IBookingOwnershipFlag = {
+  booking_ownership: string;
+};
+
 export type CommonParams = {
+  project_id: string;
+};
+
+export type visitorDetailParams = {
+  project_id: string;
+  visitor_id: number;
+};
+
+export type brokerDetailParams = {
+  project_id: string;
+  broker_id: number;
+};
+
+export type getApprovalDetailsParams = {
+  project_id: string;
+  project_bookings_temp_id: string;
+  unit_id: string;
+};
+
+export type bookingApprovalListParams = {
   project_id: string;
 };
 
@@ -37,6 +67,14 @@ export type GetProjectUnitParams = {
   project_tower: string;
   project_floor: string;
   id: string;
+};
+
+export type bookingApprovedRejectParams = {
+  project_id: string;
+  unit_id: number;
+  project_bookings_temp_id: number;
+  is_approved: string;
+  rejected_remarks: string;
 };
 
 export type IUnitStatus = {
@@ -68,6 +106,154 @@ export type IUnitStatus = {
   share_with_broker: any;
   booking_status: any;
 };
+
+export interface IBookingFormApproval {
+  booking_form_list: IBookingApprovalDetails;
+}
+
+export interface ICustomers {
+  id: number;
+  project_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  mobile_code?: string;
+  phone: string;
+  phone_2?: string;
+  Inquiry_date?: string;
+  occupation: number;
+  other_occupation?: string;
+  source_type?: number;
+  other_source_type?: string;
+  current_locality?: string;
+  budget_from: number;
+  budget_to: number;
+  cast_type: number;
+  project_status_type: number;
+  source_type_sub_category: number;
+  follow_up_date: any;
+  follow_up_time: any;
+  assign_to: number;
+  priority: string;
+  remarks?: string;
+  inquiry_for: string;
+  bhk: number;
+  inquiry_status_id: number;
+  brokers_id?: number;
+  dob?: string;
+  anniversary_date?: string;
+  address: any;
+  created: string;
+  modified?: string;
+  status: number;
+  import_from_excel: number;
+  customer_ref_no: string;
+  is_verifiy: number;
+  budgetrange_id?: number;
+  visitor_id: number;
+  unitids: string;
+  unitid: number;
+  linked_property: string;
+  linked_property_with_tower_name: string;
+}
+
+export interface IBookingApprovalDetails {
+  id: number;
+  project_id: number;
+  unitid: number;
+  visitors_id: number;
+  broker_id: any;
+  through_broker: string;
+  brokerage: any;
+  broker_remark: any;
+  unit_reserved_date: string;
+  parking_no: string;
+  calculation_method: string;
+  basic_rate_no: number;
+  basic_rate_description: string;
+  basic_rate_area: number;
+  basic_rate: string;
+  basic_rate_disc_amt: string;
+  basic_rate_disc_per: string;
+  basic_rate_basic_amount: string;
+  other_charges_no: any;
+  unit_other_charge_id: any;
+  other_charges_title: any;
+  other_charges_distribution_method: any;
+  other_charges_area: any;
+  other_charges_rate: any;
+  other_charges_disc_amt: any;
+  other_charges_disc_per: any;
+  other_charges_amount: any;
+  other_charges_total: string;
+  sub_total_amt: string;
+  total_disc: string;
+  disc_remarks: any;
+  gst_per: string;
+  gst_amt: string;
+  stampduty_per: string;
+  stampduty_amount: string;
+  reg_per: string;
+  reg_amount: string;
+  total_gove_tax: any;
+  extra_charges_no: any;
+  extra_charges_title: any;
+  extra_charges_distribution_method: any;
+  extra_charges_area: any;
+  extra_charges_rate: any;
+  extra_charges_disc_per: any;
+  extra_charges_disc_amt: any;
+  extra_charges_amt: any;
+  extra_charges_total: string;
+  property_final_amount: string;
+  is_loan: any;
+  loan_amt: string;
+  bank: string;
+  loan_remarks: any;
+  custom_payment_no: any;
+  custom_payment_installment: any;
+  installment_due_date: any;
+  installment_per: any;
+  installment_basic_amt: any;
+  installment_otherchages_amt: any;
+  installment_amount: any;
+  gst: any;
+  custom_payment_total_amount: string;
+  custom_payment_remark_id: number;
+  custom_payment_remark: any;
+  is_approved: string;
+  approved_by: number;
+  approved_datetime: string;
+  rejected_remarks: string;
+  user_id: any;
+  broker_first_name: string;
+  broker_last_name: string;
+  broker_email: string;
+  broker_phone: string;
+  unit_info: string;
+  extracharges: any[];
+  othercharge: any[];
+  ownership: any[];
+  super_build_up_area: number;
+  terracearea: number;
+}
+
+export interface IBookingApprovalList {
+  booking_form_list: IBookingApprovalListData[];
+}
+
+export interface IBookingApprovalListData {
+  bookingid: number;
+  unitid: number;
+  unit_reserved_date: string;
+  status: string;
+  approved_by: string;
+  evaluated_by: string;
+  bookedby: string;
+  unit_info: string;
+}
+
 export interface IBroker {
   id: number;
   first_name: string;
@@ -86,6 +272,11 @@ export interface IBroker {
   created: string;
   dealsClosed: number;
 }
+
+export interface IBrokerDetail {
+  broker_id: number;
+}
+
 export interface IVisitor {
   id: number;
   project_id: string;
@@ -137,8 +328,16 @@ export interface IVisitor {
   interested_properties: any[];
 }
 
+export interface IVisitorDetail {
+  visitor_id: number;
+  // first_name: number;
+  // last_name: string;
+  // email: string
+  // phone: string
+}
+
 export interface IOwnerShip {
-  id: number,
+  id: number;
   ownership_customer_first_name: string;
   ownership_customer_phone: string;
   ownership_customer_address?: string;
@@ -149,6 +348,7 @@ export interface IOwnerShip {
   ownership_customer_pan: string;
   ownership_customer_aadhar: string;
 }
+
 export interface IAssignToData {
   id: number;
   first_name: string;
@@ -184,6 +384,7 @@ export interface IAssignToData {
   terms: number;
   token: string;
 }
+
 export interface CreateCustomerParams {
   project_id: number;
   first_name: string;
@@ -197,6 +398,7 @@ export interface CreateCustomerParams {
   budget_from: number;
   budget_to: number;
 }
+
 export interface AddBrokerParams {
   project_id: number;
   first_name: string;
@@ -210,15 +412,18 @@ export interface AddBrokerParams {
   rera_registration_no?: string;
   remarks?: string;
 }
+
 export interface UnitInfoParams {
   project_id: string;
   tower_id: string;
 }
+
 export interface IUnitTowerInfo {
   project_tower: number;
   tower_title: string;
   project_type: number;
 }
+
 export interface IUnitInfoData {
   title: string;
   tower_id: string;
@@ -229,10 +434,12 @@ export interface IUnitInfoData {
   carpet: number;
   unit: number;
 }
+
 export interface IUnitInfo {
   project_tower_data: IUnitTowerInfo[];
   booking_unit_sheet_towers_data: IUnitInfoData[];
 }
+
 export interface IUnitParkingInfoData {
   id: number;
   project_main_unit_id: number;
@@ -241,10 +448,12 @@ export interface IUnitParkingInfoData {
   allotment_data: string;
   project_id: number;
 }
+
 export interface IUnitParkingInfo {
   all_parking_units: IUnitParkingInfoData[];
   parking_file: any;
 }
+
 export interface IBookingFormParams {
   project_bookings_temp_id: number;
   project_id: number;

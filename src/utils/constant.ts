@@ -13,6 +13,7 @@ export const PHONE_REGEX =
 
 export const HTML_REGEX = /(<([^>]+)>)/gi;
 export const DECIMAL_REGEX = /^\d+(\.\d{1,2})?$/;
+export const ADHAAR_REGEX = /^\d{4}\s\d{4}\s\d{4}$/;
 
 export const PAN_REGEX =
   /^([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([0-9]([0-9]([0-9]([0-9]([a-zA-Z])?)?)?)?)?)?)?)?)?)?$/;
@@ -39,7 +40,11 @@ export const STRUCTURE_TYPE_LABELS = {
   5: 'Plots',
 };
 
-export const APP_BOTTOM_TAB_HEIGHT = 50;
+export const GLOBAL_STATUS = {
+  pending: { label: 'Pending', color: '#F4AF48' },
+  approved: { label: 'Approved', color: '#07CA03' },
+  rejected: { label: 'Rejected', color: '#FF5D5D' },
+};
 
 export const BHK_OPTIONS = [
   { type: 1, color: 'rgba(244,175,72)' },
