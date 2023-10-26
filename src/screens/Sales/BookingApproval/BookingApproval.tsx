@@ -151,8 +151,8 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
                                 style={{
                                   backgroundColor: '#e5eafa',
                                   color: '#4872f4',
-                                  padding: '10px',
-                                  borderRadius: '5px',
+                                  padding: '5px',
+                                  borderRadius: '6px',
                                 }}
                               >
                                 {bookingid}
