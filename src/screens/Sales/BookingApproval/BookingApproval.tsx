@@ -62,7 +62,7 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
           className="shwan-form"
           component="form"
           sx={{
-            '& > :not(style)': { width: '80ch' },
+            '& > :not(style)': { width: '45ch' },
           }}
         >
           <input
@@ -215,7 +215,7 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
               variant="body1"
             >
               <span>{`${page * 10 + 1}-${Math.min(
-                (page + 1) * 10,
+                (page + 1) * rowsPerPage,
                 bookingApprovalList?.length || 0,
               )} of ${bookingApprovalList?.length || 0}`}</span>
             </Typography>
