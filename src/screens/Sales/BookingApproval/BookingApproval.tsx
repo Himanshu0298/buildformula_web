@@ -214,7 +214,7 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
               style={{ fontSize: '1.1em', margin: '0 5px', fontWeight: 'bold' }}
               variant="body1"
             >
-              <span>{`${page * 10 + 1}-${Math.min(
+              <span>{`${page * rowsPerPage + 1}-${Math.min(
                 (page + 1) * rowsPerPage,
                 bookingApprovalList?.length || 0,
               )} of ${bookingApprovalList?.length || 0}`}</span>

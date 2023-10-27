@@ -57,7 +57,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       firstName: Yup.string().required('Required Field'),
       lastName: Yup.string().required('Required Field'),
       email: Yup.string().email('Invalid email address'),
-      phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid').required('Required Field'),
+      phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid'),
     }),
     onSubmit: values => {
       debouncedHandleSubmit(values);
