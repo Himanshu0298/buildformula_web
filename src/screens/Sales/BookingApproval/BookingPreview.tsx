@@ -29,6 +29,7 @@ import {
   updateBookingStatus,
 } from 'redux/sales';
 import { useAppDispatch, useAppSelector } from 'redux/store';
+import { HTML_REGEX } from 'utils/constant';
 import * as Yup from 'yup';
 
 const schema = Yup.object().shape({
@@ -276,7 +277,7 @@ const UnitInfo = ({ unitInfoData }) => {
         </Grid>
         <Grid item xs={2}>
           <Label>Unit Info</Label>
-          <Value>{unit_info}</Value>
+          <Value>{unit_info?.replace(HTML_REGEX, '')}</Value>
         </Grid>
         <Grid item xs={2}>
           <Label>Super Buildup Area</Label>
@@ -307,13 +308,17 @@ const CalculationMethod = ({ calcMethodData }) => {
     basic_rate_no,
   } = calcMethodData?.booking_form_list || {};
 
+  const calculationMethod = calculation_method === 'fixied_amt' ? 'Fixed Amount' : 'Rate Based'
+
+  const _basic_rate_area = calculation_method === 'fixied_amt' ? '-' : basic_rate_area;
+
   return (
     <CommonContainer>
       <Heading>CALCULATION METHOD</Heading>
 
       <div>
         <Label>Calculation Method</Label>
-        <Value>{calculation_method}</Value>
+        <Value>{calculationMethod}</Value>
       </div>
       <div style={{ maxWidth: '100%' }}>
         <Divider />
@@ -350,7 +355,7 @@ const CalculationMethod = ({ calcMethodData }) => {
               <Value>{basic_rate_description}</Value>
             </TableCell>
             <TableCell>
-              <Value>{basic_rate_area}</Value>
+              <Value>{_basic_rate_area}</Value>
             </TableCell>
             <TableCell>
               <Value>{basic_rate}</Value>

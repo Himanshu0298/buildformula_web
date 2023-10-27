@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   IconButton,
   Paper,
   Table,
@@ -21,7 +20,7 @@ import { GLOBAL_STATUS } from 'utils/constant';
 
 const rowsPerPage = 10;
 
-const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
+const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -38,12 +37,8 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
     setSearchTerm(event.target.value);
   };
 
-  const handleClear = () => {
-    setSearchTerm('');
-  };
-
   const navtoDetail = (unitid, bookingid) => {
-    navigate('/bookingPreview', { state: { unitid, bookingid, project_id } });
+    navigate(`/bookingPreview?token=${token}`, { state: { unitid, bookingid, project_id } });
   };
 
   return (
@@ -68,11 +63,6 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
             onChange={handleSearch}
           />
         </Box>
-        <Button style={styles.searchButton}>Search</Button>
-
-        <Button style={styles.searchButton} onClick={handleClear}>
-          Clear
-        </Button>
       </div>
 
       <div className="d-flex justify-content-center">
@@ -221,7 +211,7 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id }) => {
             </Typography>
             <IconButton
               aria-label="next page"
-              disabled={page >= Math.ceil(bookingApprovalList?.length / 5) - 1}
+              disabled={page >= bookingApprovalList?.length / rowsPerPage - 1}
               style={styles.navigationButton}
               onClick={() => handleChangePage(null, page + 1)}
             >
@@ -245,6 +235,7 @@ const BookingApproval = () => {
 
   // url params
   const project_id = searchParams.get('project_id');
+  const token = searchParams.get('token');
 
   const { bookingApprovalList, loading } = useAppSelector(s => s.sales);
 
@@ -260,7 +251,7 @@ const BookingApproval = () => {
   return (
     <>
       <Loader loading={loading} />
-      <BookingApprovalTable bookingApprovalList={bookingApprovalList} project_id={project_id} />
+      <BookingApprovalTable bookingApprovalList={bookingApprovalList} project_id={project_id} token={token} />
     </>
   );
 };

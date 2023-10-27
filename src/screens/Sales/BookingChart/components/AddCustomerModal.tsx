@@ -35,8 +35,8 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       }),
     );
 
-    await handleClose();
-    formik.resetForm();
+    // await handleClose();
+    // formik.resetForm();
   };
 
   const debouncedHandleSubmit = useRef(
