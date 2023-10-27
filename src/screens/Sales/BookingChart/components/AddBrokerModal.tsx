@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { addBroker, getBrokerList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
+import { PHONE_REGEX } from 'utils/constant';
 import * as Yup from 'yup';
 
 const AddBrokerModal = ({ show, handleClose, project_id }) => {
@@ -44,7 +45,7 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
       firstName: Yup.string().required('Required Field'),
       lastName: Yup.string().required('Required Field'),
       email: Yup.string().email('Invalid email address'),
-      phone: Yup.string().required('Required Field'),
+      phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid').required('Required Field')
     }),
     onSubmit: values => {
       debouncedHandleSubmit(values);

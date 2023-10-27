@@ -1,3 +1,4 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
   Box,
   IconButton,
@@ -8,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
 import Loader from 'components/atoms/Loader';
@@ -18,7 +18,7 @@ import { getBookingApprovalList } from 'redux/sales';
 import { useAppDispatch, useAppSelector } from 'redux/store';
 import { GLOBAL_STATUS } from 'utils/constant';
 
-const rowsPerPage = 10;
+const rowsPerPage = 50;
 
 const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
   const [page, setPage] = useState(0);
@@ -41,24 +41,34 @@ const BookingApprovalTable = ({ bookingApprovalList, project_id, token }) => {
     navigate(`/bookingPreview?token=${token}`, { state: { unitid, bookingid, project_id } });
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
-    <Box className="mx-4">
-      <div className="my-3">
-        <Typography variant="h4">Booking Approval</Typography>
+    <Box className="mx-4 bookingApprovalBody">
+      <div className="d-flex align-items-center my-3">
+        <IconButton style={{ backgroundColor: '#e5eafa', color: '#4872f4' }} onClick={handleBack}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography className="ml-2" variant="h5">
+          Booking Approval
+        </Typography>
       </div>
-      <div className="d-flex align-items-center mb-4 ">
+      <div className="d-flex align-items-center mb-3 ">
         <Box
           noValidate
           autoComplete="off"
+          className="shwan-form"
           component="form"
           sx={{
             '& > :not(style)': { width: '80ch' },
           }}
         >
-          <TextField
-            hiddenLabel
-            className="rounded"
+          <input
+            className="form-control"
             placeholder="Search Here"
+            style={{ height: '48px' }}
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -261,9 +271,9 @@ export default BookingApproval;
 const styles = {
   tablePaper: {
     borderRadius: 6,
-    height: '100vh',
-    maxHeight: 'calc(100vh - 300px)',
-    overflow: 'auto',
+    // height: '100vh',
+    // maxHeight: 'calc(100vh - 300px)',
+    // overflow: 'auto',
   },
   navigationButton: {
     backgroundColor: '#e5eafa',
