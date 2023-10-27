@@ -40,6 +40,7 @@ import {
   DISTRIBUTION_METHOD,
   HTML_REGEX,
   PAN_REGEX,
+  PHONE_REGEX,
   STAGING_REDIRECT,
 } from 'utils/constant';
 import * as Yup from 'yup';
@@ -1025,6 +1026,9 @@ const BookingForm = () => {
             PAN_REGEX,
             'Please enter a valid PAN number',
           ),
+          ownership_customer_phone: Yup.string()
+            .matches(PHONE_REGEX, 'Mobile not valid')
+            .required('Required Field'),
         }),
       ),
   });

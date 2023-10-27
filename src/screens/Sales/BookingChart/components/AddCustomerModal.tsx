@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { addCustomer, getVisitorsList } from 'redux/sales';
 import { useAppDispatch } from 'redux/store';
+import { PHONE_REGEX } from 'utils/constant';
 import * as Yup from 'yup';
 const AddCustomerModal = ({ show, handleClose, project_id }) => {
   const dispatch = useAppDispatch();
@@ -56,7 +57,7 @@ const AddCustomerModal = ({ show, handleClose, project_id }) => {
       firstName: Yup.string().required('Required Field'),
       lastName: Yup.string().required('Required Field'),
       email: Yup.string().email('Invalid email address'),
-      phone: Yup.string().required('Required Field'),
+      phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid').required('Required Field'),
     }),
     onSubmit: values => {
       debouncedHandleSubmit(values);
