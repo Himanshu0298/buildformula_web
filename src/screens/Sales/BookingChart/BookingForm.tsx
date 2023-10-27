@@ -39,9 +39,9 @@ import {
   DECIMAL_REGEX,
   DISTRIBUTION_METHOD,
   HTML_REGEX,
-  LIVE_REDIRECT,
   PAN_REGEX,
   PHONE_REGEX,
+  STAGING_REDIRECT,
 } from 'utils/constant';
 import * as Yup from 'yup';
 
@@ -63,7 +63,7 @@ const BookingForm = () => {
   const project_list_id = searchParams.get('project_list_id') || '1';
 
   // old site navigation
-  const OLD_SITE = `${LIVE_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
+  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
   // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
 
   // redux state values
