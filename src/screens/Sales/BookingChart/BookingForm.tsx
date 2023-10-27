@@ -41,7 +41,6 @@ import {
   HTML_REGEX,
   LIVE_REDIRECT,
   PAN_REGEX,
-  PHONE_REGEX,
 } from 'utils/constant';
 import * as Yup from 'yup';
 
@@ -803,12 +802,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_phone', e.target.value);
             }}
           />
-          <p className="text-danger">
+          {/* <p className="text-danger">
             {formik?.errors?.ownership?.length &&
               formik?.errors?.ownership[index]?.ownership_customer_phone
               ? String(formik?.errors?.ownership[index]?.ownership_customer_phone)
               : null}
-          </p>
+          </p> */}
         </td>
         <td>
           <input
@@ -1032,7 +1031,6 @@ const BookingForm = () => {
             PAN_REGEX,
             'Please enter a valid PAN number',
           ),
-          ownership_customer_phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid'),
         }),
       ),
   });
