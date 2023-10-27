@@ -26,14 +26,17 @@ instance.interceptors.response.use(
   response => {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
-    return response;
+    if (response.data.status) {
+      return response;
+    }
+    return Promise.reject(response);
   },
   async error => {
     const { message } = error?.response?.data || {};
 
     if (message?.includes('Unauthenticated')) {
       const originalRequest = error.config;
-      console.log(originalRequest)
+      console.log(originalRequest);
 
       try {
         const retryOriginalRequest = new Promise(resolve => {

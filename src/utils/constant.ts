@@ -1,4 +1,4 @@
-import { isString } from 'lodash';
+// import { isString } from 'lodash';
 
 export const STAGING_SITE_URL = 'https://vshwandrx.in';
 export const LIVE_SITE_URL = 'https://portal.buildformula.com';
@@ -141,10 +141,12 @@ export function getUniqueOptions(options) {
 }
 
 export function processError(error: any) {
-  console.trace('-----> error.response', error);
-  return error?.message?.message || error?.message || isString(error)
-    ? error
-    : 'An error occurred. Please try again.';
+  if (error?.data?.msg && typeof error?.data?.msg === 'object') {
+    const result = Object?.values(error?.data?.msg).join(', ');
+    return result;
+  }
+
+  return error?.data?.msg || 'An error occurred. Please try again.';
 }
 
 export const MONTHS = [
