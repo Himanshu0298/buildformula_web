@@ -803,6 +803,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_phone', e.target.value);
             }}
           />
+          <p className="text-danger">
+            {formik?.errors?.ownership?.length &&
+              formik?.errors?.ownership[index]?.ownership_customer_phone
+              ? String(formik?.errors?.ownership[index]?.ownership_customer_phone)
+              : null}
+          </p>
         </td>
         <td>
           <input
@@ -1026,9 +1032,7 @@ const BookingForm = () => {
             PAN_REGEX,
             'Please enter a valid PAN number',
           ),
-          ownership_customer_phone: Yup.string()
-            .matches(PHONE_REGEX, 'Mobile not valid')
-            .required('Required Field'),
+          ownership_customer_phone: Yup.string().matches(PHONE_REGEX, 'Mobile not valid'),
         }),
       ),
   });
