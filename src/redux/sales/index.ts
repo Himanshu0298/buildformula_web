@@ -156,9 +156,11 @@ export const addCustomer = createAsyncThunk(
   async (params: CreateCustomerParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addCustomer(params);
+      toast.success(res.msg);
       return res;
     } catch (err) {
       const processedError = processError(err);
+      toast.error(Object?.values(err.data.msg).join(', '));
       console.log(err);
       return thunkApi.rejectWithValue({ error: processedError });
     }
@@ -170,9 +172,11 @@ export const addBroker = createAsyncThunk(
   async (params: AddBrokerParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addBroker(params);
+      toast.success(res.msg);
       return res;
     } catch (err) {
       const processedError = processError(err);
+      toast.error(Object?.values(err.data.msg).join(', '));
       console.log(err);
       return thunkApi.rejectWithValue({ error: processedError });
     }
@@ -226,9 +230,11 @@ export const addBooking = createAsyncThunk(
   async (params: IBookingFormParams, thunkApi) => {
     try {
       const { data: res } = await visitorService.addBooking(params);
+      toast.success(res.msg);
       return res;
     } catch (err) {
       const processedError = processError(err);
+      toast.error(Object?.values(err.data.msg).join(', '));
       console.log(err);
       return thunkApi.rejectWithValue({ error: processedError });
     }
@@ -434,19 +440,19 @@ const salesSlice = createSlice({
     // add visitor
     builder.addCase(addCustomer.rejected, handleReject);
     builder.addCase(addCustomer.pending, handleLoading);
-    builder.addCase(addCustomer.fulfilled, (state, action) => {
-      toast.success(action.payload.msg);
+    builder.addCase(addCustomer.fulfilled, state => {
       return {
         ...state,
+        loading: false,
       };
     });
     // add broker
     builder.addCase(addBroker.rejected, handleReject);
     builder.addCase(addBroker.pending, handleLoading);
-    builder.addCase(addBroker.fulfilled, (state, action) => {
-      toast.success(action.payload.msg);
+    builder.addCase(addBroker.fulfilled, state => {
       return {
         ...state,
+        loading: false,
       };
     });
     // update form filling status
@@ -497,12 +503,11 @@ const salesSlice = createSlice({
     // Booking Form
     builder.addCase(addBooking.rejected, handleReject);
     builder.addCase(addBooking.pending, handleLoading);
-    builder.addCase(addBooking.fulfilled, (state, action) => {
-      toast.success(action.payload.msg);
+    builder.addCase(addBooking.fulfilled, state => {
       return {
         ...state,
         timer: false,
-        msg: action.payload.msg,
+        loading: false,
       };
     });
     // get other charges
