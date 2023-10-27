@@ -432,7 +432,9 @@ const salesSlice = createSlice({
       };
     });
     // add visitor
-    builder.addCase(addCustomer.rejected, handleReject);
+    builder.addCase(addCustomer.rejected, action => {
+      console.log('DISPLAY VISITOR', action)
+    });
     builder.addCase(addCustomer.pending, handleLoading);
     builder.addCase(addCustomer.fulfilled, (state, action) => {
       toast.success(action.payload.msg);
