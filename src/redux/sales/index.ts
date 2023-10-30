@@ -552,6 +552,7 @@ const salesSlice = createSlice({
     builder.addCase(getInstallmentDetails.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         installmentsInformation: action?.payload,
       };
     });
