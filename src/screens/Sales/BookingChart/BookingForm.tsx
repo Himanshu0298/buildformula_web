@@ -1,13 +1,13 @@
 import 'react-toastify/dist/ReactToastify.css';
 import './SalesStyle.css';
 
-import { FormControlLabel, Radio, RadioGroup } from '@mui/material';
+import { Box, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
 import Loader from 'components/atoms/Loader';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useSyncedFields } from 'hooks/useDiscountCalculator';
 import _ from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
@@ -40,16 +40,19 @@ import {
   DISTRIBUTION_METHOD,
   HTML_REGEX,
   PAN_REGEX,
+  PHONE_REGEX,
   STAGING_REDIRECT,
 } from 'utils/constant';
 import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
 import AddCustomerModal from './components/AddCustomerModal';
+import InputMask from 'react-input-mask';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const errorBoxRef = useRef<HTMLInputElement>(null);
   const [searchParams] = useSearchParams();
 
   // url params
@@ -101,6 +104,10 @@ const BookingForm = () => {
   const toggleBrokerModal = () => setShowBroker(v => !v);
   const handleToggle = () => {
     setIsToggle(!isToggle);
+  };
+
+  const scrollToError = () => {
+    errorBoxRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // unitInfo
@@ -759,16 +766,20 @@ const BookingForm = () => {
       ownership_customer_aadhar,
     } = item || {};
 
-    // const ErrorFirstName = formik?.errors?.ownership?.length &&
-    //   formik?.errors?.ownership[index]?.ownership_customer_first_name
+    const ErrorFirstName =
+      formik?.errors?.ownership?.length &&
+      formik?.errors?.ownership[index]?.ownership_customer_first_name;
 
-    // const ErrorAdhaarCard = formik?.errors?.ownership?.length &&
-    //   formik?.errors?.ownership[index]?.ownership_customer_aadhar
+    const ErrorAdhaarCard =
+      formik?.errors?.ownership?.length &&
+      formik?.errors?.ownership[index]?.ownership_customer_aadhar;
 
-    // const ErrorPANCard = formik?.errors?.ownership?.length &&
-    //   formik?.errors?.ownership[index]?.ownership_customer_pan
+    const ErrorPhone =
+      formik?.errors?.ownership?.length &&
+      formik?.errors?.ownership[index]?.ownership_customer_phone;
 
-    // style = {{ backgroundColor: ErrorFirstName ? 'rgba(255, 93, 93, 0.2)' : '#fff' }}
+    const ErrorPANCard =
+      formik?.errors?.ownership?.length && formik?.errors?.ownership[index]?.ownership_customer_pan;
 
     return (
       <tr key={`${id}${index}`}>
@@ -777,6 +788,7 @@ const BookingForm = () => {
           <input
             className="form-control mb-2"
             name={`ownership.${index}.ownership_customer_first_name`}
+            style={{ borderColor: ErrorFirstName && 'rgba(255, 93, 93)' }}
             title={ownership_customer_first_name}
             type="text"
             value={ownership_customer_first_name}
@@ -785,16 +797,12 @@ const BookingForm = () => {
               formik.setFieldTouched(`ownership.${index}.ownership_customer_first_name`, true);
             }}
           />
-          <p className="text-danger">
-            {formik?.errors?.ownership?.length &&
-            formik?.errors?.ownership[index]?.ownership_customer_first_name
-              ? String(formik?.errors?.ownership[index]?.ownership_customer_first_name)
-              : null}
-          </p>
         </td>
         <td>
           <input
             className="form-control mb-2"
+            maxLength={10}
+            style={{ borderColor: ErrorPhone && 'rgba(255, 93, 93)' }}
             title={ownership_customer_phone}
             type="text"
             value={ownership_customer_phone}
@@ -802,12 +810,6 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_phone', e.target.value);
             }}
           />
-          {/* <p className="text-danger">
-            {formik?.errors?.ownership?.length &&
-              formik?.errors?.ownership[index]?.ownership_customer_phone
-              ? String(formik?.errors?.ownership[index]?.ownership_customer_phone)
-              : null}
-          </p> */}
         </td>
         <td>
           <input
@@ -823,6 +825,7 @@ const BookingForm = () => {
         <td>
           <input
             className="form-control mb-2"
+            style={{ borderColor: ErrorPANCard && 'rgba(255, 93, 93)' }}
             title={ownership_customer_pan}
             type="text"
             value={ownership_customer_pan}
@@ -830,16 +833,12 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_pan', e.target.value);
             }}
           />
-          <p className="text-danger mb-0">
-            {formik?.errors?.ownership?.length &&
-            formik?.errors?.ownership[index]?.ownership_customer_pan
-              ? String(formik?.errors?.ownership[index]?.ownership_customer_pan)
-              : null}
-          </p>
         </td>
         <td>
-          <input
+          <InputMask
             className="form-control mb-2"
+            mask="9999-9999-9999"
+            style={{ borderColor: ErrorAdhaarCard && 'rgba(255, 93, 93)' }}
             title={ownership_customer_aadhar}
             type="text"
             value={ownership_customer_aadhar}
@@ -847,12 +846,6 @@ const BookingForm = () => {
               handleUpdateOwnershipData(index, 'ownership_customer_aadhar', e.target.value);
             }}
           />
-          <p className="text-danger mb-0">
-            {formik?.errors?.ownership?.length &&
-            formik?.errors?.ownership[index]?.ownership_customer_aadhar
-              ? String(formik?.errors?.ownership[index]?.ownership_customer_aadhar)
-              : null}
-          </p>
         </td>
 
         <td>
@@ -880,7 +873,7 @@ const BookingForm = () => {
   };
 
   // booking form submission
-  const handleSubmit = async values => {
+  const onSubmit = async values => {
     const {
       project_id,
       unit_id,
@@ -1022,10 +1015,16 @@ const BookingForm = () => {
       .min(VALIDATION_REQUIRED_OWNERSHIP ? 1 : 0, 'Please add atleast one ownership to proceed')
       .of(
         Yup.object().shape({
-          ownership_customer_first_name: Yup.string().required('Required'),
+          ownership_customer_first_name: Yup.string().required(
+            `Ownership's first name is required`,
+          ),
+          ownership_customer_phone: Yup.string().min(10, 'Please enter a valid mobile number').matches(
+            PHONE_REGEX,
+            'Please enter a valid Adhaar number',
+          ),
           ownership_customer_aadhar: Yup.string().matches(
             ADHAAR_REGEX,
-            'Please enter a valid adhaar number',
+            'Please enter a valid Adhaar number',
           ),
           ownership_customer_pan: Yup.string().matches(
             PAN_REGEX,
@@ -1038,13 +1037,13 @@ const BookingForm = () => {
   const formik = useFormik({
     initialValues,
     enableReinitialize: true,
-    onSubmit: handleSubmit,
+    onSubmit: onSubmit,
     validationSchema: Schema,
     validateOnChange: false,
     validateOnBlur: false,
   });
 
-  const { values, setFieldValue, handleChange, handleBlur } = formik;
+  const { values, setFieldValue, handleChange, handleBlur, handleSubmit } = formik;
 
   // discount calculations hook
   const discountSyncedFields = useSyncedFields(
@@ -1173,39 +1172,166 @@ const BookingForm = () => {
       <hr style={{ marginTop: 0 }} />
 
       <section className="booking-form-sec pt-0 bookingFormUpdated">
-        {/* <Box sx={{ background: 'rgba(255, 93, 93, 0.1)', borderRadius: 2 }}>
-          {Object?.values(formik.errors)?.map((err, index) => {
-            console.log(err, "=========================")
-            return (
-              <List key={index}>
-                <ListItem>
-                  <Typography variant='h6' color={'#ff5d5d'}>{JSON.parse(JSON.stringify(err))}</Typography>
-                </ListItem>
-              </List>
-            );
-          }
-          )}
-        </Box> */}
+        <Box ref={errorBoxRef}>
+          {Object.values(formik.errors).length ? (
+            <Box
+              sx={{
+                background: 'rgba(255, 93, 93, 0.1)',
+                borderRadius: 2,
+                padding: `5px`,
+                fontSize: '1rem',
+              }}
+            >
+              <ul>
+                {Object?.values(formik.errors)?.map((err, index) => {
+                  return !_.isArray(err) ? (
+                    <li key={index}>
+                      <Typography color={'#ff5d5d'} variant="h6">
+                        {JSON.parse(JSON.stringify(err))}
+                      </Typography>
+                    </li>
+                  ) : (
+                    Object.values(err[0])?.map(error => {
+                      return (
+                        <li key={index}>
+                          <Typography color={'#ff5d5d'} variant="h6">
+                            {JSON.parse(JSON.stringify(error))}
+                          </Typography>
+                        </li>
+                      );
+                    })
+                  );
+                })}
+              </ul>
+            </Box>
+          ) : undefined}
+        </Box>
+
         <div className="booking-form-row">
-          <Form onSubmit={formik.handleSubmit}>
-            {/* Customer Modal */}
-            <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
-            <AddBrokerModal
-              handleClose={toggleBrokerModal}
-              project_id={project_id}
-              show={showBroker}
-            />
-            {/* 1st section */}
-            <div className="booking-form-box shwan-form ">
+          {/* Customer Modal */}
+          <AddCustomerModal handleClose={toggleModal} project_id={project_id} show={show} />
+          <AddBrokerModal
+            handleClose={toggleBrokerModal}
+            project_id={project_id}
+            show={showBroker}
+          />
+          {/* 1st section */}
+          <div className="booking-form-box shwan-form ">
+            <div className="booking-form-col-12">
+              <div className="d-flex align-items-center justify-content-between">
+                <h5>CUSTOMER DETAILS</h5>
+                <button
+                  className="Btn btn-lightblue-primary lbps-btn mr-0"
+                  type="button"
+                  onClick={toggleModal}
+                >
+                  Add Inquiry
+                </button>
+              </div>
+
+              <div className="form-row">
+                <div className="col-12">
+                  <Select
+                    closeMenuOnSelect={true}
+                    noOptionsMessage={() => 'Loading...'}
+                    options={customerOptions}
+                    placeholder="Existing Inquiry"
+                    styles={{
+                      container: base => ({
+                        ...base,
+                        width: '31%',
+                        marginTop: 10,
+                        marginBottom: 50,
+                      }),
+                      control: base => ({
+                        ...base,
+                        borderColor: formik.errors.visitors_id
+                          ? 'rgba(255, 93, 93)'
+                          : 'hsl(0, 0%, 80%)',
+                      }),
+                    }}
+                    onBlur={formik.handleBlur}
+                    onChange={e => {
+                      setCustomerDetails(e?.details);
+                      setFieldValue('visitors_id', e?.details.id);
+                    }}
+                  />
+                </div>
+              </div>
+              {customerDetails ? (
+                <>
+                  <div className="form-row">
+                    <div className="form-group col form-col-gap">
+                      <label>Client Name</label>
+                      <input
+                        readOnly
+                        className="form-control"
+                        type="text"
+                        value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
+                      />
+                    </div>
+                    <div className="form-group col">
+                      <label>Phone No</label>
+                      <input
+                        readOnly
+                        className="form-control"
+                        type="text"
+                        value={customerDetails?.phone}
+                      />
+                    </div>
+                    <div className="form-group col">
+                      <label>Email ID</label>
+                      <input
+                        readOnly
+                        className="form-control"
+                        type="text"
+                        value={customerDetails?.email || ''}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          {/* 2nd section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <label>Through Broker?</label>
+              <div className="form-row">
+                <div className="col-6">
+                  <div className="rd-grp form-check-inline">
+                    <RadioGroup
+                      row
+                      aria-labelledby="demo-row-radio-buttons-group-label"
+                      name="row-radio-buttons-group"
+                    >
+                      <FormControlLabel
+                        control={<Radio onClick={() => setFieldValue('through_broker', true)} />}
+                        label="Yes"
+                        value="yes"
+                      />
+                      <FormControlLabel
+                        control={<Radio onClick={() => setFieldValue('through_broker', false)} />}
+                        label="No"
+                        value="no"
+                      />
+                    </RadioGroup>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {values.through_broker ? (
               <div className="booking-form-col-12">
                 <div className="d-flex align-items-center justify-content-between">
-                  <h5>CUSTOMER DETAILS</h5>
+                  <h5>BROKER DETAILS</h5>
                   <button
                     className="Btn btn-lightblue-primary lbps-btn mr-0"
                     type="button"
-                    onClick={toggleModal}
+                    onClick={toggleBrokerModal}
                   >
-                    Add Inquiry
+                    Add Broker
                   </button>
                 </div>
 
@@ -1213,9 +1339,8 @@ const BookingForm = () => {
                   <div className="col-12">
                     <Select
                       closeMenuOnSelect={true}
-                      noOptionsMessage={() => 'Loading...'}
-                      options={customerOptions}
-                      placeholder="Existing Inquiry"
+                      options={brokerOptions}
+                      placeholder="Existing Broker"
                       styles={{
                         container: base => ({
                           ...base,
@@ -1224,27 +1349,23 @@ const BookingForm = () => {
                           marginBottom: 50,
                         }),
                       }}
-                      onBlur={formik.handleBlur}
-                      onChange={e => {
-                        setCustomerDetails(e?.details);
-                        setFieldValue('visitors_id', e?.details.id);
-                      }}
+                      onChange={e => (
+                        setBrokerDetails(e.details), setFieldValue('broker_id', e.value)
+                      )}
                     />
-                    {formik.touched.visitors_id && formik.errors.visitors_id && (
-                      <div className="text-danger">{String(formik.errors.visitors_id)}</div>
-                    )}
                   </div>
                 </div>
-                {customerDetails ? (
+
+                {brokerDetails ? (
                   <>
                     <div className="form-row">
                       <div className="form-group col form-col-gap">
-                        <label>Client Name</label>
+                        <label>Broker Name</label>
                         <input
                           readOnly
                           className="form-control"
                           type="text"
-                          value={`${customerDetails?.first_name} ${customerDetails?.last_name}`}
+                          value={`${brokerDetails?.first_name} ${brokerDetails?.last_name}`}
                         />
                       </div>
                       <div className="form-group col">
@@ -1253,7 +1374,7 @@ const BookingForm = () => {
                           readOnly
                           className="form-control"
                           type="text"
-                          value={customerDetails?.phone}
+                          value={brokerDetails?.phone}
                         />
                       </div>
                       <div className="form-group col">
@@ -1262,938 +1383,850 @@ const BookingForm = () => {
                           readOnly
                           className="form-control"
                           type="text"
-                          value={customerDetails?.email || ''}
+                          value={brokerDetails?.email || ''}
                         />
                       </div>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            </div>
-
-            {/* 2nd section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <label>Through Broker?</label>
-                <div className="form-row">
-                  <div className="col-6">
-                    <div className="rd-grp form-check-inline">
-                      <RadioGroup
-                        row
-                        aria-labelledby="demo-row-radio-buttons-group-label"
-                        name="row-radio-buttons-group"
-                      >
-                        <FormControlLabel
-                          control={<Radio onClick={() => setFieldValue('through_broker', true)} />}
-                          label="Yes"
-                          value="yes"
-                        />
-                        <FormControlLabel
-                          control={<Radio onClick={() => setFieldValue('through_broker', false)} />}
-                          label="No"
-                          value="no"
-                        />
-                      </RadioGroup>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {values.through_broker ? (
-                <div className="booking-form-col-12">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <h5>BROKER DETAILS</h5>
-                    <button
-                      className="Btn btn-lightblue-primary lbps-btn mr-0"
-                      type="button"
-                      onClick={toggleBrokerModal}
-                    >
-                      Add Broker
-                    </button>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="col-12">
-                      <Select
-                        closeMenuOnSelect={true}
-                        options={brokerOptions}
-                        placeholder="Existing Broker"
-                        styles={{
-                          container: base => ({
-                            ...base,
-                            width: '31%',
-                            marginTop: 10,
-                            marginBottom: 50,
-                          }),
-                        }}
-                        onChange={e => (
-                          setBrokerDetails(e.details), setFieldValue('broker_id', e.value)
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {brokerDetails ? (
-                    <>
-                      <div className="form-row">
-                        <div className="form-group col form-col-gap">
-                          <label>Broker Name</label>
-                          <input
-                            readOnly
-                            className="form-control"
-                            type="text"
-                            value={`${brokerDetails?.first_name} ${brokerDetails?.last_name}`}
-                          />
-                        </div>
-                        <div className="form-group col">
-                          <label>Phone No</label>
-                          <input
-                            readOnly
-                            className="form-control"
-                            type="text"
-                            value={brokerDetails?.phone}
-                          />
-                        </div>
-                        <div className="form-group col">
-                          <label>Email ID</label>
-                          <input
-                            readOnly
-                            className="form-control"
-                            type="text"
-                            value={brokerDetails?.email || ''}
-                          />
-                        </div>
-                        <div className="form-group col">
-                          <label>Brokerage Amt.</label>
-                          <input
-                            className="form-control"
-                            name="brokerage"
-                            type="text"
-                            value={values.brokerage}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </div>
-                      <div className="form-row">
-                        <div className="form-group col">
-                          <label>Remark</label>
-                          <textarea
-                            className="form-control"
-                            name="broker_remark"
-                            value={values.broker_remark}
-                            onChange={handleChange}
-                          ></textarea>
-                        </div>
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-
-            {/* 3rd section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <div className="d-flex align-items-center justify-content-between">
-                  <h5>OWNERSHIP DETAILS</h5>
-                  {formik.errors.ownership && !_.isArray(formik.errors.ownership) ? (
-                    <div className="text-danger">{String(formik.errors.ownership)}</div>
-                  ) : null}
-                  <button
-                    className="Btn btn-lightblue-primary lbps-btn mr-0"
-                    type="button"
-                    onClick={handleAddOwnership}
-                  >
-                    Add Owner
-                  </button>
-                </div>
-                {values.ownership.length ? (
-                  <table className="table my-3">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Name</th>
-                      <th>Phone</th>
-                      <th>Email</th>
-                      <th>PAN</th>
-                      <th>Aadhar</th>
-                      <th></th>
-                    </thead>
-                    <tbody>
-                      {values.ownership?.map((owner, index) => OwnerShipRow(owner, index))}
-                    </tbody>
-                  </table>
-                ) : undefined}
-              </div>
-            </div>
-
-            {/* 4th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>UNIT INFO</h5>
-
-                <div className="form-row">
-                  <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-4 ">
-                    <label>Unit Reservation Date</label>
-                    <input
-                      className="form-control"
-                      name="unit_reserved_date"
-                      type="date"
-                      value={formik.values.unit_reserved_date}
-                      onBlur={formik.handleBlur}
-                      onChange={formik.handleChange}
-                    />
-                  </div>
-                  <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-4 ">
-                    <label htmlFor="inputPassword4">Unit Info</label>
-                    <input
-                      className="form-control"
-                      readOnly={true}
-                      type="text"
-                      value={unitInfoValues?.title}
-                    />
-                  </div>
-                  <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-2">
-                    <label htmlFor="inputPassword4">Super Buildup Area</label>
-                    <input
-                      className="form-control"
-                      readOnly={true}
-                      type="number"
-                      value={unitAreaInfo?.super_build_up_area}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group col-sm-3 col-md-2 col-lg-3">
-                    <label>Terrace Area</label>
-                    <input
-                      className="form-control"
-                      readOnly={true}
-                      type="text"
-                      value={unitAreaInfo?.terracearea}
-                    />
-                  </div>
-                  <div className="form-group col-md-2col-sm-3 col-md-2 col-lg-3 ml-4">
-                    <label>Car Parking No</label>
-                    <input
-                      className="form-control"
-                      name="parking_no"
-                      readOnly={true}
-                      type="text"
-                      value={formik.values.parking_no}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 5th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>RATE CALCULATION</h5>
-                <div className="form-row ml-3">
-                  <div className="form-group col-md-8 form-col-gap">
-                    <div className="row w-100">
-                      <p>
-                        <b>Calculation Method : </b>
-                      </p>
-                      <Col md={2}>
-                        <Form.Check
-                          id="RateBased"
-                          label="Rate Based"
-                          name="calculation_method"
-                          type="radio"
-                          value={'rate_base'}
-                          onChange={e => {
-                            handleChange(e);
-                          }}
-                        />
-                      </Col>
-                      <Col md={2}>
-                        <Form.Check
-                          id="fixedRate"
-                          label="Fixed Amount"
-                          name="calculation_method"
-                          type="radio"
-                          value={'fixed_amount'}
-                          onChange={e => {
-                            handleChange(e);
-                          }}
-                        />
-                      </Col>
-                    </div>
-                    {formik.touched.calculation_method && formik.errors.calculation_method && (
-                      <div className="text-danger">{String(formik.errors.calculation_method)}</div>
-                    )}
-                  </div>
-                </div>
-
-                {values.calculation_method === 'rate_base' ? (
-                  <div>
-                    {/* Rate Based */}
-                    <table className="table">
-                      <thead>
-                        <th>Sr No</th>
-                        <th>Description</th>
-
-                        <th>Area</th>
-                        <th>Rate</th>
-                        <th>Discount</th>
-                        <th>Basic Amount</th>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>01</td>
-                          <td>Basic rate of unit</td>
-                          <td>
-                            <input
-                              readOnly
-                              className="form-control"
-                              name="basic_rate_area"
-                              type="number"
-                              value={values?.basic_rate_area}
-                              onBlur={handleBlur}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control"
-                              name="basic_rate"
-                              type="number"
-                              value={values.basic_rate}
-                              onBlur={handleBlur}
-                              onChange={e => setFieldValue('basic_rate', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <span className="muted-text" style={{ fontSize: '12px' }}>
-                              Amt.
-                            </span>
-                            <input
-                              className="form-control mb-2"
-                              name="basic_rate_disc_amt"
-                              placeholder="Amount"
-                              type="number"
-                              value={values.basic_rate_disc_amt}
-                              onBlur={handleBlur}
-                              onChange={discountSyncedFields.onChangeAmount}
-                            />
-                            <span className="muted-text" style={{ fontSize: '12px' }}>
-                              %
-                            </span>
-                            <input
-                              className="form-control"
-                              name="basic_rate_disc_per"
-                              placeholder="%"
-                              type="number"
-                              value={values.basic_rate_disc_per}
-                              onBlur={handleBlur}
-                              onChange={discountSyncedFields.onChangePercent}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              readOnly
-                              className="form-control"
-                              name="basic_rate_basic_amount"
-                              type="number"
-                              value={values.basic_rate_basic_amount.toFixed(2)}
-                              onBlur={handleBlur}
-                              onChange={handleChange}
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                ) : values.calculation_method === 'fixed_amount' ? (
-                  <div>
-                    {/* Fixed Amount Based */}
-                    <table className="table">
-                      <thead>
-                        <th>Sr No</th>
-                        <th>Description</th>
-                        <th>Rate</th>
-                        <th>Discount</th>
-                        <th>Basic Amount</th>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>01</td>
-                          <td>Basic rate of unit</td>
-                          <td>
-                            <input
-                              className="form-control"
-                              name="basic_rate"
-                              placeholder="Amount"
-                              type="number"
-                              value={values.basic_rate < 0 ? 0 : values.basic_rate}
-                              onBlur={handleBlur}
-                              onChange={handleChange}
-                            />
-                          </td>
-                          <td>
-                            <span className="muted-text" style={{ fontSize: '12px' }}>
-                              Amt.
-                            </span>
-                            <input
-                              className="form-control mb-2"
-                              name="basic_rate_disc_amt"
-                              placeholder="Amount"
-                              type="number"
-                              value={values.basic_rate_disc_amt}
-                              onBlur={handleBlur}
-                              onChange={discountSyncedFields.onChangeAmount}
-                            />
-                            <span className="muted-text" style={{ fontSize: '12px' }}>
-                              %
-                            </span>
-                            <input
-                              className="form-control"
-                              name="basic_rate_disc_per"
-                              placeholder="%"
-                              type="number"
-                              value={values.basic_rate_disc_per}
-                              onBlur={handleBlur}
-                              onChange={discountSyncedFields.onChangePercent}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              readOnly
-                              className="form-control"
-                              name="basic_rate_basic_amount"
-                              type="number"
-                              value={
-                                values.basic_rate_basic_amount < 0
-                                  ? 0
-                                  : values.basic_rate_basic_amount
-                              }
-                              onBlur={handleBlur}
-                              onChange={handleChange}
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                ) : undefined}
-              </div>
-            </div>
-
-            {/* 6th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>OTHER CHARGES</h5>
-
-                <div>
-                  <table className="table">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Title</th>
-                      <th>Distribution Method</th>
-                      <th>Area</th>
-                      <th>Rate</th>
-                      <th>Discount</th>
-                      <th className="text-right">Amount</th>
-                    </thead>
-                    {values.calculation_method ? (
-                      <tbody>
-                        {OCList?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))}
-
-                        <tr>
-                          <td className="text-right font-weight-bold" colSpan={6}>
-                            Other Charges Total
-                          </td>
-                          <td className="text-right">₹ {handleTotalOtherCharge()}</td>
-                        </tr>
-                      </tbody>
-                    ) : undefined}
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            {/* 7th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-6">
-                <h5>OVERALL DISCOUNT</h5>
-
-                <div className="form-row">
-                  <div className="form-group col-md-4">
-                    <label>Total Discount</label>
-                    <input
-                      readOnly
-                      className="form-control"
-                      type="number"
-                      value={(
-                        parseFloat(handleTotalOtherDiscountAmt()) +
-                        Number(values.basic_rate_disc_amt)
-                      ).toFixed(2)}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group col">
-                    <label>Discount Remark</label>
-                    <textarea
-                      className="form-control"
-                      name="disc_remarks"
-                      rows={2}
-                      value={values.disc_remarks}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 8th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-6">
-                <h5>GOVERNMENT TAXES</h5>
-                <div className="form-row">
-                  <div className="form-group col-md-6">
-                    <label style={{ display: 'flex', gap: '1rem' }}>
-                      <span>Sub Total Amount </span>
-                      <span className="muted-text"> (Basic Amt + Other Charges)</span>
-                    </label>
-                    <input
-                      readOnly
-                      className="form-control"
-                      type="number"
-                      value={
-                        values.calculation_method
-                          ? (
-                              Number(values.basic_rate_basic_amount) +
-                              parseFloat(handleTotalOtherCharge())
-                            ).toFixed(2)
-                          : '0.00'
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-3 form-col-gap">
-                    <label>GST</label>
-                  </div>
-                  <div className="form-group col-2  pr-4">
-                    <label>%</label>
-                    <input
-                      className="form-control"
-                      name="gst_per"
-                      type="number"
-                      value={values.gst_per}
-                      onChange={gstSyncedFields.onChangePercent}
-                    />
-                  </div>
-                  <div className="form-group col-3">
-                    <label>Amt</label>
-                    <input
-                      className="form-control"
-                      name="gst_amt"
-                      type="number"
-                      value={values.gst_amt}
-                      onChange={gstSyncedFields.onChangeAmount}
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-3 form-col-gap">
-                    <label>Stamp Duty</label>
-                  </div>
-                  <div className="form-group col-2  pr-4">
-                    <label>%</label>
-                    <input
-                      className="form-control"
-                      name="stampduty_per"
-                      type="number"
-                      value={values.stampduty_per}
-                      onChange={stampDutySyncedFields.onChangePercent}
-                    />
-                  </div>
-                  <div className="form-group col-3">
-                    <label>Amt</label>
-                    <input
-                      className="form-control"
-                      name="stampduty_amount"
-                      type="number"
-                      value={values.stampduty_amount}
-                      onChange={stampDutySyncedFields.onChangeAmount}
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-3 form-col-gap">
-                    <label>Registration</label>
-                  </div>
-                  <div className="form-group col-2  pr-4">
-                    <label>%</label>
-                    <input
-                      className="form-control"
-                      name="reg_per"
-                      type="number"
-                      value={values.reg_per}
-                      onChange={registrationSyncedFields.onChangePercent}
-                    />
-                  </div>
-                  <div className="form-group col-3">
-                    <label>Amt</label>
-                    <input
-                      className="form-control"
-                      name="reg_amount"
-                      type="number"
-                      value={values.reg_amount}
-                      onChange={registrationSyncedFields.onChangeAmount}
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group col-3 form-col-gap">
-                    <label>Taxes Total</label>
-                  </div>
-                  <div className="form-group col-5  pr-4">
-                    <input
-                      readOnly
-                      className="form-control"
-                      value={(values.gst_amt + values.stampduty_amount + values.reg_amount).toFixed(
-                        2,
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 9th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>EXTRA CHARGES</h5>
-
-                <div>
-                  <table className="table">
-                    <thead>
-                      <th>Sr No</th>
-                      <th>Title</th>
-                      <th>Distribution Method</th>
-                      <th>Area</th>
-                      <th>Rate</th>
-                      <th>Discount</th>
-                      <th className="text-right">Amount</th>
-                      <th></th>
-                    </thead>
-                    {values.calculation_method ? (
-                      <tbody>
-                        {extraCharges?.map((x, i) => extraChargeRow(i, x))}
-                        {/* total */}
-                        <tr>
-                          <td className="text-right font-weight-bold" colSpan={6}>
-                            Extra Charges Total
-                          </td>
-                          <td className="font-weight-bold">
-                            ₹{' '}
-                            {parseFloat(handleTotalExtraCharge()) < 0
-                              ? 0
-                              : parseFloat(handleTotalExtraCharge())}
-                          </td>
-                        </tr>
-                      </tbody>
-                    ) : undefined}
-                  </table>
-                  <div className="row w-100">
-                    <button
-                      className="Btn btn-lightblue-primary lbps-btn"
-                      type="button"
-                      onClick={handleExtraChargeAdd}
-                    >
-                      Add More
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 10th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>SUMMARY</h5>
-
-                <div className="row">
-                  <div className="col-4">
-                    <table className="table">
-                      <tbody>
-                        <tr>
-                          <td>Basic Amount</td>
-                          <td>
-                            <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (+)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {values.basic_rate_basic_amount.toFixed(2)}
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Other Charges Total</td>
-                          <td>
-                            <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (+)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {' '}
-                                {values.calculation_method ? handleTotalOtherCharge() : '0.00'}{' '}
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Total Discount (Sale Deed Amount)</td>
-                          <td>
-                            <span className="red-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (-)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {isNaN(
-                                  parseFloat(handleTotalOtherDiscountAmt()) +
-                                    Number(values.basic_rate_disc_amt),
-                                )
-                                  ? '0.00'
-                                  : (
-                                      parseFloat(handleTotalOtherDiscountAmt()) +
-                                      Number(values.basic_rate_disc_amt)
-                                    ).toFixed(2)}
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Government Taxes Total</td>
-                          <td>
-                            <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (+)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {isNaN(values.gst_amt + values.stampduty_amount + values.reg_amount)
-                                  ? `0.00`
-                                  : (
-                                      values.gst_amt +
-                                      values.stampduty_amount +
-                                      values.reg_amount
-                                    ).toFixed(2)}
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Extra Charges</td>
-                          <td>
-                            <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
-                              <span> (+)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {' '}
-                                {values.calculation_method ? handleTotalExtraCharge() : '0.00'}{' '}
-                              </span>
-                            </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <p className="font-weight-bold">Property Final Amount</p>
-                          </td>
-                          <td>
-                            <p
-                              className="font-weight-bold green-text"
-                              style={{ display: 'flex', gap: '1.9rem' }}
-                            >
-                              <span> (+)</span>
-                              <span> ₹ </span>
-                              <span style={{ textAlign: 'right' }}>
-                                {' '}
-                                {values.calculation_method
-                                  ? isNaN(
-                                      Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge()),
-                                    )
-                                    ? (
-                                        Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge())
-                                      ).toFixed(2)
-                                    : (
-                                        Number(values.basic_rate_basic_amount) +
-                                        parseFloat(handleTotalOtherCharge()) +
-                                        values.gst_amt +
-                                        values.stampduty_amount +
-                                        values.reg_amount +
-                                        parseFloat(handleTotalExtraCharge())
-                                      ).toFixed(2)
-                                  : '0.00'}
-                              </span>
-                            </p>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 11th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-6">
-                <h5>LOAN DETAILS</h5>
-
-                <div className="form-row">
-                  <div className="col-6">
-                    <label>Do you wish to take a loan?</label>
-                    <div className="form-row">
-                      <div className="col-6">
-                        <div className="rd-grp form-check-inline">
-                          <label className="rd-container check-yes">
-                            Yes
-                            <input
-                              checked={!isToggle}
-                              name="radio"
-                              type="radio"
-                              value={values.is_loan}
-                              onChange={handleToggle}
-                            />
-                            <span className="checkmark"></span>
-                          </label>
-                          <label className="rd-container check-no">
-                            No
-                            <input
-                              checked={isToggle}
-                              name="radio"
-                              type="radio"
-                              value={values.is_loan}
-                              onChange={handleToggle}
-                            />
-                            <span className="checkmark"></span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {!isToggle && (
-                  <>
-                    <div className="form-row mt-3">
-                      <div className="form-group col form-col-gap">
-                        <label>Loan Amount</label>
+                      <div className="form-group col">
+                        <label>Brokerage Amt.</label>
                         <input
                           className="form-control"
-                          id="loan_amt"
-                          name="loan_amt"
-                          type="number"
-                          value={values.loan_amt}
+                          name="brokerage"
+                          type="text"
+                          value={values.brokerage}
                           onChange={handleChange}
                         />
                       </div>
-                      <div className="form-group col">
-                        <label>Bank</label>
-                        <Select
-                          closeMenuOnSelect={true}
-                          name="bank"
-                          options={bankListOptions}
-                          placeholder="Banks List"
-                          styles={{
-                            container: base => ({
-                              ...base,
-                              width: '81%',
-                              marginTop: 0,
-                            }),
-                          }}
-                          onChange={e => setFieldValue('bank', e.value)}
-                        />
-                      </div>
                     </div>
                     <div className="form-row">
                       <div className="form-group col">
-                        <label>Remarks</label>
+                        <label>Remark</label>
                         <textarea
                           className="form-control"
-                          cols={20}
-                          id="loan_remarks"
-                          name="loan_remarks"
-                          rows={10}
-                          value={values.loan_remarks}
+                          name="broker_remark"
+                          value={values.broker_remark}
                           onChange={handleChange}
                         ></textarea>
                       </div>
                     </div>
                   </>
-                )}
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {/* 3rd section */}
+          <div
+            className="booking-form-box shwan-form mt-4"
+            style={{
+              border:
+                formik.errors.ownership &&
+                !_.isArray(formik.errors.ownership) &&
+                '1.2px solid rgba(255, 93, 93) ',
+            }}
+          >
+            <div className="booking-form-col-12">
+              <div className="d-flex align-items-center justify-content-between">
+                <h5>OWNERSHIP DETAILS</h5>
+                <button
+                  className="Btn btn-lightblue-primary lbps-btn mr-0"
+                  type="button"
+                  onClick={handleAddOwnership}
+                >
+                  Add Owner
+                </button>
+              </div>
+              {values.ownership.length ? (
+                <table className="table my-3">
+                  <thead>
+                    <th>Sr No</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>PAN</th>
+                    <th>Aadhar</th>
+                    <th></th>
+                  </thead>
+                  <tbody>
+                    {values.ownership?.map((owner, index) => OwnerShipRow(owner, index))}
+                  </tbody>
+                </table>
+              ) : undefined}
+            </div>
+          </div>
+
+          {/* 4th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>UNIT INFO</h5>
+
+              <div className="form-row">
+                <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-4 ">
+                  <label>Unit Reservation Date</label>
+                  <input
+                    className="form-control"
+                    name="unit_reserved_date"
+                    type="date"
+                    value={formik.values.unit_reserved_date}
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                  />
+                </div>
+                <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-4 ">
+                  <label htmlFor="inputPassword4">Unit Info</label>
+                  <input
+                    className="form-control"
+                    readOnly={true}
+                    type="text"
+                    value={unitInfoValues?.title}
+                  />
+                </div>
+                <div className="form-group col-sm-3 col-md-2 col-lg-3 mr-2">
+                  <label htmlFor="inputPassword4">Super Buildup Area</label>
+                  <input
+                    className="form-control"
+                    readOnly={true}
+                    type="number"
+                    value={unitAreaInfo?.super_build_up_area}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group col-sm-3 col-md-2 col-lg-3">
+                  <label>Terrace Area</label>
+                  <input
+                    className="form-control"
+                    readOnly={true}
+                    type="text"
+                    value={unitAreaInfo?.terracearea}
+                  />
+                </div>
+                <div className="form-group col-md-2col-sm-3 col-md-2 col-lg-3 ml-4">
+                  <label>Car Parking No</label>
+                  <input
+                    className="form-control"
+                    name="parking_no"
+                    readOnly={true}
+                    type="text"
+                    value={formik.values.parking_no}
+                  />
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* 12th section */}
-            <div className="booking-form-box shwan-form mt-4">
-              <div className="booking-form-col-12">
-                <h5>TERMS & CONDITIONS</h5>
-
-                <div className="form-row mb-4">
-                  <div className="col-4">
-                    <label>Select T&C Template</label>
-                    <Select
-                      closeMenuOnSelect={true}
-                      options={termsOptions}
-                      placeholder="Select Terms & Conditions"
-                      styles={{
-                        container: base => ({
-                          ...base,
-                          marginTop: 10,
-                          marginBottom: 50,
-                        }),
-                      }}
-                      onChange={e => {
-                        setTermsId(e.value);
-                        setFieldValue('custom_payment_remark', e.details.replace(HTML_REGEX, ''));
-                      }}
-                    />
+          {/* 5th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>RATE CALCULATION</h5>
+              <div className="form-row ml-3">
+                <div className="form-group col-md-8 form-col-gap">
+                  <div className="row w-100">
+                    <p>
+                      <b>Calculation Method : </b>
+                    </p>
+                    <Col md={2}>
+                      <Form.Check
+                        id="RateBased"
+                        label="Rate Based"
+                        name="calculation_method"
+                        type="radio"
+                        value={'rate_base'}
+                        onChange={e => {
+                          handleChange(e);
+                        }}
+                      />
+                    </Col>
+                    <Col md={2}>
+                      <Form.Check
+                        id="fixedRate"
+                        label="Fixed Amount"
+                        name="calculation_method"
+                        type="radio"
+                        value={'fixed_amount'}
+                        onChange={e => {
+                          handleChange(e);
+                        }}
+                      />
+                    </Col>
                   </div>
-                  <div className="col-10 px-0">
-                    <textarea
-                      className="form-control"
-                      name="custom_payment_remark"
-                      value={values.custom_payment_remark}
-                      onChange={handleChange}
-                    ></textarea>
+                  {formik.touched.calculation_method && formik.errors.calculation_method && (
+                    <div className="text-danger">{String(formik.errors.calculation_method)}</div>
+                  )}
+                </div>
+              </div>
+
+              {values.calculation_method === 'rate_base' ? (
+                <div>
+                  {/* Rate Based */}
+                  <table className="table">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Description</th>
+
+                      <th>Area</th>
+                      <th>Rate</th>
+                      <th>Discount</th>
+                      <th>Basic Amount</th>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>01</td>
+                        <td>Basic rate of unit</td>
+                        <td>
+                          <input
+                            readOnly
+                            className="form-control"
+                            name="basic_rate_area"
+                            type="number"
+                            value={values?.basic_rate_area}
+                            onBlur={handleBlur}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="form-control"
+                            name="basic_rate"
+                            type="number"
+                            value={values.basic_rate}
+                            onBlur={handleBlur}
+                            onChange={e => setFieldValue('basic_rate', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <span className="muted-text" style={{ fontSize: '12px' }}>
+                            Amt.
+                          </span>
+                          <input
+                            className="form-control mb-2"
+                            name="basic_rate_disc_amt"
+                            placeholder="Amount"
+                            type="number"
+                            value={values.basic_rate_disc_amt}
+                            onBlur={handleBlur}
+                            onChange={discountSyncedFields.onChangeAmount}
+                          />
+                          <span className="muted-text" style={{ fontSize: '12px' }}>
+                            %
+                          </span>
+                          <input
+                            className="form-control"
+                            name="basic_rate_disc_per"
+                            placeholder="%"
+                            type="number"
+                            value={values.basic_rate_disc_per}
+                            onBlur={handleBlur}
+                            onChange={discountSyncedFields.onChangePercent}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            readOnly
+                            className="form-control"
+                            name="basic_rate_basic_amount"
+                            type="number"
+                            value={values.basic_rate_basic_amount.toFixed(2)}
+                            onBlur={handleBlur}
+                            onChange={handleChange}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : values.calculation_method === 'fixed_amount' ? (
+                <div>
+                  {/* Fixed Amount Based */}
+                  <table className="table">
+                    <thead>
+                      <th>Sr No</th>
+                      <th>Description</th>
+                      <th>Rate</th>
+                      <th>Discount</th>
+                      <th>Basic Amount</th>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>01</td>
+                        <td>Basic rate of unit</td>
+                        <td>
+                          <input
+                            className="form-control"
+                            name="basic_rate"
+                            placeholder="Amount"
+                            type="number"
+                            value={values.basic_rate < 0 ? 0 : values.basic_rate}
+                            onBlur={handleBlur}
+                            onChange={handleChange}
+                          />
+                        </td>
+                        <td>
+                          <span className="muted-text" style={{ fontSize: '12px' }}>
+                            Amt.
+                          </span>
+                          <input
+                            className="form-control mb-2"
+                            name="basic_rate_disc_amt"
+                            placeholder="Amount"
+                            type="number"
+                            value={values.basic_rate_disc_amt}
+                            onBlur={handleBlur}
+                            onChange={discountSyncedFields.onChangeAmount}
+                          />
+                          <span className="muted-text" style={{ fontSize: '12px' }}>
+                            %
+                          </span>
+                          <input
+                            className="form-control"
+                            name="basic_rate_disc_per"
+                            placeholder="%"
+                            type="number"
+                            value={values.basic_rate_disc_per}
+                            onBlur={handleBlur}
+                            onChange={discountSyncedFields.onChangePercent}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            readOnly
+                            className="form-control"
+                            name="basic_rate_basic_amount"
+                            type="number"
+                            value={
+                              values.basic_rate_basic_amount < 0
+                                ? 0
+                                : values.basic_rate_basic_amount
+                            }
+                            onBlur={handleBlur}
+                            onChange={handleChange}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : undefined}
+            </div>
+          </div>
+
+          {/* 6th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>OTHER CHARGES</h5>
+
+              <div>
+                <table className="table">
+                  <thead>
+                    <th>Sr No</th>
+                    <th>Title</th>
+                    <th>Distribution Method</th>
+                    <th>Area</th>
+                    <th>Rate</th>
+                    <th>Discount</th>
+                    <th className="text-right">Amount</th>
+                  </thead>
+                  {values.calculation_method ? (
+                    <tbody>
+                      {OCList?.other_charge_unit_rates?.map((x, i) => OtherCharges(i, x))}
+
+                      <tr>
+                        <td className="text-right font-weight-bold" colSpan={6}>
+                          Other Charges Total
+                        </td>
+                        <td className="text-right">₹ {handleTotalOtherCharge()}</td>
+                      </tr>
+                    </tbody>
+                  ) : undefined}
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* 7th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-6">
+              <h5>OVERALL DISCOUNT</h5>
+
+              <div className="form-row">
+                <div className="form-group col-md-4">
+                  <label>Total Discount</label>
+                  <input
+                    readOnly
+                    className="form-control"
+                    type="number"
+                    value={(
+                      parseFloat(handleTotalOtherDiscountAmt()) + Number(values.basic_rate_disc_amt)
+                    ).toFixed(2)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group col">
+                  <label>Discount Remark</label>
+                  <textarea
+                    className="form-control"
+                    name="disc_remarks"
+                    rows={2}
+                    value={values.disc_remarks}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 8th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-6">
+              <h5>GOVERNMENT TAXES</h5>
+              <div className="form-row">
+                <div className="form-group col-md-6">
+                  <label style={{ display: 'flex', gap: '1rem' }}>
+                    <span>Sub Total Amount </span>
+                    <span className="muted-text"> (Basic Amt + Other Charges)</span>
+                  </label>
+                  <input
+                    readOnly
+                    className="form-control"
+                    type="number"
+                    value={
+                      values.calculation_method
+                        ? (
+                            Number(values.basic_rate_basic_amount) +
+                            parseFloat(handleTotalOtherCharge())
+                          ).toFixed(2)
+                        : '0.00'
+                    }
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group col-3 form-col-gap">
+                  <label>GST</label>
+                </div>
+                <div className="form-group col-2  pr-4">
+                  <label>%</label>
+                  <input
+                    className="form-control"
+                    name="gst_per"
+                    type="number"
+                    value={values.gst_per}
+                    onChange={gstSyncedFields.onChangePercent}
+                  />
+                </div>
+                <div className="form-group col-3">
+                  <label>Amt</label>
+                  <input
+                    className="form-control"
+                    name="gst_amt"
+                    type="number"
+                    value={values.gst_amt}
+                    onChange={gstSyncedFields.onChangeAmount}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group col-3 form-col-gap">
+                  <label>Stamp Duty</label>
+                </div>
+                <div className="form-group col-2  pr-4">
+                  <label>%</label>
+                  <input
+                    className="form-control"
+                    name="stampduty_per"
+                    type="number"
+                    value={values.stampduty_per}
+                    onChange={stampDutySyncedFields.onChangePercent}
+                  />
+                </div>
+                <div className="form-group col-3">
+                  <label>Amt</label>
+                  <input
+                    className="form-control"
+                    name="stampduty_amount"
+                    type="number"
+                    value={values.stampduty_amount}
+                    onChange={stampDutySyncedFields.onChangeAmount}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group col-3 form-col-gap">
+                  <label>Registration</label>
+                </div>
+                <div className="form-group col-2  pr-4">
+                  <label>%</label>
+                  <input
+                    className="form-control"
+                    name="reg_per"
+                    type="number"
+                    value={values.reg_per}
+                    onChange={registrationSyncedFields.onChangePercent}
+                  />
+                </div>
+                <div className="form-group col-3">
+                  <label>Amt</label>
+                  <input
+                    className="form-control"
+                    name="reg_amount"
+                    type="number"
+                    value={values.reg_amount}
+                    onChange={registrationSyncedFields.onChangeAmount}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group col-3 form-col-gap">
+                  <label>Taxes Total</label>
+                </div>
+                <div className="form-group col-5  pr-4">
+                  <input
+                    readOnly
+                    className="form-control"
+                    value={(values.gst_amt + values.stampduty_amount + values.reg_amount).toFixed(
+                      2,
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 9th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>EXTRA CHARGES</h5>
+
+              <div>
+                <table className="table">
+                  <thead>
+                    <th>Sr No</th>
+                    <th>Title</th>
+                    <th>Distribution Method</th>
+                    <th>Area</th>
+                    <th>Rate</th>
+                    <th>Discount</th>
+                    <th className="text-right">Amount</th>
+                    <th></th>
+                  </thead>
+                  {values.calculation_method ? (
+                    <tbody>
+                      {extraCharges?.map((x, i) => extraChargeRow(i, x))}
+                      {/* total */}
+                      <tr>
+                        <td className="text-right font-weight-bold" colSpan={6}>
+                          Extra Charges Total
+                        </td>
+                        <td className="font-weight-bold">
+                          ₹{' '}
+                          {parseFloat(handleTotalExtraCharge()) < 0
+                            ? 0
+                            : parseFloat(handleTotalExtraCharge())}
+                        </td>
+                      </tr>
+                    </tbody>
+                  ) : undefined}
+                </table>
+                <div className="row w-100">
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn"
+                    type="button"
+                    onClick={handleExtraChargeAdd}
+                  >
+                    Add More
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 10th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>SUMMARY</h5>
+
+              <div className="row">
+                <div className="col-4">
+                  <table className="table">
+                    <tbody>
+                      <tr>
+                        <td>Basic Amount</td>
+                        <td>
+                          <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
+                            <span> (+)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {values.basic_rate_basic_amount.toFixed(2)}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Other Charges Total</td>
+                        <td>
+                          <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
+                            <span> (+)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {' '}
+                              {values.calculation_method ? handleTotalOtherCharge() : '0.00'}{' '}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Total Discount (Sale Deed Amount)</td>
+                        <td>
+                          <span className="red-text" style={{ display: 'flex', gap: '2rem' }}>
+                            <span> (-)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {isNaN(
+                                parseFloat(handleTotalOtherDiscountAmt()) +
+                                  Number(values.basic_rate_disc_amt),
+                              )
+                                ? '0.00'
+                                : (
+                                    parseFloat(handleTotalOtherDiscountAmt()) +
+                                    Number(values.basic_rate_disc_amt)
+                                  ).toFixed(2)}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Government Taxes Total</td>
+                        <td>
+                          <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
+                            <span> (+)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {isNaN(values.gst_amt + values.stampduty_amount + values.reg_amount)
+                                ? `0.00`
+                                : (
+                                    values.gst_amt +
+                                    values.stampduty_amount +
+                                    values.reg_amount
+                                  ).toFixed(2)}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Extra Charges</td>
+                        <td>
+                          <span className="green-text" style={{ display: 'flex', gap: '2rem' }}>
+                            <span> (+)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {' '}
+                              {values.calculation_method ? handleTotalExtraCharge() : '0.00'}{' '}
+                            </span>
+                          </span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <p className="font-weight-bold">Property Final Amount</p>
+                        </td>
+                        <td>
+                          <p
+                            className="font-weight-bold green-text"
+                            style={{ display: 'flex', gap: '1.9rem' }}
+                          >
+                            <span> (+)</span>
+                            <span> ₹ </span>
+                            <span style={{ textAlign: 'right' }}>
+                              {' '}
+                              {values.calculation_method
+                                ? isNaN(
+                                    Number(values.basic_rate_basic_amount) +
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                      parseFloat(handleTotalExtraCharge()),
+                                  )
+                                  ? (
+                                      Number(values.basic_rate_basic_amount) +
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)
+                                  : (
+                                      Number(values.basic_rate_basic_amount) +
+                                      parseFloat(handleTotalOtherCharge()) +
+                                      values.gst_amt +
+                                      values.stampduty_amount +
+                                      values.reg_amount +
+                                      parseFloat(handleTotalExtraCharge())
+                                    ).toFixed(2)
+                                : '0.00'}
+                            </span>
+                          </p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 11th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-6">
+              <h5>LOAN DETAILS</h5>
+
+              <div className="form-row">
+                <div className="col-6">
+                  <label>Do you wish to take a loan?</label>
+                  <div className="form-row">
+                    <div className="col-6">
+                      <div className="rd-grp form-check-inline">
+                        <label className="rd-container check-yes">
+                          Yes
+                          <input
+                            checked={!isToggle}
+                            name="radio"
+                            type="radio"
+                            value={values.is_loan}
+                            onChange={handleToggle}
+                          />
+                          <span className="checkmark"></span>
+                        </label>
+                        <label className="rd-container check-no">
+                          No
+                          <input
+                            checked={isToggle}
+                            name="radio"
+                            type="radio"
+                            value={values.is_loan}
+                            onChange={handleToggle}
+                          />
+                          <span className="checkmark"></span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="booking-form-col-12">
-                <div className="form-row mb-4">
-                  <div className="bookingform-footer mt-5">
-                    <button className="Btn btn-lightblue-primary" type="submit">
-                      Submit For Approval
-                    </button>
-                    <button
-                      className="Btn btn-lightblue-primary lbps-btn"
-                      data-dismiss="modal"
-                      type="button"
-                      onClick={() => window.location.replace(OLD_SITE)}
-                    >
-                      Cancel
-                    </button>
+              {!isToggle && (
+                <>
+                  <div className="form-row mt-3">
+                    <div className="form-group col form-col-gap">
+                      <label>Loan Amount</label>
+                      <input
+                        className="form-control"
+                        id="loan_amt"
+                        name="loan_amt"
+                        type="number"
+                        value={values.loan_amt}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group col">
+                      <label>Bank</label>
+                      <Select
+                        closeMenuOnSelect={true}
+                        name="bank"
+                        options={bankListOptions}
+                        placeholder="Banks List"
+                        styles={{
+                          container: base => ({
+                            ...base,
+                            width: '81%',
+                            marginTop: 0,
+                          }),
+                        }}
+                        onChange={e => setFieldValue('bank', e.value)}
+                      />
+                    </div>
                   </div>
+                  <div className="form-row">
+                    <div className="form-group col">
+                      <label>Remarks</label>
+                      <textarea
+                        className="form-control"
+                        cols={20}
+                        id="loan_remarks"
+                        name="loan_remarks"
+                        rows={10}
+                        value={values.loan_remarks}
+                        onChange={handleChange}
+                      ></textarea>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* 12th section */}
+          <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>TERMS & CONDITIONS</h5>
+
+              <div className="form-row mb-4">
+                <div className="col-4">
+                  <label>Select T&C Template</label>
+                  <Select
+                    closeMenuOnSelect={true}
+                    options={termsOptions}
+                    placeholder="Select Terms & Conditions"
+                    styles={{
+                      container: base => ({
+                        ...base,
+                        marginTop: 10,
+                        marginBottom: 50,
+                      }),
+                    }}
+                    onChange={e => {
+                      setTermsId(e.value);
+                      setFieldValue('custom_payment_remark', e.details.replace(HTML_REGEX, ''));
+                    }}
+                  />
+                </div>
+                <div className="col-10 px-0">
+                  <textarea
+                    className="form-control"
+                    name="custom_payment_remark"
+                    value={values.custom_payment_remark}
+                    onChange={handleChange}
+                  ></textarea>
                 </div>
               </div>
             </div>
-          </Form>
+
+            <div className="booking-form-col-12">
+              <div className="form-row mb-4">
+                <div className="bookingform-footer mt-5">
+                  <button
+                    className="Btn btn-lightblue-primary"
+                    type="button"
+                    onClick={() => {
+                      handleSubmit();
+                      scrollToError();
+                    }}
+                  >
+                    Submit For Approval
+                  </button>
+                  <button
+                    className="Btn btn-lightblue-primary lbps-btn"
+                    data-dismiss="modal"
+                    type="button"
+                    onClick={() => window.location.replace(OLD_SITE)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>
