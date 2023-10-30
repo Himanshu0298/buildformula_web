@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
+import InputMask from 'react-input-mask';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
@@ -21,6 +22,8 @@ import {
   getBookingFormOwnerFlag,
   getBrokerList,
   getCustomersList,
+  // getInstallmentDetails,
+  getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
   getProjectUnitStatus,
@@ -47,7 +50,6 @@ import * as Yup from 'yup';
 
 import AddBrokerModal from './components/AddBrokerModal';
 import AddCustomerModal from './components/AddCustomerModal';
-import InputMask from 'react-input-mask';
 
 const BookingForm = () => {
   const dispatch = useAppDispatch();
@@ -83,6 +85,8 @@ const BookingForm = () => {
     projectUnitStatus,
     ownership_validation_flag,
     loading,
+    // installmentsList,
+    // installmentsInformation,
   } = useAppSelector(s => s.sales);
 
   const VALIDATION_REQUIRED_OWNERSHIP =
@@ -90,6 +94,9 @@ const BookingForm = () => {
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
+  // const [_installmentsList, setInstallmentsList] = useState([]);
+  // const [installmentId, setInstallmentId] = useState<number>(0);
+  // const [showInstall, setShowInstall] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
@@ -216,6 +223,14 @@ const BookingForm = () => {
     }));
   }, [banksList]);
 
+  // installment Options
+  // const installmentOptions = useMemo(() => {
+  //   return installmentsList?.payment_scheduled_master?.map(e => ({
+  //     label: e.title,
+  //     value: e.id,
+  //   }));
+  // }, [installmentsList]);
+
   // filtering units for time
   const unitTimerData = useMemo(() => {
     const _timerData = projectUnitStatus?.find(e => e.id === Number(unit_id));
@@ -251,7 +266,7 @@ const BookingForm = () => {
     dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
     dispatch(getTermsnConditions({ project_id }));
     dispatch(getBookingFormOwnerFlag({ project_id }));
-    // dispatch(getInstallmentOptions({ project_id }));
+    dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(updateFormFillingStatus({ project_id, unit_id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -270,12 +285,209 @@ const BookingForm = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // installments details
+  // useEffect(() => {
+  //   dispatch(
+  //     getInstallmentDetails({
+  //       project_id: 18,
+  //       payment_scheduled_master_id: installmentId,
+  //     }),
+  //   );
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [installmentId]);
+
   // Extra Charges list populate
   useEffect(() => {
     handleUpdateExtraCharges();
     handle_Extra_Charge_Row_Total();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraChargesList, otherChargesList, unitAreaInfo]);
+
+  // installment calculations
+  // useEffect(() => {
+  //   if (installmentsInformation) {
+  //     let updatedList =
+  //       installmentsInformation?.payment_scheduled_details_master?.map(item => ({
+  //         ...item,
+  //         installment_basic_amt: 0,
+  //         installment_otherchages_amt: 0,
+  //         gst: 0,
+  //         installment_amount: 0,
+  //       })) || [];
+
+  //     updatedList.push({
+  //       installment_otherchages_amt: 0,
+  //       installment_amount: 0,
+  //       custom_payment_no: 0,
+  //       title: 'Other Charges (Separately)',
+  //       installment_due_date: '',
+  //       lastRow: 'true',
+  //     } as any);
+
+  //     updatedList?.map(installment => {
+  //       if (!installment.lastRow) {
+  //         const calculatedAmount = (
+  //           (parseFloat(values.basic_rate_basic_amount) * installment.percentage) /
+  //           100
+  //         ).toFixed(2);
+  //         installment.installment_basic_amt = parseFloat(calculatedAmount);
+  //         return installment;
+  //       }
+  //       return installment;
+  //     });
+
+  //     extraCharges?.map(extraCharge => {
+  //       const { extra_charges_distribution_method, extra_charges_total } = extraCharge;
+  //       const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
+
+  //       switch (extra_charges_distribution_method) {
+  //         case 'Equally with all installments': {
+  //           const equallyDistributedAmount = extra_charges_total / installmentLen;
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt += parseFloat(
+  //                 equallyDistributedAmount.toFixed(2),
+  //               );
+  //               return installment;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Proportionately with all installment': {
+  //           const proportionatelyDistributedWithAll = extra_charges_total / installmentLen;
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt +=
+  //                 (proportionatelyDistributedWithAll * installment.percentage) / 100;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Proportionately with all installment(Except First)': {
+  //           const proportionatelyDistributedAmount = extra_charges_total / (installmentLen - 1);
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt +=
+  //                 (proportionatelyDistributedAmount * installment.percentage) / 100;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Connect with last installment': {
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index === installmentLen - 1 && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt += extra_charges_total;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Dont connect with installment': {
+  //           updatedList = updatedList.map(installment => {
+  //             if (installment?.lastRow) {
+  //               installment.installment_otherchages_amt += extra_charges_total;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         default:
+  //       }
+  //     });
+
+  //     OCList?.other_charge_unit_rates?.map(oclist => {
+  //       const { other_charges_distribution_method, otherChargesTotal } = oclist;
+  //       const installmentLen = updatedList.length > 1 ? updatedList.length - 1 : 1;
+
+  //       switch (other_charges_distribution_method) {
+  //         case 'Equally with all installments': {
+  //           const equallyDistributedAmount = otherChargesTotal / installmentLen;
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt += parseFloat(
+  //                 equallyDistributedAmount.toFixed(2),
+  //               );
+  //               return installment;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Proportionately with all installment': {
+  //           const proportionatelyDistributedWithAll = otherChargesTotal / installmentLen;
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt +=
+  //                 (proportionatelyDistributedWithAll * installment.percentage) / 100;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Proportionately with all installment(Except First)': {
+  //           const proportionatelyDistributedAmount = otherChargesTotal / (installmentLen - 1);
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index !== 0 && index !== installmentLen && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt +=
+  //                 (proportionatelyDistributedAmount * installment.percentage) / 100;
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Connect with last installment': {
+  //           updatedList = updatedList.map((installment, index) => {
+  //             if (index === installmentLen - 1 && !installment?.lastRow) {
+  //               installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         case 'Dont connect with installment': {
+  //           updatedList = updatedList.map(installment => {
+  //             if (installment?.lastRow) {
+  //               installment.installment_otherchages_amt += parseFloat(otherChargesTotal);
+  //             }
+  //             return installment;
+  //           });
+  //           break;
+  //         }
+
+  //         default:
+  //       }
+  //     });
+
+  //     return setInstallmentsList(updatedList);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [OCList, extraCharges, installmentsInformation]);
+
+  // broker selected
+  useEffect(() => {
+    const brokerID = customerDetails?.brokers_id !== null ? customerDetails?.brokers_id : 0;
+    if (brokerID) {
+      setFieldValue('broker_id', brokerID);
+      setFieldValue('through_broker', true);
+
+      const brokerDetails = brokerList?.find(e => e.id === brokerID);
+
+      setBrokerDetails(brokerDetails);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerDetails]);
 
   // other charges update, delete
   const handleTotalOtherCharge = useCallback(() => {
@@ -872,6 +1084,98 @@ const BookingForm = () => {
     );
   };
 
+  // installments
+  // const handlePaymentSchedule = (index, field, value) => {
+  //   setInstallmentsList(prevList => {
+  //     const newUnitRates = [...prevList];
+  //     newUnitRates[index] = {
+  //       ...newUnitRates[index],
+  //       [field]: value,
+  //     };
+
+  //     const basicAmount = parseFloat(newUnitRates[index].installment_basic_amt) || 0;
+  //     const otherChargesAmt = parseFloat(newUnitRates[index].installment_otherchages_amt) || 0;
+  //     const gst_per = parseFloat(newUnitRates[index].gst) || 0;
+
+  //     // Calculate the totalPaymentSchedule
+  //     const gstAmount = (basicAmount + otherChargesAmt) * (gst_per / 100);
+  //     const totalPaymentSchedule = basicAmount + otherChargesAmt + gstAmount;
+
+  //     newUnitRates[index].installment_basic_amt = parseFloat(basicAmount.toFixed(2));
+
+  //     newUnitRates[index].installment_amount = totalPaymentSchedule.toFixed(2);
+
+  //     return newUnitRates;
+  //   });
+  // };
+
+  // const handleTotalPaymentCharge = () => {
+  //   let total = 0;
+  //   _installmentsList?.forEach(charge => {
+  //     total += parseFloat(charge?.installment_amount) || 0;
+  //   });
+  //   return total.toFixed(2);
+  // };
+
+  // const PaymentSchedule = (i, e) => {
+  //   return (
+  //     <tr key={`${i}_${e.id}`}>
+  //       <td>{i + 1}</td>
+  //       <td>{e.title}</td>
+  //       <td>
+  //         <input
+  //           className="form-control"
+  //           type="date"
+  //           value={e.date}
+  //           onChange={x => {
+  //             handlePaymentSchedule(i, 'date', x.target.value);
+  //           }}
+  //         />
+  //       </td>
+
+  //       <td>
+  //         {!e.lastRow && <input className="form-control" type="number" value={e.percentage} />}
+  //       </td>
+  //       <td>
+  //         {!e.lastRow && (
+  //           <input className="form-control" type="number" value={e.installment_basic_amt} />
+  //         )}
+  //       </td>
+  //       <td>
+  //         <input
+  //           className="form-control"
+  //           type="number"
+  //           value={e.installment_otherchages_amt}
+  //           onChange={e => {
+  //             handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
+  //           }}
+  //         />
+  //       </td>
+  //       <td>
+  //         {!e.lastRow && (
+  //           <input
+  //             className="form-control"
+  //             maxLength={100}
+  //             type="number"
+  //             value={e.gst}
+  //             onChange={e => {
+  //               if (parseFloat(e.target.value) > 100) {
+  //                 handlePaymentSchedule(i, 'gst', 100);
+  //                 toast.warning('GST% cannot be more than 100%');
+  //               } else {
+  //                 handlePaymentSchedule(i, 'gst', e.target.value);
+  //               }
+  //             }}
+  //           />
+  //         )}
+  //       </td>
+  //       <td>
+  //         <input readOnly className="form-control" type="number" value={e.installment_amount} />
+  //       </td>
+  //     </tr>
+  //   );
+  // };
+
   // booking form submission
   const onSubmit = async values => {
     const {
@@ -1018,10 +1322,9 @@ const BookingForm = () => {
           ownership_customer_first_name: Yup.string().required(
             `Ownership's first name is required`,
           ),
-          ownership_customer_phone: Yup.string().min(10, 'Please enter a valid mobile number').matches(
-            PHONE_REGEX,
-            'Please enter a valid Adhaar number',
-          ),
+          ownership_customer_phone: Yup.string()
+            .min(10, 'Please enter a valid mobile number')
+            .matches(PHONE_REGEX, 'Please enter a valid Adhaar number'),
           ownership_customer_aadhar: Yup.string().matches(
             ADHAAR_REGEX,
             'Please enter a valid Adhaar number',
@@ -1307,11 +1610,13 @@ const BookingForm = () => {
                       name="row-radio-buttons-group"
                     >
                       <FormControlLabel
+                        checked={values.through_broker}
                         control={<Radio onClick={() => setFieldValue('through_broker', true)} />}
                         label="Yes"
                         value="yes"
                       />
                       <FormControlLabel
+                        checked={!values.through_broker}
                         control={<Radio onClick={() => setFieldValue('through_broker', false)} />}
                         label="No"
                         value="no"
@@ -2166,7 +2471,80 @@ const BookingForm = () => {
             </div>
           </div>
 
-          {/* 12th section */}
+          {/* 12th section  */}
+          {/* <div className="booking-form-box shwan-form mt-4">
+            <div className="booking-form-col-12">
+              <h5>PAYMENT SCHEDULE</h5>
+
+              <div className="form-row">
+                <div className="col-6 ">
+                  <label>Select Payment Installment</label>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '1rem',
+                    }}
+                  >
+                    <Select
+                      closeMenuOnSelect={true}
+                      options={installmentOptions}
+                      placeholder="Select Payment Installment"
+                      styles={{
+                        container: base => ({
+                          ...base,
+                          marginTop: 10,
+                          marginBottom: 20,
+                          width: '25rem',
+                        }),
+                      }}
+                      onChange={e => {
+                        setInstallmentId(e.value);
+                        setShowInstall(false);
+                      }}
+                    />
+                    <button
+                      className="Btn btn-lightblue-primary lbps-btn py-2"
+                      id="butng"
+                      type="button"
+                      onClick={() => setShowInstall(true)}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <table className="table">
+                  <thead>
+                    <th>Sr No</th>
+                    <th>Installment Name</th>
+                    <th>Due Date</th>
+                    <th>%</th>
+                    <th>Basic Amount</th>
+                    <th>Other Charges Amount</th>
+                    <th>GST %</th>
+                    <th className="text-right">Installment Amount</th>
+                  </thead>
+                  <tbody>
+                    {showInstall && _installmentsList?.map((e, i) => PaymentSchedule(i, e))}
+
+                    total
+                    <tr>
+                      <td className="text-right font-weight-bold" colSpan={7}>
+                        Installments Total
+                      </td>
+                      <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div> */}
+
+          {/* 13th section */}
           <div className="booking-form-box shwan-form mt-4">
             <div className="booking-form-col-12">
               <h5>TERMS & CONDITIONS</h5>
