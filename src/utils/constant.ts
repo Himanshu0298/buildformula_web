@@ -13,7 +13,7 @@ export const PHONE_REGEX =
 
 export const HTML_REGEX = /(<([^>]+)>)/gi;
 export const DECIMAL_REGEX = /^\d+(\.\d{1,2})?$/;
-export const ADHAAR_REGEX = /^\d{4}\s\d{4}\s\d{4}$/;
+export const ADHAAR_REGEX = /\d{4}-\d{4}-\d{4}/i;
 
 export const PAN_REGEX =
   /^([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([a-zA-Z]([0-9]([0-9]([0-9]([0-9]([a-zA-Z])?)?)?)?)?)?)?)?)?)?$/;
