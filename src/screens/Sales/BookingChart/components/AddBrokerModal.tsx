@@ -46,6 +46,7 @@ const AddBrokerModal = ({ show, handleClose, project_id }) => {
       lastName: Yup.string().required('Required Field'),
       email: Yup.string().email('Invalid email address'),
       phone: Yup.string()
+        .required('Required Field')
         .min(10, 'Please enter a valid mobile number')
         .matches(PHONE_REGEX, 'Please enter a valid Adhaar number'),
     }),
