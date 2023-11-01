@@ -196,7 +196,7 @@ const BookingForm = () => {
     }));
 
     return [...visitorOptions, ...customerOptions];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visitorList]);
 
   // broker options
@@ -580,15 +580,10 @@ const BookingForm = () => {
           <td>
             <select
               className="form-control"
-              onChange={
-                x.amount_type === 'ratebase_amt'
-                  ? e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                    }
-                  : e => {
-                      handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
-                    }
-              }
+              onChange={e => {
+                handleOCListChange(i, 'other_charges_distribution_method', e.target.value);
+                handle_Other_Charge_Row_Total();
+              }}
             >
               <option disabled selected>
                 Select Distribution Method
@@ -1366,7 +1361,7 @@ const BookingForm = () => {
           ),
           ownership_customer_phone: Yup.string()
             .min(10, 'Please enter a valid mobile number')
-            .matches(PHONE_REGEX, 'Please enter a valid Adhaar number'),
+            .matches(PHONE_REGEX, 'Please enter a valid phone number'),
           ownership_customer_aadhar: Yup.string().matches(
             ADHAAR_REGEX,
             'Please enter a valid Adhaar number',
@@ -1559,7 +1554,7 @@ const BookingForm = () => {
                         {JSON.parse(JSON.stringify(err))}
                       </Typography>
                     </li>
-                  ) 
+                  );
                 })}
               </ul>
             </Box>
@@ -2021,7 +2016,7 @@ const BookingForm = () => {
                             className="form-control"
                             name="basic_rate"
                             placeholder="Amount"
-                              type="number"
+                            type="number"
                             value={values.basic_rate < 0 ? 0 : values.basic_rate}
                             onBlur={handleBlur}
                             onChange={handleChange}
@@ -2036,7 +2031,7 @@ const BookingForm = () => {
                             className="form-control mb-2"
                             name="basic_rate_disc_amt"
                             placeholder="Amount"
-                              type="number"
+                            type="number"
                             value={values.basic_rate_disc_amt}
                             onBlur={handleBlur}
                             onChange={discountSyncedFields.onChangeAmount}
@@ -2061,7 +2056,7 @@ const BookingForm = () => {
                             readOnly
                             className="form-control"
                             name="basic_rate_basic_amount"
-                              type="number"
+                            type="number"
                             value={
                               values.basic_rate_basic_amount < 0
                                 ? 0
