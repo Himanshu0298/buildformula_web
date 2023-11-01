@@ -41,7 +41,7 @@ import {
   ADHAAR_REGEX,
   DECIMAL_REGEX,
   DISTRIBUTION_METHOD,
-  handleNumberInput,
+  // handleNumberInput,
   HTML_REGEX,
   PAN_REGEX,
   PHONE_REGEX,
@@ -606,7 +606,7 @@ const BookingForm = () => {
               <input
                 readOnly
                 className="form-control"
-                type="text"
+                type="number"
                 value={x.area}
                 // onInput={handleNumberInput}
               />
@@ -616,7 +616,7 @@ const BookingForm = () => {
             <input
               readOnly
               className="form-control"
-              type="text"
+              type="number"
               value={
                 x.amount_type === 'ratebase_amt'
                   ? x.ratebase_amounts.toFixed(2)
@@ -633,7 +633,7 @@ const BookingForm = () => {
               className="form-control mb-2"
               name="other_charges_disc_amt"
               placeholder="Amount"
-              type="text"
+              type="number"
               value={x.other_charges_disc_amt !== undefined ? x.other_charges_disc_amt : 0}
               onChange={e => {
                 discountOtherCharges.onChangeAmount(e);
@@ -647,7 +647,7 @@ const BookingForm = () => {
               className="form-control"
               name="other_charges_disc_per"
               placeholder="%"
-              type="text"
+              type="number"
               value={x?.other_charges_disc_per !== undefined ? x.other_charges_disc_per : 0}
               onChange={e => {
                 discountOtherCharges.onChangePercent(e);
@@ -659,7 +659,7 @@ const BookingForm = () => {
             <input
               readOnly
               className="form-control"
-              type="text"
+              type="number"
               value={x.otherChargesTotal || 0}
               // onInput={handleNumberInput}
             />
@@ -860,7 +860,7 @@ const BookingForm = () => {
             <input
               readOnly
               className="form-control mb-2"
-              type="text"
+              type="number"
               value={x?.extra_charges_area}
               onChangeCapture={handleExtraChargesAreaChange}
               // onInput={handleNumberInput}
@@ -870,7 +870,7 @@ const BookingForm = () => {
         <td>
           <input
             className="form-control mb-2"
-            type="text"
+            type="number"
             value={x.extra_charges_rate}
             onChange={handleExtraChargesRateChange}
             // onInput={handleNumberInput}
@@ -884,7 +884,7 @@ const BookingForm = () => {
             className="form-control mb-2"
             name="extra_charges_disc_amt"
             placeholder="Amount"
-            type="text"
+            type="number"
             value={x.extra_charges_disc_amt}
             onChange={e => {
               handleExtraChargesDiscAmt(e), handle_Extra_Charge_Row_Total();
@@ -898,7 +898,7 @@ const BookingForm = () => {
             className="form-control"
             name="extra_charges_disc_per"
             placeholder="%"
-            type="text"
+            type="number"
             value={x.extra_charges_disc_per}
             onChange={e => {
               handleExtraChargesDiscPer(e), handle_Extra_Charge_Row_Total();
@@ -911,7 +911,7 @@ const BookingForm = () => {
           <input
             readOnly
             className="form-control mb-2"
-            type="text"
+            type="number"
             value={parseFloat(x.extra_charges_amt <= 0 ? 0 : x.extra_charges_amt).toFixed(2)}
             // onInput={handleNumberInput}
           />
@@ -1138,7 +1138,7 @@ const BookingForm = () => {
     return total.toFixed(2);
   };
 
-  const PaymentSchedule = (i, e) => {
+  const PaymentScheduleRow = (i, e) => {
     return (
       <tr key={`${i}_${e.id}`}>
         <td>{i + 1}</td>
@@ -1158,7 +1158,7 @@ const BookingForm = () => {
           {!e.lastRow && (
             <input
               className="form-control"
-              type="text"
+              type="number"
               value={e.percentage}
               // onInput={handleNumberInput}
             />
@@ -1168,7 +1168,7 @@ const BookingForm = () => {
           {!e.lastRow && (
             <input
               className="form-control"
-              type="text"
+              type="number"
               value={e.installment_basic_amt}
               // onInput={handleNumberInput}
             />
@@ -1177,7 +1177,7 @@ const BookingForm = () => {
         <td>
           <input
             className="form-control"
-            type="text"
+            type="number"
             value={e.installment_otherchages_amt}
             onChange={e => {
               handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
@@ -1190,7 +1190,7 @@ const BookingForm = () => {
             <input
               className="form-control"
               maxLength={100}
-              type="text"
+              type="number"
               value={e.gst}
               onChange={e => {
                 if (parseFloat(e.target.value) > 100) {
@@ -1208,7 +1208,7 @@ const BookingForm = () => {
           <input
             readOnly
             className="form-control"
-            type="text"
+            type="number"
             value={e.installment_amount}
             // onInput={handleNumberInput}
           />
@@ -1939,7 +1939,7 @@ const BookingForm = () => {
                             readOnly
                             className="form-control"
                             name="basic_rate_area"
-                            type="text"
+                            type="number"
                             value={values?.basic_rate_area}
                             onBlur={handleBlur}
                             // onInput={handleNumberInput}
@@ -1949,7 +1949,7 @@ const BookingForm = () => {
                           <input
                             className="form-control"
                             name="basic_rate"
-                            type="text"
+                            type="number"
                             value={values.basic_rate}
                             onBlur={handleBlur}
                             onChange={e => setFieldValue('basic_rate', e.target.value)}
@@ -1964,7 +1964,7 @@ const BookingForm = () => {
                             className="form-control mb-2"
                             name="basic_rate_disc_amt"
                             placeholder="Amount"
-                            type="text"
+                            type="number"
                             value={values.basic_rate_disc_amt}
                             onBlur={handleBlur}
                             onChange={discountSyncedFields.onChangeAmount}
@@ -1977,7 +1977,7 @@ const BookingForm = () => {
                             className="form-control"
                             name="basic_rate_disc_per"
                             placeholder="%"
-                            type="text"
+                            type="number"
                             value={values.basic_rate_disc_per}
                             onBlur={handleBlur}
                             onChange={discountSyncedFields.onChangePercent}
@@ -1989,7 +1989,7 @@ const BookingForm = () => {
                             readOnly
                             className="form-control"
                             name="basic_rate_basic_amount"
-                            type="text"
+                            type="number"
                             value={values.basic_rate_basic_amount.toFixed(2)}
                             onBlur={handleBlur}
                             onChange={handleChange}
@@ -2020,7 +2020,7 @@ const BookingForm = () => {
                             className="form-control"
                             name="basic_rate"
                             placeholder="Amount"
-                            type="text"
+                              type="number"
                             value={values.basic_rate < 0 ? 0 : values.basic_rate}
                             onBlur={handleBlur}
                             onChange={handleChange}
@@ -2035,7 +2035,7 @@ const BookingForm = () => {
                             className="form-control mb-2"
                             name="basic_rate_disc_amt"
                             placeholder="Amount"
-                            type="number"
+                              type="number"
                             value={values.basic_rate_disc_amt}
                             onBlur={handleBlur}
                             onChange={discountSyncedFields.onChangeAmount}
@@ -2060,7 +2060,7 @@ const BookingForm = () => {
                             readOnly
                             className="form-control"
                             name="basic_rate_basic_amount"
-                            type="text"
+                              type="number"
                             value={
                               values.basic_rate_basic_amount < 0
                                 ? 0
@@ -2160,7 +2160,7 @@ const BookingForm = () => {
                   <input
                     readOnly
                     className="form-control"
-                    type="text"
+                    type="number"
                     value={
                       values.calculation_method
                         ? (
@@ -2182,7 +2182,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="gst_per"
-                    type="text"
+                    type="number"
                     value={values.gst_per}
                     onChange={gstSyncedFields.onChangePercent}
                     // onInput={handleNumberInput}
@@ -2193,7 +2193,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="gst_amt"
-                    type="text"
+                    type="number"
                     value={values.gst_amt}
                     onChange={gstSyncedFields.onChangeAmount}
                     // onInput={handleNumberInput}
@@ -2209,7 +2209,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="stampduty_per"
-                    type="text"
+                    type="number"
                     value={values.stampduty_per}
                     onChange={stampDutySyncedFields.onChangePercent}
                     // onInput={handleNumberInput}
@@ -2220,7 +2220,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="stampduty_amount"
-                    type="text"
+                    type="number"
                     value={values.stampduty_amount}
                     onChange={stampDutySyncedFields.onChangeAmount}
                     // onInput={handleNumberInput}
@@ -2236,7 +2236,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="reg_per"
-                    type="text"
+                    type="number"
                     value={values.reg_per}
                     onChange={registrationSyncedFields.onChangePercent}
                     // onInput={handleNumberInput}
@@ -2247,7 +2247,7 @@ const BookingForm = () => {
                   <input
                     className="form-control"
                     name="reg_amount"
-                    type="text"
+                    type="number"
                     value={values.reg_amount}
                     onChange={registrationSyncedFields.onChangeAmount}
                     // onInput={handleNumberInput}
@@ -2603,7 +2603,7 @@ const BookingForm = () => {
                     <th className="text-right">Installment Amount</th>
                   </thead>
                   <tbody>
-                    {showInstall && _installmentsList?.map((e, i) => PaymentSchedule(i, e))}
+                    {showInstall && _installmentsList?.map((e, i) => PaymentScheduleRow(i, e))}
                     total
                     <tr>
                       <td className="text-right font-weight-bold" colSpan={7}>
