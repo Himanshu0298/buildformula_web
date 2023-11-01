@@ -171,3 +171,8 @@ export const DISTRIBUTION_METHOD = [
   'Connect with last installment',
   'Dont connect with installment',
 ];
+
+export const handleNumberInput = event => {
+  const inputValue = event.target.value.replace(/[^0-9.]+/g, '').replace(/(\..*)\./g, '$1');
+  event.target.value = inputValue;
+};
