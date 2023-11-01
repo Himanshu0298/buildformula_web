@@ -12,11 +12,12 @@ import { Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Countdown from 'react-countdown';
 import InputMask from 'react-input-mask';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import {
   addBooking,
+  getApprovalUnitDetails,
   getAreaInfo,
   getBankList,
   getBookingFormOwnerFlag,
@@ -43,7 +44,6 @@ import {
   HTML_REGEX,
   PAN_REGEX,
   PHONE_REGEX,
-  STAGING_REDIRECT,
 } from 'utils/constant';
 import * as Yup from 'yup';
 
@@ -53,8 +53,13 @@ import AddCustomerModal from './components/AddCustomerModal';
 const BookingForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const errorBoxRef = useRef<HTMLInputElement>(null);
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+
+  const errorBoxRef = useRef<HTMLInputElement>(null);
+  const { project_bookings_temp_id } = location.state || {};
+
+  const edit = !!project_bookings_temp_id;
 
   // url params
   const project_id = searchParams.get('project_id');
@@ -66,8 +71,7 @@ const BookingForm = () => {
   const project_list_id = searchParams.get('project_list_id') || '1';
 
   // old site navigation
-  const OLD_SITE = `${STAGING_REDIRECT}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
-  // const OLD_SITE_NAV = window.location.replace(OLD_SITE);
+  const OLD_SITE = `${process.env.REACT_APP_REDIRECT_URL}booking_units/${pid}/${project_list_id}/6/${tower_id}`;
 
   // redux state values
   const {
@@ -84,12 +88,13 @@ const BookingForm = () => {
     projectUnitStatus,
     ownership_validation_flag,
     loading,
-    installmentsList,
-    installmentsInformation,
+    approvalBookingDetails,
   } = useAppSelector(s => s.sales);
 
   const VALIDATION_REQUIRED_OWNERSHIP =
     ownership_validation_flag?.booking_ownership === 'yes' ? true : false;
+
+  const { booking_form_list: oldBookingData } = approvalBookingDetails || {};
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
@@ -130,8 +135,8 @@ const BookingForm = () => {
     return {
       project_id,
       unit_id: unit_id,
-      visitors_id: customerDetails?.id,
-      broker_id: 0,
+      visitors_id: edit ? oldBookingData?.visitors_id : customerDetails?.id,
+      broker_id: edit ? oldBookingData.broker_id : 0,
       through_broker: false,
       brokerage: 0,
       broker_remark: '',
@@ -246,6 +251,15 @@ const BookingForm = () => {
         id: project_list_id,
       }),
     );
+    if (edit) {
+      dispatch(
+        getApprovalUnitDetails({
+          project_id,
+          project_bookings_temp_id,
+          unit_id,
+        }),
+      );
+    }
     dispatch(getUnitInfo({ project_id, tower_id }));
     dispatch(getUnitParkingInfo({ project_id }));
     dispatch(getCustomersList({ project_id }));
@@ -297,6 +311,22 @@ const BookingForm = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerDetails]);
+
+  useEffect(() => {
+    if (edit) {
+      const brokerID = oldBookingData?.broker_id !== null ? oldBookingData?.broker_id : 0;
+
+      if (brokerID) {
+        setFieldValue('broker_id', brokerID);
+        setFieldValue('through_broker', true);
+
+        const brokerDetails = brokerList?.find(e => e.id === brokerID);
+
+        setBrokerDetails(brokerDetails);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edit]);
 
   // other charges update, delete
   const handleTotalOtherCharge = useCallback(() => {

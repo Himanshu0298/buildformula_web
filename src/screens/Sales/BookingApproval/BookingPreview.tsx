@@ -1,5 +1,6 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
+  AppBar,
   Box,
   Button,
   Grid,
@@ -21,7 +22,7 @@ import { styled } from '@mui/system';
 import Loader from 'components/atoms/Loader';
 import { Formik } from 'formik';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   getApprovalUnitDetails,
   getBookingApprovalList,
@@ -36,6 +37,17 @@ const schema = Yup.object().shape({
   // rejected_remarks: Yup.string().required('Required'),
 });
 
+const PageHeader = styled(AppBar)`
+  background: #f6f7fb;
+  box-shadow: none;
+  color: #041d36;
+  flex-direction: row;
+  align-items: center;
+  padding: 10px 20px 10px 40px;
+  justify-content: space-between;
+  border-bottom: 0.5px solid #d7d3d373;
+`;
+
 const ApproveBtn = styled(Button)`
   background: rgba(72, 114, 244, 0.1);
   color: #4872f4;
@@ -45,6 +57,7 @@ const ApproveBtn = styled(Button)`
   transition: background-color 0.3s;
   border-radius: 8px;
   box-shadow: none;
+  text-transform: none;
   &:hover {
     color: #fff;
     background-color: #4872f4;
@@ -61,6 +74,7 @@ const RejectBtn = styled(Button)`
   transition: background-color 0.5s;
   border-radius: 8px;
   box-shadow: none;
+  text-transform: none;
   &:hover {
     background-color: #ff5d5d;
     color: #fff;
@@ -308,7 +322,7 @@ const CalculationMethod = ({ calcMethodData }) => {
     basic_rate_no,
   } = calcMethodData?.booking_form_list || {};
 
-  const calculationMethod = calculation_method === 'fixied_amt' ? 'Fixed Amount' : 'Rate Based'
+  const calculationMethod = calculation_method === 'fixied_amt' ? 'Fixed Amount' : 'Rate Based';
 
   const _basic_rate_area = calculation_method === 'fixied_amt' ? '-' : basic_rate_area;
 
@@ -874,10 +888,14 @@ const TermsandCondition = ({ TearmsAndConditionData }) => {
 const BookingPreview = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // url params
+  const token = searchParams.get('token');
 
   const [isRejectDialogVisible, setRejectDialogVisible] = useState(false);
 
-  const location = useLocation();
   const { bookingid: project_bookings_temp_id, unitid: unit_id, project_id } = location.state || {};
   const { approvalBookingDetails, visitorDetail, loading } = useAppSelector(s => s.sales);
 
@@ -890,6 +908,10 @@ const BookingPreview = () => {
 
   const handleBack = () => {
     navigate(-1);
+  };
+  // &tower_id=${tower_id}&floor_id=${floor_id}
+  const navToEdit = () => {
+    navigate(`/bookingChart?token=${token}&project_id=${project_id}&unit_id=${unit_id}`, { state: { project_bookings_temp_id } });
   };
 
   useEffect(() => {
@@ -948,18 +970,81 @@ const BookingPreview = () => {
   return (
     <>
       <Loader loading={loading} />
-      <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, marginLeft: 40 }}>
-        <IconButton style={{ backgroundColor: '#e5eafa', color: '#4872f4' }} onClick={handleBack}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography
-          component="h2"
-          style={{ marginLeft: 12, marginBottom: 5, marginTop: 10, paddingLeft: 10 }}
-          variant="h4"
-        >
-          Booking Preview
-        </Typography>
-      </div>
+      <PageHeader position="sticky">
+        <Box className="d-flex align-item-center">
+          <IconButton style={{ backgroundColor: '#e5eafa', color: '#4872f4' }} onClick={handleBack}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography style={{ marginLeft: 12, paddingLeft: 10 }} variant="h5">
+            Booking Preview
+          </Typography>
+        </Box>
+        <Box className="d-flex align-item-center">
+          <ApproveBtn variant="contained" onClick={navToEdit}>
+            Edit
+          </ApproveBtn>
+          {formStatus === 'pending' ? (
+            <div style={styles.btnWrapper}>
+              <div>
+                <ApproveBtn variant="contained" onClick={() => handleStatusUpdate('approved')}>
+                  Approve
+                </ApproveBtn>
+              </div>
+              <div>
+                <RejectBtn variant="contained" onClick={toggleRejectDialog}>
+                  Reject
+                </RejectBtn>
+              </div>
+            </div>
+          ) : null}
+          {isRejectDialogVisible ? (
+            <Dialog open={isRejectDialogVisible} onClose={toggleRejectDialog}>
+              <DialogTitle className="pb-0">Reject Booking Form</DialogTitle>
+              <DialogContent>
+                <Formik
+                  enableReinitialize
+                  initialValues={{ rejected_remarks: '' }}
+                  validateOnBlur={false}
+                  validateOnChange={false}
+                  validationSchema={schema}
+                  onSubmit={(values, { setSubmitting }) =>
+                    handleFormSubmit(values, setSubmitting, 'rejected')
+                  }
+                >
+                  {({ values, handleBlur, handleChange, handleSubmit, isSubmitting }) => (
+                    <form onSubmit={handleSubmit}>
+                      <TextField
+                        fullWidth
+                        hiddenLabel
+                        className="my-3"
+                        label="Reject Remarks"
+                        name="rejected_remarks"
+                        placeholder="Enter Remarks"
+                        value={values.rejected_remarks}
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                      />
+                      <Box className="mt-2">
+                        <RejectBtn
+                          className="ml-0"
+                          disabled={isSubmitting}
+                          type="submit"
+                          variant="contained"
+                        >
+                          Reject
+                        </RejectBtn>
+                        <ApproveBtn variant="contained" onClick={toggleRejectDialog}>
+                          Cancel
+                        </ApproveBtn>
+                      </Box>
+                    </form>
+                  )}
+                </Formik>
+              </DialogContent>
+            </Dialog>
+          ) : null}
+        </Box>
+      </PageHeader>
       {/* Section 1: Customer Details */}
       <CustomerDetails brokerData={approvalBookingDetails} customerData={visitorDetail} />
 
@@ -995,67 +1080,6 @@ const BookingPreview = () => {
 
       {/* Section 11: Terms And Condition */}
       <TermsandCondition TearmsAndConditionData={approvalBookingDetails} />
-
-      {formStatus === 'pending' ? (
-        <div style={styles.btnWrapper}>
-          <div>
-            <ApproveBtn variant="contained" onClick={() => handleStatusUpdate('approved')}>
-              Approve
-            </ApproveBtn>
-          </div>
-          <div>
-            <RejectBtn variant="contained" onClick={toggleRejectDialog}>
-              Reject
-            </RejectBtn>
-          </div>
-        </div>
-      ) : null}
-      {isRejectDialogVisible ? (
-        <Dialog open={isRejectDialogVisible} onClose={toggleRejectDialog}>
-          <DialogTitle className="pb-0">Reject Booking Form</DialogTitle>
-          <DialogContent>
-            <Formik
-              enableReinitialize
-              initialValues={{ rejected_remarks: '' }}
-              validateOnBlur={false}
-              validateOnChange={false}
-              validationSchema={schema}
-              onSubmit={(values, { setSubmitting }) =>
-                handleFormSubmit(values, setSubmitting, 'rejected')
-              }
-            >
-              {({ values, handleBlur, handleChange, handleSubmit, isSubmitting }) => (
-                <form onSubmit={handleSubmit}>
-                  <TextField
-                    fullWidth
-                    hiddenLabel
-                    className="my-3"
-                    label="Reject Remarks"
-                    name="rejected_remarks"
-                    placeholder="Enter Remarks"
-                    value={values.rejected_remarks}
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                  />
-                  <Box className="mt-2">
-                    <RejectBtn
-                      className="ml-0"
-                      disabled={isSubmitting}
-                      type="submit"
-                      variant="contained"
-                    >
-                      Reject
-                    </RejectBtn>
-                    <ApproveBtn variant="contained" onClick={toggleRejectDialog}>
-                      Cancel
-                    </ApproveBtn>
-                  </Box>
-                </form>
-              )}
-            </Formik>
-          </DialogContent>
-        </Dialog>
-      ) : null}
     </>
   );
 };
@@ -1064,7 +1088,7 @@ const styles = {
   btnWrapper: {
     display: 'flex',
     justifyContent: 'flex-start',
-    margin: '20px 30px',
+    // margin: '20px 30px',
   },
 };
 
