@@ -279,7 +279,7 @@ const BookingForm = () => {
     setOCList(otherChargesList);
     handle_Other_Charge_Row_Total();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otherChargesList, unitAreaInfo]);
+  }, [otherChargesList, unitAreaInfo, OCList]);
 
   useEffect(() => {
     handle_Extra_Charge_Row_Total();
@@ -303,7 +303,7 @@ const BookingForm = () => {
     handleUpdateExtraCharges();
     handle_Extra_Charge_Row_Total();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [extraChargesList, otherChargesList, unitAreaInfo]);
+  }, [extraChargesList, unitAreaInfo]);
 
   // installment calculations
   useEffect(() => {
@@ -315,6 +315,7 @@ const BookingForm = () => {
           installment_otherchages_amt: 0,
           gst: 0,
           installment_amount: 0,
+          installment_per: 0
         })) || [];
 
       updatedList.push({
@@ -1102,7 +1103,7 @@ const BookingForm = () => {
   };
 
   // installments
-  const handlePaymentSchedule = (index, field, value) => {
+  const handlePaymentScheduleUpdate = (index, field, value) => {
     setInstallmentsList(prevList => {
       const newUnitRates = [...prevList];
       newUnitRates[index] = {
@@ -1119,6 +1120,7 @@ const BookingForm = () => {
       const totalPaymentSchedule = basicAmount + otherChargesAmt + gstAmount;
 
       newUnitRates[index].installment_basic_amt = parseFloat(basicAmount.toFixed(2));
+      // newUnitRates[index].installment_per = parseFloat(newUnitRates[index].percentage) || 0;
 
       newUnitRates[index].installment_amount = totalPaymentSchedule.toFixed(2);
 
@@ -1145,7 +1147,7 @@ const BookingForm = () => {
             type="date"
             value={e.date}
             onChange={x => {
-              handlePaymentSchedule(i, 'date', x.target.value);
+              handlePaymentScheduleUpdate(i, 'installment_due_date', x.target.value);
             }}
           />
         </td>
@@ -1154,8 +1156,11 @@ const BookingForm = () => {
           {!e.lastRow && (
             <input
               className="form-control"
-              type="number"
-              value={e.percentage}
+              type="text"
+              value={e.installment_per}
+              onChange={x => {
+                handlePaymentScheduleUpdate(i, 'installment_per', x.target.value);
+              }}
               // onInput={handleNumberInput}
             />
           )}
@@ -1163,6 +1168,7 @@ const BookingForm = () => {
         <td>
           {!e.lastRow && (
             <input
+              readOnly
               className="form-control"
               type="number"
               value={e.installment_basic_amt}
@@ -1172,11 +1178,12 @@ const BookingForm = () => {
         </td>
         <td>
           <input
+            readOnly
             className="form-control"
             type="number"
             value={e.installment_otherchages_amt}
             onChange={e => {
-              handlePaymentSchedule(i, 'installment_otherchages_amt', e.target.value);
+              handlePaymentScheduleUpdate(i, 'installment_otherchages_amt', e.target.value);
             }}
             // onInput={handleNumberInput}
           />
@@ -1190,15 +1197,25 @@ const BookingForm = () => {
               value={e.gst}
               onChange={e => {
                 if (parseFloat(e.target.value) > 100) {
-                  handlePaymentSchedule(i, 'gst', 100);
+                  handlePaymentScheduleUpdate(i, 'gst', 100);
                   toast.warning('GST% cannot be more than 100%');
                 } else {
-                  handlePaymentSchedule(i, 'gst', e.target.value);
+                  handlePaymentScheduleUpdate(i, 'gst', e.target.value);
                 }
               }}
               // onInput={handleNumberInput}
             />
           )}
+        </td>
+        <td>
+          <input
+          readOnly
+            className="form-control"
+            maxLength={100}
+            type="number"
+            value={e.installment_otherchages_amt}
+            // onInput={handleNumberInput}
+          />
         </td>
         <td>
           <input
@@ -1891,6 +1908,7 @@ const BookingForm = () => {
                         value={'rate_base'}
                         onChange={e => {
                           handleChange(e);
+                          handle_Other_Charge_Row_Total();
                         }}
                       />
                     </Col>
@@ -1903,6 +1921,7 @@ const BookingForm = () => {
                         value={'fixed_amount'}
                         onChange={e => {
                           handleChange(e);
+                          handle_Other_Charge_Row_Total();
                         }}
                       />
                     </Col>
@@ -2596,13 +2615,13 @@ const BookingForm = () => {
                     <th>Basic Amount</th>
                     <th>Other Charges Amount</th>
                     <th>GST %</th>
+                    <th>Extra Charges Amount</th>
                     <th className="text-right">Installment Amount</th>
                   </thead>
                   <tbody>
                     {showInstall && _installmentsList?.map((e, i) => PaymentScheduleRow(i, e))}
-                    total
                     <tr>
-                      <td className="text-right font-weight-bold" colSpan={7}>
+                      <td className="text-right font-weight-bold" colSpan={8}>
                         Installments Total
                       </td>
                       <td className="text-right">₹ {handleTotalPaymentCharge()}</td>
