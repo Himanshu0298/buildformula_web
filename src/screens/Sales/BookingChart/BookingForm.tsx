@@ -196,7 +196,8 @@ const BookingForm = () => {
     }));
 
     return [...visitorOptions, ...customerOptions];
-  }, [visitorList, customerList]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visitorList]);
 
   // broker options
   const brokerOptions = useMemo(() => {

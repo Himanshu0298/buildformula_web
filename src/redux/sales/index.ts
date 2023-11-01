@@ -434,6 +434,7 @@ const salesSlice = createSlice({
     builder.addCase(getBrokerList.fulfilled, (state, action) => {
       return {
         ...state,
+        loading: false,
         brokerList: action?.payload,
       };
     });
