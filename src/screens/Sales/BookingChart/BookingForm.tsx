@@ -22,8 +22,6 @@ import {
   getBookingFormOwnerFlag,
   getBrokerList,
   getCustomersList,
-  getInstallmentDetails,
-  getInstallmentOptions,
   getOtherChargesList,
   getOtherExtraCharges,
   getProjectUnitStatus,
@@ -95,7 +93,6 @@ const BookingForm = () => {
 
   const [show, setShow] = useState(false);
   const [showBroker, setShowBroker] = useState(false);
-  const [showInstall, setShowInstall] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<IVisitor>();
   const [brokerDetails, setBrokerDetails] = useState<IBroker>();
   const [isToggle, setIsToggle] = useState(true);
@@ -258,7 +255,6 @@ const BookingForm = () => {
     dispatch(getAreaInfo({ project_id, project_main_types: 6, unit_id }));
     dispatch(getTermsnConditions({ project_id }));
     dispatch(getBookingFormOwnerFlag({ project_id }));
-    dispatch(getInstallmentOptions({ project_id }));
     dispatch(getBankList());
     dispatch(updateFormFillingStatus({ project_id, unit_id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
